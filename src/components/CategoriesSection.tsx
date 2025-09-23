@@ -1,4 +1,5 @@
 import { CategoryCard } from "./CategoryCard";
+import { Link } from "react-router-dom";
 import dishLibraryImg from "@/assets/dish-library.jpg";
 import dishOfDayImg from "@/assets/dish-of-day.jpg";
 import ingredientFinderImg from "@/assets/ingredient-finder.jpg";
@@ -38,13 +39,13 @@ export const CategoriesSection = () => {
         <h2 className="text-2xl font-bold text-foreground mb-8">Discover Recipes</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {categories.map((category, index) => (
-            <CategoryCard
-              key={index}
-              title={category.title}
-              description={category.description}
-              image={category.image}
-              href={category.href}
-            />
+            <Link key={index} to={category.href} className="group">
+              <CategoryCard
+                title={category.title}
+                description={category.description}
+                image={category.image}
+              />
+            </Link>
           ))}
         </div>
       </div>
