@@ -11,7 +11,7 @@ export const Footer = () => {
               <Utensils className="h-8 w-8 text-primary" />
               <span className="text-xl font-bold">The Pantry</span>
             </div>
-            <p className="mt-2 text-secondary-foreground/80">Your smart kitchen assistant</p>
+            <p className="mt-2 text-secondary-foreground/80">Ihr smarter Küchenassistent</p>
           </div>
           
           <div className="flex space-x-4">

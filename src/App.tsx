@@ -8,6 +8,7 @@ import DishLibrary from "./pages/DishLibrary";
 import DishOfTheDay from "./pages/DishOfTheDay";
 import IngredientFinder from "./pages/IngredientFinder";
 import WeeklyCalendar from "./pages/WeeklyCalendar";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/dish-of-the-day" element={<DishOfTheDay />} />
           <Route path="/ingredient-finder" element={<IngredientFinder />} />
           <Route path="/weekly-calendar" element={<WeeklyCalendar />} />
+          <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { dinnerDishes, type Dish } from "@/data/dishes";
-import { ArrowLeft, Calendar, Plus, X, Search, Save } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 type WeeklyMeals = {
   [key: string]: Dish | null;
@@ -25,6 +28,10 @@ const daysOfWeek = [
 ];
 
 export default function WeeklyCalendar() {
+  const { user, isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
   const [weeklyMeals, setWeeklyMeals] = useState<WeeklyMeals>({
     monday: null,
     tuesday: null,
@@ -38,8 +45,66 @@ export default function WeeklyCalendar() {
   const [showDishSelector, setShowDishSelector] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState<string>("all");
+  const [saving, setSaving] = useState(false);
 
   const cuisines = Array.from(new Set(dinnerDishes.map(dish => dish.cuisine))).sort();
+
+  // Load existing meal plan when user logs in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      loadMealPlan();
+    }
+  }, [isAuthenticated, user]);
+
+  const getWeekStartDate = () => {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+    return new Date(today.setDate(diff));
+  };
+
+  const loadMealPlan = async () => {
+    if (!user) return;
+    
+    const weekStart = getWeekStartDate();
+    const weekStartString = weekStart.toISOString().split('T')[0];
+    
+    try {
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('week_start_date', weekStartString);
+
+      if (error) {
+        console.error('Error loading meal plan:', error);
+        return;
+      }
+
+      if (data) {
+        const loadedMeals: WeeklyMeals = {
+          monday: null,
+          tuesday: null,
+          wednesday: null,
+          thursday: null,
+          friday: null,
+          saturday: null,
+          sunday: null
+        };
+
+        data.forEach(mealPlan => {
+          const dish = dinnerDishes.find(d => d.name === mealPlan.dish_name);
+          if (dish) {
+            loadedMeals[mealPlan.day_of_week as keyof WeeklyMeals] = dish;
+          }
+        });
+
+        setWeeklyMeals(loadedMeals);
+      }
+    } catch (error) {
+      console.error('Error loading meal plan:', error);
+    }
+  };
 
   const filteredDishes = dinnerDishes.filter(dish => {
     const matchesSearch = dish.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -62,8 +127,10 @@ export default function WeeklyCalendar() {
     }));
   };
 
-  const clearWeek = () => {
-    setWeeklyMeals({
+  const clearWeek = async () => {
+    if (!isAuthenticated) return;
+    
+    const newMeals = {
       monday: null,
       tuesday: null,
       wednesday: null,
@@ -71,13 +138,97 @@ export default function WeeklyCalendar() {
       friday: null,
       saturday: null,
       sunday: null
-    });
+    };
+    
+    setWeeklyMeals(newMeals);
+    
+    if (user) {
+      const weekStart = getWeekStartDate();
+      const weekStartString = weekStart.toISOString().split('T')[0];
+      
+      try {
+        const { error } = await supabase
+          .from('meal_plans')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('week_start_date', weekStartString);
+
+        if (error) {
+          console.error('Error clearing week:', error);
+          toast({
+            title: "Fehler",
+            description: "Fehler beim Löschen des Wochenplans",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Woche gelöscht",
+            description: "Ihr Wochenplan wurde erfolgreich gelöscht"
+          });
+        }
+      } catch (error) {
+        console.error('Error clearing week:', error);
+      }
+    }
   };
 
-  const saveMealPlan = () => {
-    // This would normally save to a database
-    // For now, we'll show a message about needing Supabase
-    alert("Um Ihren Wochenplan zu speichern, müssen Sie Supabase verbinden. Klicken Sie auf den grünen Supabase-Button oben rechts.");
+  const saveMealPlan = async () => {
+    if (!isAuthenticated) {
+      navigate('/auth');
+      return;
+    }
+
+    setSaving(true);
+    
+    try {
+      const weekStart = getWeekStartDate();
+      const weekStartString = weekStart.toISOString().split('T')[0];
+      
+      // First, delete existing meal plans for this week
+      const { error: deleteError } = await supabase
+        .from('meal_plans')
+        .delete()
+        .eq('user_id', user!.id)
+        .eq('week_start_date', weekStartString);
+
+      if (deleteError) {
+        throw deleteError;
+      }
+
+      // Then, insert new meal plans
+      const mealPlansToInsert = Object.entries(weeklyMeals)
+        .filter(([_, dish]) => dish !== null)
+        .map(([day, dish]) => ({
+          user_id: user!.id,
+          week_start_date: weekStartString,
+          day_of_week: day,
+          dish_name: dish!.name
+        }));
+
+      if (mealPlansToInsert.length > 0) {
+        const { error: insertError } = await supabase
+          .from('meal_plans')
+          .insert(mealPlansToInsert);
+
+        if (insertError) {
+          throw insertError;
+        }
+      }
+
+      toast({
+        title: "Erfolgreich gespeichert!",
+        description: "Ihr Wochenplan wurde erfolgreich gespeichert"
+      });
+    } catch (error) {
+      console.error('Error saving meal plan:', error);
+      toast({
+        title: "Fehler",
+        description: "Fehler beim Speichern des Wochenplans",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const getWeekProgress = () => {
@@ -105,13 +256,22 @@ export default function WeeklyCalendar() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={clearWeek}>
-                Woche löschen
-              </Button>
-              <Button onClick={saveMealPlan} className="flex items-center gap-2">
-                <Save className="h-4 w-4" />
-                Speichern
-              </Button>
+              {isAuthenticated ? (
+                <>
+                  <Button variant="outline" onClick={clearWeek}>
+                    Woche löschen
+                  </Button>
+                  <Button onClick={saveMealPlan} className="flex items-center gap-2" disabled={saving}>
+                    <Save className="h-4 w-4" />
+                    {saving ? "Wird gespeichert..." : "Speichern"}
+                  </Button>
+                </>
+              ) : (
+                <Button onClick={() => navigate('/auth')} className="flex items-center gap-2">
+                  <LogIn className="h-4 w-4" />
+                  Anmelden zum Speichern
+                </Button>
+              )}
             </div>
           </div>
 
@@ -266,27 +426,29 @@ export default function WeeklyCalendar() {
             </div>
           )}
 
-          {/* Save Notice */}
-          <Card className="mt-8 bg-primary/5 border-primary/20">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <Calendar className="h-6 w-6 text-primary mt-1" />
-                <div>
-                  <h3 className="font-semibold text-foreground mb-2">
-                    Wochenplan speichern
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    Um Ihren Wochenplan dauerhaft zu speichern und von überall darauf zugreifen zu können, 
-                    verbinden Sie Ihr Projekt mit Supabase. Klicken Sie dazu auf den grünen Supabase-Button 
-                    oben rechts in der Benutzeroberfläche.
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Mit Supabase können Sie Ihre Mahlzeitenpläne speichern, bearbeiten und mit anderen teilen.
-                  </p>
+          {/* Save Notice - Only show if not authenticated */}
+          {!isAuthenticated && (
+            <Card className="mt-8 bg-primary/5 border-primary/20">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <LogIn className="h-6 w-6 text-primary mt-1" />
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-2">
+                      Anmelden zum Speichern
+                    </h3>
+                    <p className="text-muted-foreground mb-4">
+                      Um Ihren Wochenplan dauerhaft zu speichern und von überall darauf zugreifen zu können, 
+                      melden Sie sich an oder erstellen Sie ein kostenloses Konto.
+                    </p>
+                    <Button onClick={() => navigate('/auth')} className="flex items-center gap-2">
+                      <LogIn className="h-4 w-4" />
+                      Jetzt anmelden
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
 

@@ -7,12 +7,12 @@ export const HeroSection = () => {
     <section className="py-16 px-4 gradient-hero">
       <div className="max-w-3xl mx-auto text-center">
         <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-          What's cooking today?
+          Was kochen wir heute?
         </h1>
         <div className="relative max-w-xl mx-auto">
           <Input 
             type="text" 
-            placeholder="What's in your fridge?" 
+            placeholder="Was ist in Ihrem Kühlschrank?" 
             className="w-full py-6 px-6 pr-14 rounded-full shadow-card text-lg border-0 focus-visible:ring-2 focus-visible:ring-primary"
           />
           <Button 
