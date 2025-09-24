@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      meal_plans: {
+        Row: {
+          created_at: string
+          day_of_week: string
+          dish_name: string
+          id: string
+          updated_at: string
+          user_id: string
+          week_start_date: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: string
+          dish_name: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          week_start_date?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: string
+          dish_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          week_start_date?: string
+        }
+        Relationships: []
+      }
+      Users: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
