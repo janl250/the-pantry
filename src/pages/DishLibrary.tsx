@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { dinnerDishes, type Dish } from "@/data/dishes";
 import { ArrowLeft, Search, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function DishLibrary() {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState<string>("all");
   const [selectedCookingTime, setSelectedCookingTime] = useState<string>("all");
@@ -50,13 +52,13 @@ export default function DishLibrary() {
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             <Link to="/">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="hover:bg-accent">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Dish Library</h1>
-              <p className="text-muted-foreground mt-2">Discover {dinnerDishes.length} delicious dinner recipes</p>
+              <h1 className="text-3xl font-bold text-foreground">{t('dishLibrary.title')}</h1>
+              <p className="text-muted-foreground mt-2">{dinnerDishes.length} {t('dishLibrary.results')}</p>
             </div>
           </div>
 
@@ -65,7 +67,7 @@ export default function DishLibrary() {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Search dishes or ingredients..."
+                placeholder={t('dishLibrary.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -80,10 +82,10 @@ export default function DishLibrary() {
 
               <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Cuisine" />
+                  <SelectValue placeholder={t('dishLibrary.filters.cuisine')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Cuisines</SelectItem>
+                  <SelectItem value="all">{t('dishLibrary.filters.all')}</SelectItem>
                   {cuisines.map(cuisine => (
                     <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
                   ))}
@@ -92,42 +94,42 @@ export default function DishLibrary() {
 
               <Select value={selectedCookingTime} onValueChange={setSelectedCookingTime}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Time" />
+                  <SelectValue placeholder={t('dishLibrary.filters.cookingTime')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Times</SelectItem>
-                  <SelectItem value="quick">Quick (&lt; 30min)</SelectItem>
-                  <SelectItem value="medium">Medium (30-60min)</SelectItem>
-                  <SelectItem value="long">Long (&gt; 60min)</SelectItem>
+                  <SelectItem value="all">{t('dishLibrary.filters.all')}</SelectItem>
+                  <SelectItem value="quick">{t('dishLibrary.filters.quick')}</SelectItem>
+                  <SelectItem value="medium">{t('dishLibrary.filters.medium')}</SelectItem>
+                  <SelectItem value="long">{t('dishLibrary.filters.long')}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Difficulty" />
+                  <SelectValue placeholder={t('dishLibrary.filters.difficulty')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
+                  <SelectItem value="all">{t('dishLibrary.filters.all')}</SelectItem>
+                  <SelectItem value="easy">{t('dishLibrary.filters.easy')}</SelectItem>
+                  <SelectItem value="medium">{t('dishLibrary.filters.medium')}</SelectItem>
+                  <SelectItem value="hard">{t('dishLibrary.filters.hard')}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Category" />
+                  <SelectValue placeholder={t('dishLibrary.filters.category')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="all">{t('dishLibrary.filters.all')}</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
-              <Button variant="outline" onClick={clearFilters}>
-                Clear All
+              <Button variant="outline" onClick={clearFilters} className="hover:bg-accent">
+                {t('dishLibrary.clearFilters')}
               </Button>
             </div>
           </div>
@@ -135,21 +137,21 @@ export default function DishLibrary() {
           {/* Results */}
           <div className="mb-6">
             <p className="text-sm text-muted-foreground">
-              Showing {filteredDishes.length} of {dinnerDishes.length} dishes
+              {filteredDishes.length} {t('dishLibrary.results')}
             </p>
           </div>
 
           {/* Dishes Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {filteredDishes.map((dish) => (
-              <Card key={dish.id} className="overflow-hidden shadow-card hover:shadow-card-hover transition-smooth hover:-translate-y-1">
+              <Card key={dish.id} className="group overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-2 border-0 bg-gradient-card">
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-bold text-foreground mb-2">{dish.name}</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">{dish.name}</h3>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm">
-                      <Badge variant="secondary">{dish.cuisine}</Badge>
-                      <Badge variant="outline">{dish.difficulty}</Badge>
+                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">{dish.cuisine}</Badge>
+                      <Badge variant="outline" className="border-sage/30 text-sage hover:bg-sage/10">{dish.difficulty}</Badge>
                     </div>
                     
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -160,12 +162,12 @@ export default function DishLibrary() {
 
                     <div className="flex flex-wrap gap-1">
                       {dish.tags.slice(0, 4).map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge key={index} variant="outline" className="text-xs bg-cream/50 hover:bg-cream">
                           {tag}
                         </Badge>
                       ))}
                       {dish.tags.length > 4 && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs bg-terracotta/10 text-terracotta">
                           +{dish.tags.length - 4} more
                         </Badge>
                       )}
@@ -177,10 +179,16 @@ export default function DishLibrary() {
           </div>
 
           {filteredDishes.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">No dishes found matching your criteria.</p>
-              <Button variant="outline" onClick={clearFilters} className="mt-4">
-                Clear Filters
+            <div className="text-center py-16">
+              <div className="mb-6">
+                <div className="w-24 h-24 bg-muted rounded-full mx-auto flex items-center justify-center mb-4">
+                  <Search className="h-12 w-12 text-muted-foreground" />
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-2">{t('dishLibrary.noResults')}</h3>
+                <p className="text-muted-foreground mb-6">{t('dishLibrary.noResultsDescription')}</p>
+              </div>
+              <Button variant="outline" onClick={clearFilters} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                {t('dishLibrary.clearFilters')}
               </Button>
             </div>
           )}
