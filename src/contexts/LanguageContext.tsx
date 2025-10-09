@@ -98,6 +98,7 @@ const translations = {
     'auth.signup': 'Registrieren',
     'auth.email': 'E-Mail',
     'auth.password': 'Passwort',
+    'auth.confirmPassword': 'Passwort bestätigen',
     'auth.loginButton': 'Anmelden',
     'auth.signupButton': 'Registrieren',
     'auth.switchToSignup': 'Noch kein Konto? Registrieren',
@@ -105,6 +106,7 @@ const translations = {
     'auth.loginSuccess': 'Erfolgreich angemeldet!',
     'auth.signupSuccess': 'Erfolgreich registriert!',
     'auth.error': 'Anmeldung fehlgeschlagen',
+    'auth.backToHome': 'Zurück zur Startseite',
     
     // Footer
     'footer.rights': 'Alle Rechte vorbehalten.',
@@ -202,6 +204,7 @@ const translations = {
     'auth.signup': 'Sign Up',
     'auth.email': 'Email',
     'auth.password': 'Password',
+    'auth.confirmPassword': 'Confirm Password',
     'auth.loginButton': 'Login',
     'auth.signupButton': 'Sign Up',
     'auth.switchToSignup': 'Don\'t have an account? Sign up',
@@ -209,6 +212,7 @@ const translations = {
     'auth.loginSuccess': 'Successfully logged in!',
     'auth.signupSuccess': 'Successfully signed up!',
     'auth.error': 'Authentication failed',
+    'auth.backToHome': 'Back to Home',
     
     // Footer
     'footer.rights': 'All rights reserved.',

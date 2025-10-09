@@ -9,8 +9,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { getAllIngredients, filterDishesByIngredients, type Dish } from "@/data/dishes";
 import { ArrowLeft, Search, ChefHat, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function IngredientFinder() {
+  const { t, language } = useLanguage();
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -53,9 +55,9 @@ export default function IngredientFinder() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Zutatenfinder</h1>
+              <h1 className="text-3xl font-bold text-foreground">{t('ingredientFinder.title')}</h1>
               <p className="text-muted-foreground mt-2">
-                Wählen Sie Zutaten aus und finden Sie passende Gerichte
+                {t('ingredientFinder.subtitle')}
               </p>
             </div>
           </div>
@@ -67,7 +69,7 @@ export default function IngredientFinder() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ChefHat className="h-5 w-5" />
-                    Zutaten auswählen
+                    {language === 'de' ? 'Zutaten auswählen' : 'Select Ingredients'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -76,7 +78,7 @@ export default function IngredientFinder() {
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-sm font-medium text-foreground">
-                          Ausgewählte Zutaten ({selectedIngredients.length})
+                          {t('ingredientFinder.selected')} ({selectedIngredients.length})
                         </h3>
                         <Button 
                           variant="ghost" 
@@ -84,7 +86,7 @@ export default function IngredientFinder() {
                           onClick={clearAllIngredients}
                           className="text-muted-foreground hover:text-foreground"
                         >
-                          Alle entfernen
+                          {t('ingredientFinder.clear')}
                         </Button>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -107,7 +109,7 @@ export default function IngredientFinder() {
                   <div className="relative mb-4">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Zutaten suchen..."
+                      placeholder={t('ingredientFinder.search')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-9"
@@ -135,7 +137,7 @@ export default function IngredientFinder() {
 
                   {filteredIngredients.length === 0 && searchTerm && (
                     <p className="text-center text-muted-foreground py-4">
-                      Keine Zutaten gefunden für "{searchTerm}"
+                      {language === 'de' ? `Keine Zutaten gefunden für "${searchTerm}"` : `No ingredients found for "${searchTerm}"`}
                     </p>
                   )}
                 </CardContent>
@@ -147,10 +149,10 @@ export default function IngredientFinder() {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    Passende Gerichte
+                    {t('ingredientFinder.results')}
                     {selectedIngredients.length > 0 && (
                       <span className="text-sm font-normal text-muted-foreground ml-2">
-                        ({matchingDishes.length} gefunden)
+                        ({matchingDishes.length} {language === 'de' ? 'gefunden' : 'found'})
                       </span>
                     )}
                   </CardTitle>
@@ -160,7 +162,7 @@ export default function IngredientFinder() {
                     <div className="text-center py-8">
                       <ChefHat className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <p className="text-muted-foreground">
-                        Wählen Sie Zutaten aus, um passende Gerichte zu finden
+                        {t('ingredientFinder.selectIngredients')}
                       </p>
                     </div>
                   ) : (
@@ -183,7 +185,7 @@ export default function IngredientFinder() {
                             </div>
 
                             <div className="space-y-2">
-                              <p className="text-xs text-muted-foreground">Zutaten:</p>
+                              <p className="text-xs text-muted-foreground">{t('dishOfDay.ingredients')}:</p>
                               <div className="flex flex-wrap gap-1">
                                 {dish.tags.map((tag, index) => (
                                   <Badge 
@@ -203,10 +205,16 @@ export default function IngredientFinder() {
                       {matchingDishes.length === 0 && (
                         <div className="text-center py-8">
                           <p className="text-muted-foreground">
-                            Keine Gerichte gefunden mit den ausgewählten Zutaten.
+                            {language === 'de' 
+                              ? 'Keine Gerichte gefunden mit den ausgewählten Zutaten.'
+                              : 'No dishes found with the selected ingredients.'
+                            }
                           </p>
                           <p className="text-sm text-muted-foreground mt-2">
-                            Versuchen Sie es mit weniger oder anderen Zutaten.
+                            {language === 'de' 
+                              ? 'Versuchen Sie es mit weniger oder anderen Zutaten.'
+                              : 'Try with fewer or different ingredients.'
+                            }
                           </p>
                         </div>
                       )}
@@ -218,10 +226,12 @@ export default function IngredientFinder() {
               {/* Tips Card */}
               <Card className="bg-gradient-hero">
                 <CardContent className="p-4">
-                  <h3 className="font-semibold text-foreground mb-2">Tipp</h3>
+                  <h3 className="font-semibold text-foreground mb-2">{language === 'de' ? 'Tipp' : 'Tip'}</h3>
                   <p className="text-sm text-muted-foreground">
-                    Je weniger Zutaten Sie auswählen, desto mehr Gerichte werden angezeigt. 
-                    Beginnen Sie mit den wichtigsten Zutaten, die Sie verwenden möchten.
+                    {language === 'de'
+                      ? 'Je weniger Zutaten Sie auswählen, desto mehr Gerichte werden angezeigt. Beginnen Sie mit den wichtigsten Zutaten, die Sie verwenden möchten.'
+                      : 'The fewer ingredients you select, the more dishes will be shown. Start with the main ingredients you want to use.'
+                    }
                   </p>
                 </CardContent>
               </Card>

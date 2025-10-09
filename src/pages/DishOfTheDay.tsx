@@ -6,10 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { getDishOfTheDay } from "@/data/dishes";
 import { ArrowLeft, Calendar, Clock, ChefHat, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function DishOfTheDay() {
+  const { t, language } = useLanguage();
   const todaysDish = getDishOfTheDay();
-  const today = new Date().toLocaleDateString('de-DE', { 
+  const today = new Date().toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', { 
     weekday: 'long', 
     year: 'numeric', 
     month: 'long', 
@@ -18,18 +20,18 @@ export default function DishOfTheDay() {
 
   const getCookingTimeText = (time: string) => {
     switch (time) {
-      case 'quick': return 'Unter 30 Minuten';
-      case 'medium': return '30-60 Minuten';
-      case 'long': return 'Über 60 Minuten';
+      case 'quick': return language === 'de' ? 'Unter 30 Minuten' : 'Under 30 minutes';
+      case 'medium': return language === 'de' ? '30-60 Minuten' : '30-60 minutes';
+      case 'long': return language === 'de' ? 'Über 60 Minuten' : 'Over 60 minutes';
       default: return time;
     }
   };
 
   const getDifficultyText = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'Einfach';
-      case 'medium': return 'Mittel';
-      case 'hard': return 'Schwer';
+      case 'easy': return language === 'de' ? 'Einfach' : 'Easy';
+      case 'medium': return language === 'de' ? 'Mittel' : 'Medium';
+      case 'hard': return language === 'de' ? 'Schwer' : 'Hard';
       default: return difficulty;
     }
   };
@@ -48,7 +50,7 @@ export default function DishOfTheDay() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Gericht des Tages</h1>
+              <h1 className="text-3xl font-bold text-foreground">{t('dishOfDay.title')}</h1>
               <p className="text-muted-foreground mt-2 flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 {today}
@@ -66,7 +68,7 @@ export default function DishOfTheDay() {
                 {todaysDish.name}
               </CardTitle>
               <p className="text-lg text-muted-foreground">
-                Heute empfehlen wir Ihnen dieses köstliche Gericht
+                {t('dishOfDay.subtitle')}
               </p>
             </CardHeader>
 
@@ -75,19 +77,19 @@ export default function DishOfTheDay() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center p-4 bg-accent/50 rounded-lg">
                   <Clock className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <h3 className="font-semibold text-foreground">Kochzeit</h3>
+                  <h3 className="font-semibold text-foreground">{t('dishOfDay.cookingTime')}</h3>
                   <p className="text-muted-foreground">{getCookingTimeText(todaysDish.cookingTime)}</p>
                 </div>
 
                 <div className="text-center p-4 bg-accent/50 rounded-lg">
                   <ChefHat className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <h3 className="font-semibold text-foreground">Schwierigkeit</h3>
+                  <h3 className="font-semibold text-foreground">{t('dishOfDay.difficulty')}</h3>
                   <p className="text-muted-foreground">{getDifficultyText(todaysDish.difficulty)}</p>
                 </div>
 
                 <div className="text-center p-4 bg-accent/50 rounded-lg">
                   <Globe className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <h3 className="font-semibold text-foreground">Küche</h3>
+                  <h3 className="font-semibold text-foreground">{t('dishOfDay.cuisine')}</h3>
                   <p className="text-muted-foreground">{todaysDish.cuisine}</p>
                 </div>
               </div>
@@ -95,14 +97,14 @@ export default function DishOfTheDay() {
               {/* Category and Tags */}
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-3">Kategorie</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-3">{t('dishOfDay.category')}</h3>
                   <Badge variant="secondary" className="text-base px-4 py-2 capitalize">
                     {todaysDish.category}
                   </Badge>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-3">Hauptzutaten</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-3">{t('dishOfDay.ingredients')}</h3>
                   <div className="flex flex-wrap gap-2">
                     {todaysDish.tags.map((tag, index) => (
                       <Badge key={index} variant="outline" className="text-sm px-3 py-1 capitalize">
@@ -116,12 +118,13 @@ export default function DishOfTheDay() {
               {/* Info Box */}
               <div className="bg-gradient-hero p-6 rounded-lg">
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Täglich neue Inspiration
+                  {language === 'de' ? 'Täglich neue Inspiration' : 'Daily Fresh Inspiration'}
                 </h3>
                 <p className="text-muted-foreground">
-                  Jeden Tag wählen wir ein neues Gericht für Sie aus. Kommen Sie morgen wieder, 
-                  um eine neue kulinarische Entdeckung zu machen! Das Gericht des Tages wechselt 
-                  automatisch um Mitternacht.
+                  {language === 'de' 
+                    ? 'Jeden Tag wählen wir ein neues Gericht für Sie aus. Kommen Sie morgen wieder, um eine neue kulinarische Entdeckung zu machen! Das Gericht des Tages wechselt automatisch um Mitternacht.'
+                    : 'Every day we select a new dish for you. Come back tomorrow to discover a new culinary delight! The dish of the day changes automatically at midnight.'
+                  }
                 </p>
               </div>
 
@@ -129,12 +132,12 @@ export default function DishOfTheDay() {
               <div className="flex gap-4 justify-center">
                 <Link to="/ingredient-finder">
                   <Button variant="outline" size="lg">
-                    Ähnliche Gerichte finden
+                    {language === 'de' ? 'Ähnliche Gerichte finden' : 'Find Similar Dishes'}
                   </Button>
                 </Link>
                 <Link to="/weekly-calendar">
                   <Button size="lg">
-                    Zum Wochenplan hinzufügen
+                    {language === 'de' ? 'Zum Wochenplan hinzufügen' : 'Add to Weekly Plan'}
                   </Button>
                 </Link>
               </div>
@@ -145,10 +148,13 @@ export default function DishOfTheDay() {
           <Card className="mt-8 border-dashed border-2 border-muted">
             <CardContent className="p-6 text-center">
               <h3 className="text-lg font-semibold text-foreground mb-2">
-                Morgen gibt es etwas Neues!
+                {language === 'de' ? 'Morgen gibt es etwas Neues!' : 'Something New Tomorrow!'}
               </h3>
               <p className="text-muted-foreground">
-                Kommen Sie morgen zurück, um das nächste Gericht des Tages zu entdecken.
+                {language === 'de' 
+                  ? 'Kommen Sie morgen zurück, um das nächste Gericht des Tages zu entdecken.'
+                  : 'Come back tomorrow to discover the next dish of the day.'
+                }
               </p>
             </CardContent>
           </Card>

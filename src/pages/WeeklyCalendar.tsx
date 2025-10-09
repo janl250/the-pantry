@@ -12,25 +12,27 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type WeeklyMeals = {
   [key: string]: Dish | null;
 };
 
-const daysOfWeek = [
-  { key: 'monday', label: 'Montag' },
-  { key: 'tuesday', label: 'Dienstag' },
-  { key: 'wednesday', label: 'Mittwoch' },
-  { key: 'thursday', label: 'Donnerstag' },
-  { key: 'friday', label: 'Freitag' },
-  { key: 'saturday', label: 'Samstag' },
-  { key: 'sunday', label: 'Sonntag' }
-];
-
 export default function WeeklyCalendar() {
+  const { t, language } = useLanguage();
   const { user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  const daysOfWeek = [
+    { key: 'monday', label: t('weeklyCalendar.days.monday') },
+    { key: 'tuesday', label: t('weeklyCalendar.days.tuesday') },
+    { key: 'wednesday', label: t('weeklyCalendar.days.wednesday') },
+    { key: 'thursday', label: t('weeklyCalendar.days.thursday') },
+    { key: 'friday', label: t('weeklyCalendar.days.friday') },
+    { key: 'saturday', label: t('weeklyCalendar.days.saturday') },
+    { key: 'sunday', label: t('weeklyCalendar.days.sunday') }
+  ];
   
   const [weeklyMeals, setWeeklyMeals] = useState<WeeklyMeals>({
     monday: null,
@@ -156,14 +158,14 @@ export default function WeeklyCalendar() {
         if (error) {
           console.error('Error clearing week:', error);
           toast({
-            title: "Fehler",
-            description: "Fehler beim Löschen des Wochenplans",
+            title: language === 'de' ? "Fehler" : "Error",
+            description: t('weeklyCalendar.error'),
             variant: "destructive"
           });
         } else {
           toast({
-            title: "Woche gelöscht",
-            description: "Ihr Wochenplan wurde erfolgreich gelöscht"
+            title: language === 'de' ? "Woche gelöscht" : "Week cleared",
+            description: t('weeklyCalendar.cleared')
           });
         }
       } catch (error) {
@@ -216,14 +218,14 @@ export default function WeeklyCalendar() {
       }
 
       toast({
-        title: "Erfolgreich gespeichert!",
-        description: "Ihr Wochenplan wurde erfolgreich gespeichert"
+        title: language === 'de' ? "Erfolgreich gespeichert!" : "Successfully saved!",
+        description: t('weeklyCalendar.saved')
       });
     } catch (error) {
       console.error('Error saving meal plan:', error);
       toast({
-        title: "Fehler",
-        description: "Fehler beim Speichern des Wochenplans",
+        title: language === 'de' ? "Fehler" : "Error",
+        description: t('weeklyCalendar.error'),
         variant: "destructive"
       });
     } finally {
@@ -234,6 +236,24 @@ export default function WeeklyCalendar() {
   const getWeekProgress = () => {
     const plannedDays = Object.values(weeklyMeals).filter(meal => meal !== null).length;
     return Math.round((plannedDays / 7) * 100);
+  };
+
+  const getCookingTimeLabel = (time: string) => {
+    if (language === 'de') {
+      switch (time) {
+        case 'quick': return 'Schnell';
+        case 'medium': return 'Mittel';
+        case 'long': return 'Lang';
+        default: return time;
+      }
+    } else {
+      switch (time) {
+        case 'quick': return 'Quick';
+        case 'medium': return 'Medium';
+        case 'long': return 'Long';
+        default: return time;
+      }
+    }
   };
 
   return (
@@ -250,26 +270,26 @@ export default function WeeklyCalendar() {
               </Button>
             </Link>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-foreground">Wochenplaner</h1>
+              <h1 className="text-3xl font-bold text-foreground">{t('weeklyCalendar.title')}</h1>
               <p className="text-muted-foreground mt-2">
-                Planen Sie Ihre Mahlzeiten für die ganze Woche
+                {t('weeklyCalendar.subtitle')}
               </p>
             </div>
             <div className="flex gap-2">
               {isAuthenticated ? (
                 <>
                   <Button variant="outline" onClick={clearWeek}>
-                    Woche löschen
+                    {t('weeklyCalendar.clear')}
                   </Button>
                   <Button onClick={saveMealPlan} className="flex items-center gap-2" disabled={saving}>
                     <Save className="h-4 w-4" />
-                    {saving ? "Wird gespeichert..." : "Speichern"}
+                    {saving ? (language === 'de' ? "Wird gespeichert..." : "Saving...") : t('weeklyCalendar.save')}
                   </Button>
                 </>
               ) : (
                 <Button onClick={() => navigate('/auth')} className="flex items-center gap-2">
                   <LogIn className="h-4 w-4" />
-                  Anmelden zum Speichern
+                  {language === 'de' ? 'Anmelden zum Speichern' : 'Login to Save'}
                 </Button>
               )}
             </div>
@@ -280,9 +300,11 @@ export default function WeeklyCalendar() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-foreground">Wochenfortschritt</h3>
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {language === 'de' ? 'Wochenfortschritt' : 'Week Progress'}
+                  </h3>
                   <p className="text-muted-foreground">
-                    {Object.values(weeklyMeals).filter(meal => meal !== null).length} von 7 Tagen geplant
+                    {Object.values(weeklyMeals).filter(meal => meal !== null).length} {language === 'de' ? 'von 7 Tagen geplant' : 'of 7 days planned'}
                   </p>
                 </div>
                 <div className="text-right">
@@ -328,9 +350,7 @@ export default function WeeklyCalendar() {
                               {weeklyMeals[day.key]!.cuisine}
                             </Badge>
                             <div className="text-xs text-muted-foreground">
-                              {weeklyMeals[day.key]!.cookingTime === 'quick' && 'Schnell'}
-                              {weeklyMeals[day.key]!.cookingTime === 'medium' && 'Mittel'}  
-                              {weeklyMeals[day.key]!.cookingTime === 'long' && 'Lang'}
+                              {getCookingTimeLabel(weeklyMeals[day.key]!.cookingTime)}
                             </div>
                           </div>
                         </div>
@@ -344,7 +364,9 @@ export default function WeeklyCalendar() {
                         onClick={() => setShowDishSelector(day.key)}
                       >
                         <Plus className="h-6 w-6 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Gericht hinzufügen</span>
+                        <span className="text-sm text-muted-foreground">
+                          {language === 'de' ? 'Gericht hinzufügen' : 'Add Dish'}
+                        </span>
                       </Button>
                     </div>
                   )}
@@ -360,7 +382,7 @@ export default function WeeklyCalendar() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle>
-                      Gericht für {daysOfWeek.find(d => d.key === showDishSelector)?.label} auswählen
+                      {language === 'de' ? 'Gericht für' : 'Select dish for'} {daysOfWeek.find(d => d.key === showDishSelector)?.label}
                     </CardTitle>
                     <Button
                       variant="ghost"
@@ -377,7 +399,7 @@ export default function WeeklyCalendar() {
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Gerichte suchen..."
+                        placeholder={language === 'de' ? 'Gerichte suchen...' : 'Search dishes...'}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-9"
@@ -385,10 +407,10 @@ export default function WeeklyCalendar() {
                     </div>
                     <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
                       <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Küche" />
+                        <SelectValue placeholder={language === 'de' ? 'Küche' : 'Cuisine'} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Alle Küchen</SelectItem>
+                        <SelectItem value="all">{language === 'de' ? 'Alle Küchen' : 'All cuisines'}</SelectItem>
                         {cuisines.map(cuisine => (
                           <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
                         ))}
@@ -434,15 +456,14 @@ export default function WeeklyCalendar() {
                   <LogIn className="h-6 w-6 text-primary mt-1" />
                   <div>
                     <h3 className="font-semibold text-foreground mb-2">
-                      Anmelden zum Speichern
+                      {t('weeklyCalendar.loginRequired')}
                     </h3>
                     <p className="text-muted-foreground mb-4">
-                      Um Ihren Wochenplan dauerhaft zu speichern und von überall darauf zugreifen zu können, 
-                      melden Sie sich an oder erstellen Sie ein kostenloses Konto.
+                      {t('weeklyCalendar.connectSupabase')}
                     </p>
                     <Button onClick={() => navigate('/auth')} className="flex items-center gap-2">
                       <LogIn className="h-4 w-4" />
-                      Jetzt anmelden
+                      {language === 'de' ? 'Jetzt anmelden' : 'Log in now'}
                     </Button>
                   </div>
                 </div>

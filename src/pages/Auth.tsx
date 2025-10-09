@@ -5,26 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Utensils, Mail, Lock, User } from "lucide-react";
+import { Utensils, Mail, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { z } from "zod";
 
-const loginSchema = z.object({
-  email: z.string().trim().email({ message: "Ungültige E-Mail-Adresse" }),
-  password: z.string().min(6, { message: "Passwort muss mindestens 6 Zeichen lang sein" }),
-});
-
-const signupSchema = z.object({
-  email: z.string().trim().email({ message: "Ungültige E-Mail-Adresse" }),
-  password: z.string().min(6, { message: "Passwort muss mindestens 6 Zeichen lang sein" }),
-  confirmPassword: z.string().min(6, { message: "Passwort bestätigen ist erforderlich" }),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwörter stimmen nicht überein",
-  path: ["confirmPassword"],
-});
-
 export default function Auth() {
+  const { t, language } = useLanguage();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,6 +23,20 @@ export default function Auth() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const loginSchema = z.object({
+    email: z.string().trim().email({ message: language === 'de' ? "Ungültige E-Mail-Adresse" : "Invalid email address" }),
+    password: z.string().min(6, { message: language === 'de' ? "Passwort muss mindestens 6 Zeichen lang sein" : "Password must be at least 6 characters" }),
+  });
+
+  const signupSchema = z.object({
+    email: z.string().trim().email({ message: language === 'de' ? "Ungültige E-Mail-Adresse" : "Invalid email address" }),
+    password: z.string().min(6, { message: language === 'de' ? "Passwort muss mindestens 6 Zeichen lang sein" : "Password must be at least 6 characters" }),
+    confirmPassword: z.string().min(6, { message: language === 'de' ? "Passwort bestätigen ist erforderlich" : "Confirm password is required" }),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: language === 'de' ? "Passwörter stimmen nicht überein" : "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
   useEffect(() => {
     // Check if user is already logged in
@@ -95,14 +97,18 @@ export default function Auth() {
 
         if (error) {
           if (error.message.includes("Invalid login credentials")) {
-            setErrors({ general: "Ungültige Anmeldedaten. Bitte überprüfen Sie E-Mail und Passwort." });
+            setErrors({ 
+              general: language === 'de' 
+                ? "Ungültige Anmeldedaten. Bitte überprüfen Sie E-Mail und Passwort." 
+                : "Invalid login credentials. Please check your email and password."
+            });
           } else {
             setErrors({ general: error.message });
           }
         } else {
           toast({
-            title: "Erfolgreich angemeldet!",
-            description: "Willkommen zurück bei The Pantry.",
+            title: t('auth.loginSuccess'),
+            description: language === 'de' ? "Willkommen zurück bei The Pantry." : "Welcome back to The Pantry.",
           });
         }
       } else {
@@ -118,20 +124,30 @@ export default function Auth() {
 
         if (error) {
           if (error.message.includes("User already registered")) {
-            setErrors({ general: "Benutzer bereits registriert. Bitte melden Sie sich an." });
+            setErrors({ 
+              general: language === 'de' 
+                ? "Benutzer bereits registriert. Bitte melden Sie sich an." 
+                : "User already registered. Please log in."
+            });
           } else {
             setErrors({ general: error.message });
           }
         } else {
           toast({
-            title: "Registrierung erfolgreich!",
-            description: "Bitte überprüfen Sie Ihre E-Mail für die Bestätigung.",
+            title: t('auth.signupSuccess'),
+            description: language === 'de' 
+              ? "Bitte überprüfen Sie Ihre E-Mail für die Bestätigung." 
+              : "Please check your email for confirmation.",
           });
           setIsLogin(true);
         }
       }
     } catch (error) {
-      setErrors({ general: "Ein unerwarteter Fehler ist aufgetreten." });
+      setErrors({ 
+        general: language === 'de' 
+          ? "Ein unerwarteter Fehler ist aufgetreten." 
+          : "An unexpected error occurred."
+      });
     } finally {
       setLoading(false);
     }
@@ -158,12 +174,12 @@ export default function Auth() {
           </div>
           <div>
             <CardTitle className="text-2xl">
-              {isLogin ? "Anmelden" : "Registrieren"}
+              {isLogin ? t('auth.login') : t('auth.signup')}
             </CardTitle>
             <p className="text-muted-foreground mt-2">
               {isLogin 
-                ? "Melden Sie sich bei Ihrem Konto an" 
-                : "Erstellen Sie Ihr neues Konto"
+                ? (language === 'de' ? 'Melden Sie sich bei Ihrem Konto an' : 'Log in to your account')
+                : (language === 'de' ? 'Erstellen Sie Ihr neues Konto' : 'Create your new account')
               }
             </p>
           </div>
@@ -178,14 +194,14 @@ export default function Auth() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">E-Mail</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="ihre@email.com"
+                  placeholder={language === 'de' ? 'ihre@email.com' : 'your@email.com'}
                   value={formData.email}
                   onChange={handleInputChange}
                   className="pl-9"
@@ -198,7 +214,7 @@ export default function Auth() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Passwort</Label>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -219,7 +235,7 @@ export default function Auth() {
 
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Passwort bestätigen</Label>
+                <Label htmlFor="confirmPassword">{t('auth.confirmPassword')}</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -244,13 +260,19 @@ export default function Auth() {
               className="w-full" 
               disabled={loading}
             >
-              {loading ? "Wird verarbeitet..." : (isLogin ? "Anmelden" : "Registrieren")}
+              {loading 
+                ? (language === 'de' ? "Wird verarbeitet..." : "Processing...") 
+                : (isLogin ? t('auth.loginButton') : t('auth.signupButton'))
+              }
             </Button>
           </form>
 
           <div className="mt-6 text-center space-y-4">
             <div className="text-sm text-muted-foreground">
-              {isLogin ? "Noch kein Konto?" : "Bereits ein Konto?"}
+              {isLogin 
+                ? (language === 'de' ? "Noch kein Konto?" : "Don't have an account?") 
+                : (language === 'de' ? "Bereits ein Konto?" : "Already have an account?")
+              }
             </div>
             <Button
               variant="ghost"
@@ -261,13 +283,16 @@ export default function Auth() {
               }}
               disabled={loading}
             >
-              {isLogin ? "Jetzt registrieren" : "Zur Anmeldung"}
+              {isLogin 
+                ? (language === 'de' ? "Jetzt registrieren" : "Sign up now") 
+                : (language === 'de' ? "Zur Anmeldung" : "Log in")
+              }
             </Button>
             
             <div className="pt-4">
               <Link to="/">
                 <Button variant="outline" className="w-full">
-                  Zurück zur Startseite
+                  {t('auth.backToHome')}
                 </Button>
               </Link>
             </div>
