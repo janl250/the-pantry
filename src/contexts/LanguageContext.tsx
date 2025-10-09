@@ -6,6 +6,7 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
+  translateField: (type: 'cuisine' | 'difficulty' | 'cookingTime' | 'category', value: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -116,6 +117,46 @@ const translations = {
     'common.error': 'Ein Fehler ist aufgetreten',
     'common.back': 'Zurück',
     'common.close': 'Schließen',
+    
+    // Cuisines
+    'cuisine.italian': 'Italienisch',
+    'cuisine.asian': 'Asiatisch',
+    'cuisine.mediterranean': 'Mediterran',
+    'cuisine.mexican': 'Mexikanisch',
+    'cuisine.american': 'Amerikanisch',
+    'cuisine.french': 'Französisch',
+    'cuisine.greek': 'Griechisch',
+    'cuisine.spanish': 'Spanisch',
+    'cuisine.middle eastern': 'Naher Osten',
+    'cuisine.japanese': 'Japanisch',
+    'cuisine.thai': 'Thailändisch',
+    'cuisine.indian': 'Indisch',
+    'cuisine.chinese': 'Chinesisch',
+    'cuisine.korean': 'Koreanisch',
+    'cuisine.vietnamese': 'Vietnamesisch',
+    
+    // Difficulties
+    'difficulty.easy': 'Einfach',
+    'difficulty.medium': 'Mittel',
+    'difficulty.hard': 'Schwer',
+    
+    // Cooking Times
+    'cookingTime.quick': 'Schnell',
+    'cookingTime.medium': 'Mittel',
+    'cookingTime.slow': 'Langsam',
+    
+    // Categories
+    'category.appetizer': 'Vorspeise',
+    'category.main course': 'Hauptgericht',
+    'category.dessert': 'Dessert',
+    'category.breakfast': 'Frühstück',
+    'category.lunch': 'Mittagessen',
+    'category.dinner': 'Abendessen',
+    'category.snack': 'Snack',
+    'category.side dish': 'Beilage',
+    'category.soup': 'Suppe',
+    'category.salad': 'Salat',
+    'category.beverage': 'Getränk',
   },
   en: {
     // Navigation
@@ -222,6 +263,46 @@ const translations = {
     'common.error': 'An error occurred',
     'common.back': 'Back',
     'common.close': 'Close',
+    
+    // Cuisines
+    'cuisine.italian': 'Italian',
+    'cuisine.asian': 'Asian',
+    'cuisine.mediterranean': 'Mediterranean',
+    'cuisine.mexican': 'Mexican',
+    'cuisine.american': 'American',
+    'cuisine.french': 'French',
+    'cuisine.greek': 'Greek',
+    'cuisine.spanish': 'Spanish',
+    'cuisine.middle eastern': 'Middle Eastern',
+    'cuisine.japanese': 'Japanese',
+    'cuisine.thai': 'Thai',
+    'cuisine.indian': 'Indian',
+    'cuisine.chinese': 'Chinese',
+    'cuisine.korean': 'Korean',
+    'cuisine.vietnamese': 'Vietnamese',
+    
+    // Difficulties
+    'difficulty.easy': 'Easy',
+    'difficulty.medium': 'Medium',
+    'difficulty.hard': 'Hard',
+    
+    // Cooking Times
+    'cookingTime.quick': 'Quick',
+    'cookingTime.medium': 'Medium',
+    'cookingTime.slow': 'Slow',
+    
+    // Categories
+    'category.appetizer': 'Appetizer',
+    'category.main course': 'Main Course',
+    'category.dessert': 'Dessert',
+    'category.breakfast': 'Breakfast',
+    'category.lunch': 'Lunch',
+    'category.dinner': 'Dinner',
+    'category.snack': 'Snack',
+    'category.side dish': 'Side Dish',
+    'category.soup': 'Soup',
+    'category.salad': 'Salad',
+    'category.beverage': 'Beverage',
   }
 };
 
@@ -239,8 +320,13 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return translations[language][key as keyof typeof translations[typeof language]] || key;
   };
 
+  const translateField = (type: 'cuisine' | 'difficulty' | 'cookingTime' | 'category', value: string): string => {
+    const key = `${type}.${value.toLowerCase()}`;
+    return t(key);
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, translateField }}>
       {children}
     </LanguageContext.Provider>
   );

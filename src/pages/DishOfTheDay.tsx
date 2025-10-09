@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function DishOfTheDay() {
-  const { t, language } = useLanguage();
+  const { t, language, translateField } = useLanguage();
   const todaysDish = getDishOfTheDay();
   const today = new Date().toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', { 
     weekday: 'long', 
@@ -19,20 +19,12 @@ export default function DishOfTheDay() {
   });
 
   const getCookingTimeText = (time: string) => {
+    const timeDesc = translateField('cookingTime', time);
     switch (time) {
-      case 'quick': return language === 'de' ? 'Unter 30 Minuten' : 'Under 30 minutes';
-      case 'medium': return language === 'de' ? '30-60 Minuten' : '30-60 minutes';
-      case 'long': return language === 'de' ? 'Über 60 Minuten' : 'Over 60 minutes';
-      default: return time;
-    }
-  };
-
-  const getDifficultyText = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return language === 'de' ? 'Einfach' : 'Easy';
-      case 'medium': return language === 'de' ? 'Mittel' : 'Medium';
-      case 'hard': return language === 'de' ? 'Schwer' : 'Hard';
-      default: return difficulty;
+      case 'quick': return `${timeDesc} (${language === 'de' ? 'unter 30 Min' : 'under 30 min'})`;
+      case 'medium': return `${timeDesc} (30-60 ${language === 'de' ? 'Min' : 'min'})`;
+      case 'slow': return `${timeDesc} (${language === 'de' ? 'über 60 Min' : 'over 60 min'})`;
+      default: return timeDesc;
     }
   };
 
@@ -84,13 +76,13 @@ export default function DishOfTheDay() {
                 <div className="text-center p-4 bg-accent/50 rounded-lg">
                   <ChefHat className="h-6 w-6 text-primary mx-auto mb-2" />
                   <h3 className="font-semibold text-foreground">{t('dishOfDay.difficulty')}</h3>
-                  <p className="text-muted-foreground">{getDifficultyText(todaysDish.difficulty)}</p>
+                  <p className="text-muted-foreground">{translateField('difficulty', todaysDish.difficulty)}</p>
                 </div>
 
                 <div className="text-center p-4 bg-accent/50 rounded-lg">
                   <Globe className="h-6 w-6 text-primary mx-auto mb-2" />
                   <h3 className="font-semibold text-foreground">{t('dishOfDay.cuisine')}</h3>
-                  <p className="text-muted-foreground">{todaysDish.cuisine}</p>
+                  <p className="text-muted-foreground">{translateField('cuisine', todaysDish.cuisine)}</p>
                 </div>
               </div>
 
@@ -98,8 +90,8 @@ export default function DishOfTheDay() {
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-3">{t('dishOfDay.category')}</h3>
-                  <Badge variant="secondary" className="text-base px-4 py-2 capitalize">
-                    {todaysDish.category}
+                  <Badge variant="secondary" className="text-base px-4 py-2">
+                    {translateField('category', todaysDish.category)}
                   </Badge>
                 </div>
 

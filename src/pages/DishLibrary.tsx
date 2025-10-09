@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function DishLibrary() {
-  const { t } = useLanguage();
+  const { t, translateField } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState<string>("all");
   const [selectedCookingTime, setSelectedCookingTime] = useState<string>("all");
@@ -150,14 +150,18 @@ export default function DishLibrary() {
                   
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm">
-                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">{dish.cuisine}</Badge>
-                      <Badge variant="outline" className="border-sage/30 text-sage hover:bg-sage/10">{dish.difficulty}</Badge>
+                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                        {translateField('cuisine', dish.cuisine)}
+                      </Badge>
+                      <Badge variant="outline" className="border-sage/30 text-sage hover:bg-sage/10">
+                        {translateField('difficulty', dish.difficulty)}
+                      </Badge>
                     </div>
                     
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span className="capitalize">{dish.cookingTime} cooking</span>
+                      <span>{translateField('cookingTime', dish.cookingTime)}</span>
                       <span>•</span>
-                      <span className="capitalize">{dish.category}</span>
+                      <span>{translateField('category', dish.category)}</span>
                     </div>
 
                     <div className="flex flex-wrap gap-1">

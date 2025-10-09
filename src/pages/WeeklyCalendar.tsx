@@ -19,7 +19,7 @@ type WeeklyMeals = {
 };
 
 export default function WeeklyCalendar() {
-  const { t, language } = useLanguage();
+  const { t, language, translateField } = useLanguage();
   const { user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -238,23 +238,6 @@ export default function WeeklyCalendar() {
     return Math.round((plannedDays / 7) * 100);
   };
 
-  const getCookingTimeLabel = (time: string) => {
-    if (language === 'de') {
-      switch (time) {
-        case 'quick': return 'Schnell';
-        case 'medium': return 'Mittel';
-        case 'long': return 'Lang';
-        default: return time;
-      }
-    } else {
-      switch (time) {
-        case 'quick': return 'Quick';
-        case 'medium': return 'Medium';
-        case 'long': return 'Long';
-        default: return time;
-      }
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -347,10 +330,10 @@ export default function WeeklyCalendar() {
                           </h4>
                           <div className="space-y-1">
                             <Badge variant="secondary" className="text-xs">
-                              {weeklyMeals[day.key]!.cuisine}
+                              {translateField('cuisine', weeklyMeals[day.key]!.cuisine)}
                             </Badge>
                             <div className="text-xs text-muted-foreground">
-                              {getCookingTimeLabel(weeklyMeals[day.key]!.cookingTime)}
+                              {translateField('cookingTime', weeklyMeals[day.key]!.cookingTime)}
                             </div>
                           </div>
                         </div>
@@ -431,10 +414,10 @@ export default function WeeklyCalendar() {
                             <h4 className="font-medium text-foreground">{dish.name}</h4>
                             <div className="flex gap-2 mt-1">
                               <Badge variant="secondary" className="text-xs">
-                                {dish.cuisine}
+                                {translateField('cuisine', dish.cuisine)}
                               </Badge>
                               <Badge variant="outline" className="text-xs">
-                                {dish.difficulty}
+                                {translateField('difficulty', dish.difficulty)}
                               </Badge>
                             </div>
                           </div>

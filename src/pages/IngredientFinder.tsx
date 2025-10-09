@@ -12,7 +12,7 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function IngredientFinder() {
-  const { t, language } = useLanguage();
+  const { t, language, translateField } = useLanguage();
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -174,13 +174,13 @@ export default function IngredientFinder() {
                             
                             <div className="flex flex-wrap gap-2 mb-3">
                               <Badge variant="secondary" className="text-xs">
-                                {dish.cuisine}
+                                {translateField('cuisine', dish.cuisine)}
                               </Badge>
                               <Badge variant="outline" className="text-xs">
-                                {dish.difficulty}
+                                {translateField('difficulty', dish.difficulty)}
                               </Badge>
                               <Badge variant="outline" className="text-xs capitalize">
-                                {dish.cookingTime}
+                                {translateField('cookingTime', dish.cookingTime)}
                               </Badge>
                             </div>
 
