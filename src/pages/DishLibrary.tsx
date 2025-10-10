@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { dinnerDishes, type Dish } from "@/data/dishes";
+import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
 import { ArrowLeft, Search, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { AddDishDialog } from "@/components/AddDishDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function DishLibrary() {
   const { t, translateField } = useLanguage();
@@ -18,12 +20,41 @@ export default function DishLibrary() {
   const [selectedCookingTime, setSelectedCookingTime] = useState<string>("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [userDishes, setUserDishes] = useState<Dish[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const cuisines = Array.from(new Set(dinnerDishes.map(dish => dish.cuisine))).sort();
-  const categories = Array.from(new Set(dinnerDishes.map(dish => dish.category))).sort();
+  const loadUserDishes = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase
+          .from('user_dishes')
+          .select('*')
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+        
+        if (data) {
+          setUserDishes(data.map(convertUserDishToDish));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading user dishes:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUserDishes();
+  }, []);
+
+  const allDishes = [...dinnerDishes, ...userDishes];
+  const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
+  const categories = Array.from(new Set(allDishes.map(dish => dish.category))).sort();
 
   const filteredDishes = useMemo(() => {
-    return dinnerDishes.filter(dish => {
+    return allDishes.filter(dish => {
       const matchesSearch = dish.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            dish.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesCuisine = selectedCuisine === "all" || dish.cuisine === selectedCuisine;
@@ -33,7 +64,7 @@ export default function DishLibrary() {
 
       return matchesSearch && matchesCuisine && matchesCookingTime && matchesDifficulty && matchesCategory;
     });
-  }, [searchTerm, selectedCuisine, selectedCookingTime, selectedDifficulty, selectedCategory]);
+  }, [searchTerm, selectedCuisine, selectedCookingTime, selectedDifficulty, selectedCategory, allDishes]);
 
   const clearFilters = () => {
     setSelectedCuisine("all");
@@ -50,16 +81,19 @@ export default function DishLibrary() {
       <main className="py-8 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <Link to="/">
-              <Button variant="ghost" size="icon" className="hover:bg-accent">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">{t('dishLibrary.title')}</h1>
-              <p className="text-muted-foreground mt-2">{dinnerDishes.length} {t('dishLibrary.results')}</p>
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <Link to="/">
+                <Button variant="ghost" size="icon" className="hover:bg-accent">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">{t('dishLibrary.title')}</h1>
+                <p className="text-muted-foreground mt-2">{allDishes.length} {t('dishLibrary.results')}</p>
+              </div>
             </div>
+            <AddDishDialog onDishAdded={loadUserDishes} />
           </div>
 
           {/* Search and Filters */}
@@ -167,7 +201,7 @@ export default function DishLibrary() {
                     <div className="flex flex-wrap gap-1">
                       {dish.tags.slice(0, 4).map((tag, index) => (
                         <Badge key={index} variant="outline" className="text-xs bg-cream/50 hover:bg-cream">
-                          {tag}
+                          {translateField('ingredient', tag)}
                         </Badge>
                       ))}
                       {dish.tags.length > 4 && (

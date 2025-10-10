@@ -53,16 +53,18 @@ All colors MUST be HSL.
     --olive: 75 35% 42%;
     --honey: 42 65% 68%;
     
-    /* Enhanced Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(var(--sage-lighter)) 0%, hsl(var(--cream-warm)) 100%);
+    /* Enhanced Gradients with better color harmony */
+    --gradient-hero: linear-gradient(135deg, hsl(var(--sage)) 0%, hsl(var(--olive)) 50%, hsl(var(--terracotta-dark)) 100%);
     --gradient-card: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--cream-light)) 100%);
-    --gradient-accent: linear-gradient(120deg, hsl(var(--sage-light)) 0%, hsl(var(--terracotta-light)) 100%);
-    --gradient-warm: linear-gradient(135deg, hsl(var(--honey) / 0.2) 0%, hsl(var(--terracotta) / 0.2) 100%);
+    --gradient-accent: linear-gradient(120deg, hsl(var(--sage-light)) 0%, hsl(var(--honey)) 50%, hsl(var(--terracotta-light)) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(var(--honey) / 0.3) 0%, hsl(var(--terracotta) / 0.3) 100%);
+    --gradient-cool: linear-gradient(135deg, hsl(var(--sage-light) / 0.4) 0%, hsl(var(--olive) / 0.3) 100%);
     
-    /* Enhanced Shadows */
+    /* Enhanced Shadows with soft glow */
     --shadow-card: 0 4px 12px -2px hsl(var(--sage) / 0.12), 0 2px 6px -1px hsl(var(--sage) / 0.08);
     --shadow-card-hover: 0 12px 32px -4px hsl(var(--sage) / 0.15), 0 4px 8px -2px hsl(var(--terracotta) / 0.08);
     --shadow-button: 0 2px 8px -2px hsl(var(--primary) / 0.3);
+    --shadow-glow: 0 0 24px hsl(var(--primary) / 0.15);
     
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

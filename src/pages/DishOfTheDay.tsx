@@ -23,7 +23,7 @@ export default function DishOfTheDay() {
     switch (time) {
       case 'quick': return `${timeDesc} (${language === 'de' ? 'unter 30 Min' : 'under 30 min'})`;
       case 'medium': return `${timeDesc} (30-60 ${language === 'de' ? 'Min' : 'min'})`;
-      case 'slow': return `${timeDesc} (${language === 'de' ? 'über 60 Min' : 'over 60 min'})`;
+      case 'long': return `${timeDesc} (${language === 'de' ? 'über 60 Min' : 'over 60 min'})`;
       default: return timeDesc;
     }
   };
@@ -100,7 +100,7 @@ export default function DishOfTheDay() {
                   <div className="flex flex-wrap gap-2">
                     {todaysDish.tags.map((tag, index) => (
                       <Badge key={index} variant="outline" className="text-sm px-3 py-1 capitalize">
-                        {tag}
+                        {translateField('ingredient', tag)}
                       </Badge>
                     ))}
                   </div>

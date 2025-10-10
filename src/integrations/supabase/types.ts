@@ -44,6 +44,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_dishes: {
+        Row: {
+          category: string
+          cooking_time: string
+          created_at: string
+          cuisine: string
+          difficulty: string
+          id: string
+          name: string
+          tags: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          cooking_time: string
+          created_at?: string
+          cuisine: string
+          difficulty: string
+          id?: string
+          name: string
+          tags?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          cooking_time?: string
+          created_at?: string
+          cuisine?: string
+          difficulty?: string
+          id?: string
+          name?: string
+          tags?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       Users: {
         Row: {
           created_at: string

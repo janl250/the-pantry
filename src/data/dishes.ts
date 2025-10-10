@@ -125,3 +125,15 @@ export const getDishOfTheDay = (): Dish => {
   const index = dayOfYear % dinnerDishes.length;
   return dinnerDishes[index];
 };
+
+export const convertUserDishToDish = (userDish: any): Dish => {
+  return {
+    id: userDish.id,
+    name: userDish.name,
+    tags: userDish.tags,
+    cookingTime: userDish.cooking_time,
+    difficulty: userDish.difficulty,
+    cuisine: userDish.cuisine,
+    category: userDish.category,
+  };
+};

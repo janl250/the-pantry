@@ -97,7 +97,7 @@ export default function IngredientFinder() {
                             className="flex items-center gap-1 cursor-pointer"
                             onClick={() => removeIngredient(ingredient)}
                           >
-                            {ingredient}
+                            {translateField('ingredient', ingredient)}
                             <X className="h-3 w-3" />
                           </Badge>
                         ))}
@@ -129,7 +129,7 @@ export default function IngredientFinder() {
                           onChange={() => toggleIngredient(ingredient)}
                         />
                         <label className="text-sm capitalize cursor-pointer flex-1">
-                          {ingredient}
+                          {translateField('ingredient', ingredient)}
                         </label>
                       </div>
                     ))}
@@ -193,7 +193,7 @@ export default function IngredientFinder() {
                                     variant={selectedIngredients.includes(tag) ? "default" : "outline"}
                                     className="text-xs"
                                   >
-                                    {tag}
+                                    {translateField('ingredient', tag)}
                                   </Badge>
                                 ))}
                               </div>
