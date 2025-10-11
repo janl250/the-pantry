@@ -7,8 +7,7 @@ export const HeroSection = () => {
   const { t } = useLanguage();
   
   return (
-    <section className="relative min-h-[80vh] gradient-hero flex items-center justify-center px-4 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20"></div>
+    <section className="relative min-h-[80vh] bg-background flex items-center justify-center px-4 overflow-hidden">
       <div className="relative max-w-4xl mx-auto text-center z-10">
         <div className="mb-8 flex justify-center">
           <div className="p-4 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 shadow-lg">

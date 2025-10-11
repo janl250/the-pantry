@@ -8,7 +8,7 @@ interface CategoryCardProps {
 
 export const CategoryCard = ({ title, description, image }: CategoryCardProps) => {
   return (
-    <Card className="overflow-hidden shadow-card hover:shadow-card-hover transition-smooth hover:-translate-y-1 border-0 group cursor-pointer">
+    <Card className="overflow-hidden shadow-card hover:shadow-card-hover transition-smooth hover:-translate-y-1 border border-border/50 group cursor-pointer bg-card">
       <div className="relative h-48 overflow-hidden">
         <img 
           src={image} 

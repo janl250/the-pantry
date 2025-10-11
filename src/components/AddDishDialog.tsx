@@ -1,14 +1,18 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Plus, X } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Plus, X, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getAllIngredients } from '@/data/dishes';
+import { cn } from '@/lib/utils';
 
 interface AddDishDialogProps {
   onDishAdded: () => void;
@@ -37,13 +41,26 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [ingredientPopoverOpen, setIngredientPopoverOpen] = useState(false);
   const { toast } = useToast();
   const { t, translateField } = useLanguage();
+  
+  const allIngredients = useMemo(() => getAllIngredients(), []);
+  
+  const filteredIngredients = useMemo(() => {
+    if (!currentTag) return allIngredients;
+    const searchTerm = currentTag.toLowerCase();
+    return allIngredients.filter(ing => 
+      ing.toLowerCase().includes(searchTerm) && !tags.includes(ing)
+    );
+  }, [currentTag, allIngredients, tags]);
 
-  const handleAddTag = () => {
-    if (currentTag.trim() && !tags.includes(currentTag.trim())) {
-      setTags([...tags, currentTag.trim()]);
+  const handleAddTag = (ingredient?: string) => {
+    const tagToAdd = ingredient || currentTag.trim();
+    if (tagToAdd && !tags.includes(tagToAdd)) {
+      setTags([...tags, tagToAdd]);
       setCurrentTag('');
+      setIngredientPopoverOpen(false);
     }
   };
 
@@ -147,7 +164,7 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
                 <SelectTrigger>
                   <SelectValue placeholder="Küche wählen" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[200px] overflow-y-auto">
                   {cuisineOptions.map((option) => (
                     <SelectItem key={option} value={option}>
                       {translateField('cuisine', option)}
@@ -163,7 +180,7 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
                 <SelectTrigger>
                   <SelectValue placeholder="Kategorie wählen" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[200px] overflow-y-auto">
                   {categoryOptions.map((option) => (
                     <SelectItem key={option} value={option}>
                       {translateField('category', option)}
@@ -207,19 +224,48 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
           <div className="space-y-2">
             <Label htmlFor="tags">Zutaten</Label>
             <div className="flex gap-2">
-              <Input
-                id="tags"
-                value={currentTag}
-                onChange={(e) => setCurrentTag(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddTag();
-                  }
-                }}
-                placeholder="Zutat eingeben und Enter drücken"
-              />
-              <Button type="button" onClick={handleAddTag} variant="outline" size="icon">
+              <Popover open={ingredientPopoverOpen} onOpenChange={setIngredientPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <div className="flex-1">
+                    <Input
+                      id="tags"
+                      value={currentTag}
+                      onChange={(e) => {
+                        setCurrentTag(e.target.value);
+                        setIngredientPopoverOpen(true);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddTag();
+                        }
+                      }}
+                      placeholder="Zutat eingeben und Enter drücken"
+                      onFocus={() => setIngredientPopoverOpen(true)}
+                    />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandList>
+                      <CommandEmpty>Keine Zutat gefunden. Drücke Enter um "{currentTag}" hinzuzufügen.</CommandEmpty>
+                      <CommandGroup heading="Vorhandene Zutaten">
+                        {filteredIngredients.slice(0, 8).map((ingredient) => (
+                          <CommandItem
+                            key={ingredient}
+                            value={ingredient}
+                            onSelect={() => handleAddTag(ingredient)}
+                          >
+                            <Check className={cn("mr-2 h-4 w-4", tags.includes(ingredient) ? "opacity-100" : "opacity-0")} />
+                            {translateField('ingredient', ingredient)}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <Button type="button" onClick={() => handleAddTag()} variant="outline" size="icon">
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
