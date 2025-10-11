@@ -42,6 +42,7 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
   const [currentTag, setCurrentTag] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [ingredientPopoverOpen, setIngredientPopoverOpen] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { toast } = useToast();
   const { t, translateField } = useLanguage();
   
@@ -71,14 +72,23 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name || !cuisine || !category || tags.length === 0) {
+    const errors: string[] = [];
+    if (!name) errors.push('Name des Gerichts');
+    if (!cuisine) errors.push('Küche');
+    if (!category) errors.push('Kategorie');
+    if (tags.length === 0) errors.push('Mindestens eine Zutat');
+    
+    if (errors.length > 0) {
+      setValidationErrors(errors);
       toast({
-        title: t('common.error'),
-        description: t('dishLibrary.noResults'),
+        title: 'Fehlende Angaben',
+        description: 'Bitte fülle alle erforderlichen Felder aus',
         variant: 'destructive',
       });
       return;
     }
+    
+    setValidationErrors([]);
 
     setIsSubmitting(true);
 
@@ -146,21 +156,32 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
           <DialogTitle>Neues Gericht hinzufügen</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {validationErrors.length > 0 && (
+            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4">
+              <p className="text-sm font-medium text-destructive mb-2">Bitte fülle folgende Felder aus:</p>
+              <ul className="list-disc list-inside space-y-1">
+                {validationErrors.map((error, index) => (
+                  <li key={index} className="text-sm text-destructive">{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
           <div className="space-y-2">
-            <Label htmlFor="name">Name des Gerichts</Label>
+            <Label htmlFor="name">Name des Gerichts *</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="z.B. Spaghetti Carbonara"
-              required
+              className={validationErrors.includes('Name des Gerichts') ? 'border-destructive' : ''}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="cuisine">Küche</Label>
-              <Select value={cuisine} onValueChange={setCuisine} required>
+              <Label htmlFor="cuisine">Küche *</Label>
+              <Select value={cuisine} onValueChange={setCuisine}>
                 <SelectTrigger>
                   <SelectValue placeholder="Küche wählen" />
                 </SelectTrigger>
@@ -175,8 +196,8 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Kategorie</Label>
-              <Select value={category} onValueChange={setCategory} required>
+              <Label htmlFor="category">Kategorie *</Label>
+              <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger>
                   <SelectValue placeholder="Kategorie wählen" />
                 </SelectTrigger>
@@ -222,49 +243,49 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tags">Zutaten</Label>
+            <Label htmlFor="tags">Zutaten *</Label>
             <div className="flex gap-2">
-              <Popover open={ingredientPopoverOpen} onOpenChange={setIngredientPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <div className="flex-1">
-                    <Input
-                      id="tags"
-                      value={currentTag}
-                      onChange={(e) => {
-                        setCurrentTag(e.target.value);
-                        setIngredientPopoverOpen(true);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddTag();
-                        }
-                      }}
-                      placeholder="Zutat eingeben und Enter drücken"
-                      onFocus={() => setIngredientPopoverOpen(true)}
-                    />
+              <div className="flex-1 relative">
+                <Input
+                  id="tags"
+                  value={currentTag}
+                  onChange={(e) => {
+                    setCurrentTag(e.target.value);
+                    setIngredientPopoverOpen(true);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddTag();
+                    }
+                  }}
+                  placeholder="Zutat eingeben und Enter drücken"
+                  onFocus={() => setIngredientPopoverOpen(true)}
+                  onBlur={() => setTimeout(() => setIngredientPopoverOpen(false), 200)}
+                  className={validationErrors.includes('Mindestens eine Zutat') ? 'border-destructive' : ''}
+                />
+                {ingredientPopoverOpen && currentTag && (
+                  <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-[200px] overflow-y-auto">
+                    <Command>
+                      <CommandList>
+                        <CommandEmpty>Keine Zutat gefunden. Drücke Enter um "{currentTag}" hinzuzufügen.</CommandEmpty>
+                        <CommandGroup heading="Vorhandene Zutaten">
+                          {filteredIngredients.slice(0, 8).map((ingredient) => (
+                            <CommandItem
+                              key={ingredient}
+                              value={ingredient}
+                              onSelect={() => handleAddTag(ingredient)}
+                            >
+                              <Check className={cn("mr-2 h-4 w-4", tags.includes(ingredient) ? "opacity-100" : "opacity-0")} />
+                              {translateField('ingredient', ingredient)}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
                   </div>
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0" align="start">
-                  <Command>
-                    <CommandList>
-                      <CommandEmpty>Keine Zutat gefunden. Drücke Enter um "{currentTag}" hinzuzufügen.</CommandEmpty>
-                      <CommandGroup heading="Vorhandene Zutaten">
-                        {filteredIngredients.slice(0, 8).map((ingredient) => (
-                          <CommandItem
-                            key={ingredient}
-                            value={ingredient}
-                            onSelect={() => handleAddTag(ingredient)}
-                          >
-                            <Check className={cn("mr-2 h-4 w-4", tags.includes(ingredient) ? "opacity-100" : "opacity-0")} />
-                            {translateField('ingredient', ingredient)}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                )}
+              </div>
               <Button type="button" onClick={() => handleAddTag()} variant="outline" size="icon">
                 <Plus className="h-4 w-4" />
               </Button>

@@ -11,6 +11,7 @@ import { ArrowLeft, Search, Filter } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AddDishDialog } from "@/components/AddDishDialog";
+import { EditDishDialog } from "@/components/EditDishDialog";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function DishLibrary() {
@@ -22,11 +23,14 @@ export default function DishLibrary() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [userDishes, setUserDishes] = useState<Dish[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [editingDish, setEditingDish] = useState<{ id: string; dish: Dish } | null>(null);
 
   const loadUserDishes = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        setCurrentUserId(user.id);
         const { data, error } = await supabase
           .from('user_dishes')
           .select('*')
@@ -43,6 +47,10 @@ export default function DishLibrary() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const isUserDish = (dishId: string) => {
+    return userDishes.some(d => d.id === dishId);
   };
 
   useEffect(() => {
@@ -178,7 +186,11 @@ export default function DishLibrary() {
           {/* Dishes Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {filteredDishes.map((dish) => (
-              <Card key={dish.id} className="group overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-2 border-0 bg-gradient-card">
+              <Card 
+                key={dish.id} 
+                className={`group overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-border/40 bg-card/50 backdrop-blur-sm ${isUserDish(dish.id) ? 'cursor-pointer' : ''}`}
+                onClick={() => isUserDish(dish.id) && setEditingDish({ id: dish.id, dish })}
+              >
                 <CardContent className="p-6">
                   <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">{dish.name}</h3>
                   
@@ -215,6 +227,17 @@ export default function DishLibrary() {
               </Card>
             ))}
           </div>
+
+          {editingDish && (
+            <EditDishDialog
+              dish={editingDish.dish}
+              dishId={editingDish.id}
+              open={!!editingDish}
+              onOpenChange={(open) => !open && setEditingDish(null)}
+              onDishUpdated={loadUserDishes}
+              onDishDeleted={loadUserDishes}
+            />
+          )}
 
           {filteredDishes.length === 0 && (
             <div className="text-center py-16">
