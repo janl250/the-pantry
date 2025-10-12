@@ -11,8 +11,8 @@ import { Plus, X, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-// Removed getAllIngredients in favor of dynamic hook
-// import { getAllIngredients } from '@/data/dishes';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { useIngredients } from "@/hooks/useIngredients";
 import { cn } from '@/lib/utils';
 
@@ -57,7 +57,7 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
     return ingredients.filter(ing => 
       ing.toLowerCase().includes(searchTerm) && !tags.includes(ing)
     );
-  }, [currentTag, allIngredients, tags]);
+  }, [currentTag, ingredients, tags]);
 
   const handleAddTag = (ingredient?: string) => {
     const tagToAdd = ingredient || currentTag.trim();
