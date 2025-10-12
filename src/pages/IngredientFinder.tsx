@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getAllIngredients, filterDishesByIngredients, type Dish } from "@/data/dishes";
+import { filterDishesByIngredients, type Dish } from "@/data/dishes";
+import { useIngredients } from "@/hooks/useIngredients";
 import { ArrowLeft, Search, ChefHat, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -16,7 +17,7 @@ export default function IngredientFinder() {
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   
-  const allIngredients = getAllIngredients();
+  const { ingredients: allIngredients } = useIngredients();
   const filteredIngredients = allIngredients.filter(ingredient => 
     ingredient.toLowerCase().includes(searchTerm.toLowerCase())
   );

@@ -11,7 +11,9 @@ import { Plus, X, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { getAllIngredients } from '@/data/dishes';
+// Removed getAllIngredients in favor of dynamic hook
+// import { getAllIngredients } from '@/data/dishes';
+import { useIngredients } from "@/hooks/useIngredients";
 import { cn } from '@/lib/utils';
 
 interface AddDishDialogProps {
@@ -45,13 +47,14 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const { toast } = useToast();
   const { t, translateField } = useLanguage();
-  
-  const allIngredients = useMemo(() => getAllIngredients(), []);
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const { ingredients } = useIngredients();
   
   const filteredIngredients = useMemo(() => {
-    if (!currentTag) return allIngredients;
+    if (!currentTag) return ingredients;
     const searchTerm = currentTag.toLowerCase();
-    return allIngredients.filter(ing => 
+    return ingredients.filter(ing => 
       ing.toLowerCase().includes(searchTerm) && !tags.includes(ing)
     );
   }, [currentTag, allIngredients, tags]);
@@ -144,7 +147,22 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+        open={open}
+        onOpenChange={(next) => {
+          if (next) {
+            if (!isAuthenticated) {
+              toast({
+                title: "Login erforderlich",
+                description: "Bitte melde dich an, um eigene Gerichte hinzuzufügen.",
+              });
+              navigate("/auth");
+              return;
+            }
+          }
+          setOpen(next);
+        }}
+      >
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
