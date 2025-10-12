@@ -54,10 +54,15 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
   const filteredIngredients = useMemo(() => {
     if (!currentTag) return ingredients;
     const searchTerm = currentTag.toLowerCase();
-    return ingredients.filter(ing => 
-      ing.toLowerCase().includes(searchTerm) && !tags.includes(ing)
-    );
-  }, [currentTag, ingredients, tags]);
+    return ingredients.filter(ing => {
+      const originalName = ing.toLowerCase();
+      const translatedName = translateField('ingredient', ing).toLowerCase();
+      return (
+        (originalName.includes(searchTerm) || translatedName.includes(searchTerm)) &&
+        !tags.includes(ing)
+      );
+    });
+  }, [currentTag, ingredients, tags, translateField]);
 
   const handleAddTag = (ingredient?: string) => {
     const tagToAdd = ingredient || currentTag.trim();
@@ -76,16 +81,16 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
     e.preventDefault();
     
     const errors: string[] = [];
-    if (!name) errors.push('Name des Gerichts');
-    if (!cuisine) errors.push('Küche');
-    if (!category) errors.push('Kategorie');
-    if (tags.length === 0) errors.push('Mindestens eine Zutat');
+    if (!name) errors.push(t('addDish.name'));
+    if (!cuisine) errors.push(t('addDish.cuisine'));
+    if (!category) errors.push(t('addDish.category'));
+    if (tags.length === 0) errors.push(t('addDish.ingredients'));
     
     if (errors.length > 0) {
       setValidationErrors(errors);
       toast({
-        title: 'Fehlende Angaben',
-        description: 'Bitte fülle alle erforderlichen Felder aus',
+        title: t('addDish.validationError'),
+        description: t('addDish.validationDescription'),
         variant: 'destructive',
       });
       return;
@@ -121,7 +126,7 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
 
       toast({
         title: 'Success',
-        description: 'Gericht erfolgreich hinzugefügt!',
+        description: t('addDish.success'),
       });
 
       // Reset form
@@ -138,7 +143,7 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
       console.error('Error adding dish:', error);
       toast({
         title: t('common.error'),
-        description: 'Fehler beim Hinzufügen des Gerichts',
+        description: t('addDish.error'),
         variant: 'destructive',
       });
     } finally {
@@ -153,8 +158,8 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
           if (next) {
             if (!isAuthenticated) {
               toast({
-                title: "Login erforderlich",
-                description: "Bitte melde dich an, um eigene Gerichte hinzuzufügen.",
+                title: t('addDish.loginRequired'),
+                description: t('addDish.loginDescription'),
               });
               navigate("/auth");
               return;
@@ -166,17 +171,17 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
       <DialogTrigger asChild>
         <Button className="gap-2">
           <Plus className="h-4 w-4" />
-          Eigenes Gericht hinzufügen
+          {t('addDish.button')}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Neues Gericht hinzufügen</DialogTitle>
+          <DialogTitle>{t('addDish.title')}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {validationErrors.length > 0 && (
             <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4">
-              <p className="text-sm font-medium text-destructive mb-2">Bitte fülle folgende Felder aus:</p>
+              <p className="text-sm font-medium text-destructive mb-2">{t('addDish.validationPrompt')}</p>
               <ul className="list-disc list-inside space-y-1">
                 {validationErrors.map((error, index) => (
                   <li key={index} className="text-sm text-destructive">{error}</li>
@@ -186,22 +191,22 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="name">Name des Gerichts *</Label>
+            <Label htmlFor="name">{t('addDish.name')} {t('addDish.required')}</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="z.B. Spaghetti Carbonara"
-              className={validationErrors.includes('Name des Gerichts') ? 'border-destructive' : ''}
+              placeholder={t('addDish.namePlaceholder')}
+              className={validationErrors.includes(t('addDish.name')) ? 'border-destructive' : ''}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="cuisine">Küche *</Label>
+              <Label htmlFor="cuisine">{t('addDish.cuisine')} {t('addDish.required')}</Label>
               <Select value={cuisine} onValueChange={setCuisine}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Küche wählen" />
+                  <SelectValue placeholder={t('addDish.cuisinePlaceholder')} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px] overflow-y-auto">
                   {cuisineOptions.map((option) => (
@@ -214,10 +219,10 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Kategorie *</Label>
+              <Label htmlFor="category">{t('addDish.category')} {t('addDish.required')}</Label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Kategorie wählen" />
+                  <SelectValue placeholder={t('addDish.categoryPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px] overflow-y-auto">
                   {categoryOptions.map((option) => (
@@ -232,7 +237,7 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="cookingTime">Kochzeit</Label>
+              <Label htmlFor="cookingTime">{t('addDish.cookingTime')}</Label>
               <Select value={cookingTime} onValueChange={(value) => setCookingTime(value as any)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -246,7 +251,7 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="difficulty">Schwierigkeit</Label>
+              <Label htmlFor="difficulty">{t('addDish.difficulty')}</Label>
               <Select value={difficulty} onValueChange={(value) => setDifficulty(value as any)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -261,7 +266,7 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tags">Zutaten *</Label>
+            <Label htmlFor="tags">{t('addDish.ingredients')} {t('addDish.required')}</Label>
             <div className="flex gap-2">
               <div className="flex-1 relative">
                 <Input
@@ -277,17 +282,17 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
                       handleAddTag();
                     }
                   }}
-                  placeholder="Zutat eingeben und Enter drücken"
+                  placeholder={t('addDish.ingredientPlaceholder')}
                   onFocus={() => setIngredientPopoverOpen(true)}
                   onBlur={() => setTimeout(() => setIngredientPopoverOpen(false), 200)}
-                  className={validationErrors.includes('Mindestens eine Zutat') ? 'border-destructive' : ''}
+                  className={validationErrors.includes(t('addDish.ingredients')) ? 'border-destructive' : ''}
                 />
                 {ingredientPopoverOpen && currentTag && (
                   <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md max-h-[200px] overflow-y-auto">
                     <Command>
                       <CommandList>
-                        <CommandEmpty>Keine Zutat gefunden. Drücke Enter um "{currentTag}" hinzuzufügen.</CommandEmpty>
-                        <CommandGroup heading="Vorhandene Zutaten">
+                        <CommandEmpty>{t('addDish.ingredientNotFound').replace('{tag}', currentTag)}</CommandEmpty>
+                        <CommandGroup heading={t('addDish.existingIngredients')}>
                           {filteredIngredients.slice(0, 8).map((ingredient) => (
                             <CommandItem
                               key={ingredient}
@@ -326,10 +331,10 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
 
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Abbrechen
+              {t('addDish.cancel')}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Wird hinzugefügt...' : 'Gericht hinzufügen'}
+              {isSubmitting ? t('addDish.submitting') : t('addDish.submit')}
             </Button>
           </div>
         </form>
