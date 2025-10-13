@@ -7,8 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { dinnerDishes, type Dish } from "@/data/dishes";
-import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,11 +18,17 @@ type WeeklyMeals = {
   [key: string]: Dish | null;
 };
 
+type Group = {
+  id: string;
+  name: string;
+};
+
 export default function WeeklyCalendar() {
   const { t, language, translateField } = useLanguage();
   const { user, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const daysOfWeek = [
     { key: 'monday', label: t('weeklyCalendar.days.monday') },
@@ -48,15 +54,86 @@ export default function WeeklyCalendar() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState<string>("all");
   const [saving, setSaving] = useState(false);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
 
   const cuisines = Array.from(new Set(dinnerDishes.map(dish => dish.cuisine))).sort();
 
-  // Load existing meal plan when user logs in
+  // Load groups when user logs in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      loadGroups();
+    }
+  }, [isAuthenticated, user]);
+
+  // Set initial group from URL params
+  useEffect(() => {
+    const groupParam = searchParams.get('group');
+    if (groupParam) {
+      setSelectedGroupId(groupParam);
+    }
+  }, [searchParams]);
+
+  // Load meal plan when user or selected group changes
   useEffect(() => {
     if (isAuthenticated && user) {
       loadMealPlan();
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, selectedGroupId]);
+
+  // Setup realtime subscription for group calendars
+  useEffect(() => {
+    if (!selectedGroupId) return;
+
+    const channel = supabase
+      .channel('meal-plans-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'meal_plans',
+          filter: `group_id=eq.${selectedGroupId}`
+        },
+        () => {
+          loadMealPlan();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedGroupId]);
+
+  const loadGroups = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: memberships, error } = await supabase
+        .from('group_members')
+        .select(`
+          groups (
+            id,
+            name
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      if (memberships) {
+        const groupsList = memberships
+          .map((m: any) => ({
+            id: m.groups.id,
+            name: m.groups.name
+          }));
+        setGroups(groupsList);
+      }
+    } catch (error) {
+      console.error('Error loading groups:', error);
+    }
+  };
 
   const getWeekStartDate = () => {
     const today = new Date();
@@ -72,11 +149,18 @@ export default function WeeklyCalendar() {
     const weekStartString = weekStart.toISOString().split('T')[0];
     
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('meal_plans')
         .select('*')
-        .eq('user_id', user.id)
         .eq('week_start_date', weekStartString);
+
+      if (selectedGroupId) {
+        query = query.eq('group_id', selectedGroupId);
+      } else {
+        query = query.eq('user_id', user.id).is('group_id', null);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error loading meal plan:', error);
@@ -149,11 +233,18 @@ export default function WeeklyCalendar() {
       const weekStartString = weekStart.toISOString().split('T')[0];
       
       try {
-        const { error } = await supabase
+        let query = supabase
           .from('meal_plans')
           .delete()
-          .eq('user_id', user.id)
           .eq('week_start_date', weekStartString);
+
+        if (selectedGroupId) {
+          query = query.eq('group_id', selectedGroupId);
+        } else {
+          query = query.eq('user_id', user.id).is('group_id', null);
+        }
+
+        const { error } = await query;
 
         if (error) {
           console.error('Error clearing week:', error);
@@ -187,11 +278,18 @@ export default function WeeklyCalendar() {
       const weekStartString = weekStart.toISOString().split('T')[0];
       
       // First, delete existing meal plans for this week
-      const { error: deleteError } = await supabase
+      let deleteQuery = supabase
         .from('meal_plans')
         .delete()
-        .eq('user_id', user!.id)
         .eq('week_start_date', weekStartString);
+
+      if (selectedGroupId) {
+        deleteQuery = deleteQuery.eq('group_id', selectedGroupId);
+      } else {
+        deleteQuery = deleteQuery.eq('user_id', user!.id).is('group_id', null);
+      }
+
+      const { error: deleteError } = await deleteQuery;
 
       if (deleteError) {
         throw deleteError;
@@ -204,7 +302,9 @@ export default function WeeklyCalendar() {
           user_id: user!.id,
           week_start_date: weekStartString,
           day_of_week: day,
-          dish_name: dish!.name
+          dish_name: dish!.name,
+          group_id: selectedGroupId,
+          added_by: user!.id
         }));
 
       if (mealPlansToInsert.length > 0) {
@@ -277,6 +377,47 @@ export default function WeeklyCalendar() {
               )}
             </div>
           </div>
+
+          {/* Group Selection */}
+          {isAuthenticated && groups.length > 0 && (
+            <Card className="mb-8">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <Users className="h-5 w-5 text-muted-foreground" />
+                  <Select
+                    value={selectedGroupId || 'personal'}
+                    onValueChange={(value) => {
+                      const newGroupId = value === 'personal' ? null : value;
+                      setSelectedGroupId(newGroupId);
+                      if (newGroupId) {
+                        setSearchParams({ group: newGroupId });
+                      } else {
+                        setSearchParams({});
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-64">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="personal">{t('weeklyCalendar.personal')}</SelectItem>
+                      {groups.map(group => (
+                        <SelectItem key={group.id} value={group.id}>
+                          {group.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedGroupId && (
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      {language === 'de' ? 'Gruppenmodus' : 'Group Mode'}
+                    </Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Progress Card */}
           <Card className="mb-8">

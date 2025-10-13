@@ -28,6 +28,13 @@ export const Navigation = () => {
               {t('nav.weeklyPlanner')}
             </Button>
           </Link>
+          {isAuthenticated && (
+            <Link to="/groups">
+              <Button variant="ghost" className="text-foreground hover:text-primary font-medium">
+                {language === 'de' ? 'Gruppen' : 'Groups'}
+              </Button>
+            </Link>
+          )}
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

@@ -14,35 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
+      group_members: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string
+          role: Database["public"]["Enums"]["group_role"]
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["group_role"]
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["group_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          invite_code: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          invite_code: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          invite_code?: string
+          name?: string
+        }
+        Relationships: []
+      }
       meal_plans: {
         Row: {
+          added_by: string | null
           created_at: string
           day_of_week: string
           dish_name: string
+          group_id: string | null
           id: string
           updated_at: string
           user_id: string
           week_start_date: string
         }
         Insert: {
+          added_by?: string | null
           created_at?: string
           day_of_week: string
           dish_name: string
+          group_id?: string | null
           id?: string
           updated_at?: string
           user_id: string
           week_start_date?: string
         }
         Update: {
+          added_by?: string | null
           created_at?: string
           day_of_week?: string
           dish_name?: string
+          group_id?: string | null
           id?: string
           updated_at?: string
           user_id?: string
           week_start_date?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "meal_plans_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_dishes: {
         Row: {
@@ -103,10 +173,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_invite_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      group_role: "creator" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -233,6 +306,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      group_role: ["creator", "member"],
+    },
   },
 } as const
