@@ -7,6 +7,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { z } from 'zod';
+
+const groupSchema = z.object({
+  name: z.string().trim().min(1, 'Group name is required').max(50, 'Group name must be less than 50 characters'),
+});
 
 type CreateGroupDialogProps = {
   open: boolean;
@@ -22,10 +27,14 @@ export function CreateGroupDialog({ open, onOpenChange, onSuccess }: CreateGroup
   const [loading, setLoading] = useState(false);
 
   const handleCreate = async () => {
-    if (!user || !groupName.trim()) return;
+    if (!user) return;
 
-    setLoading(true);
     try {
+      // Validate with Zod
+      const validatedData = groupSchema.parse({ name: groupName });
+      
+      setLoading(true);
+
       // Generate invite code
       const { data: codeData, error: codeError } = await supabase
         .rpc('generate_invite_code');
@@ -36,7 +45,7 @@ export function CreateGroupDialog({ open, onOpenChange, onSuccess }: CreateGroup
       const { data: group, error: groupError } = await supabase
         .from('groups')
         .insert({
-          name: groupName.trim(),
+          name: validatedData.name,
           invite_code: codeData,
           created_by: user.id
         })
@@ -65,12 +74,19 @@ export function CreateGroupDialog({ open, onOpenChange, onSuccess }: CreateGroup
       onOpenChange(false);
       onSuccess();
     } catch (error) {
-      console.error('Error creating group:', error);
-      toast({
-        title: language === 'de' ? "Fehler" : "Error",
-        description: t('createGroup.error'),
-        variant: "destructive"
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: language === 'de' ? "Ungültige Eingabe" : "Invalid Input",
+          description: error.issues[0].message,
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: language === 'de' ? "Fehler" : "Error",
+          description: t('createGroup.error'),
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }

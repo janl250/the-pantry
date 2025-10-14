@@ -31,12 +31,15 @@ export function JoinGroupDialog({ open, onOpenChange, onSuccess }: JoinGroupDial
         .from('groups')
         .select('id')
         .eq('invite_code', inviteCode.trim().toUpperCase())
-        .single();
+        .maybeSingle();
 
-      if (groupError || !group) {
+      if (groupError) throw groupError;
+
+      if (!group) {
+        // Generic error message to prevent enumeration
         toast({
-          title: language === 'de' ? "Ungültiger Code" : "Invalid Code",
-          description: t('joinGroup.invalidCode'),
+          title: language === 'de' ? "Fehler" : "Error",
+          description: language === 'de' ? "Gruppe konnte nicht beigetreten werden" : "Unable to join group",
           variant: "destructive"
         });
         return;
@@ -48,7 +51,7 @@ export function JoinGroupDialog({ open, onOpenChange, onSuccess }: JoinGroupDial
         .select('id')
         .eq('group_id', group.id)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         toast({
@@ -79,10 +82,10 @@ export function JoinGroupDialog({ open, onOpenChange, onSuccess }: JoinGroupDial
       onOpenChange(false);
       onSuccess();
     } catch (error) {
-      console.error('Error joining group:', error);
+      // Generic error message
       toast({
         title: language === 'de' ? "Fehler" : "Error",
-        description: t('joinGroup.error'),
+        description: language === 'de' ? "Gruppe konnte nicht beigetreten werden" : "Unable to join group",
         variant: "destructive"
       });
     } finally {

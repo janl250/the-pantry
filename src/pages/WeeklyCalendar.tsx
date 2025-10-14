@@ -131,7 +131,7 @@ export default function WeeklyCalendar() {
         setGroups(groupsList);
       }
     } catch (error) {
-      console.error('Error loading groups:', error);
+      // Error loading groups - fail silently
     }
   };
 
@@ -163,7 +163,6 @@ export default function WeeklyCalendar() {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Error loading meal plan:', error);
         return;
       }
 
@@ -188,7 +187,7 @@ export default function WeeklyCalendar() {
         setWeeklyMeals(loadedMeals);
       }
     } catch (error) {
-      console.error('Error loading meal plan:', error);
+      // Error loading meal plan - fail silently
     }
   };
 
@@ -247,7 +246,6 @@ export default function WeeklyCalendar() {
         const { error } = await query;
 
         if (error) {
-          console.error('Error clearing week:', error);
           toast({
             title: language === 'de' ? "Fehler" : "Error",
             description: t('weeklyCalendar.error'),
@@ -260,7 +258,12 @@ export default function WeeklyCalendar() {
           });
         }
       } catch (error) {
-        console.error('Error clearing week:', error);
+        // Error clearing week
+        toast({
+          title: language === 'de' ? "Fehler" : "Error",
+          description: t('weeklyCalendar.error'),
+          variant: "destructive"
+        });
       }
     }
   };
@@ -322,7 +325,6 @@ export default function WeeklyCalendar() {
         description: t('weeklyCalendar.saved')
       });
     } catch (error) {
-      console.error('Error saving meal plan:', error);
       toast({
         title: language === 'de' ? "Fehler" : "Error",
         description: t('weeklyCalendar.error'),

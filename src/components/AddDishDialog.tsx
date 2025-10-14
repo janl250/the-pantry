@@ -15,6 +15,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useIngredients } from "@/hooks/useIngredients";
 import { cn } from '@/lib/utils';
+import { z } from 'zod';
+
+const dishSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
+  cuisine: z.string().trim().min(1, 'Cuisine is required').max(50, 'Cuisine must be less than 50 characters'),
+  category: z.string().trim().min(1, 'Category is required').max(50, 'Category must be less than 50 characters'),
+  tags: z.array(z.string()).min(1, 'At least one ingredient is required'),
+  cookingTime: z.enum(['quick', 'medium', 'long']),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+});
 
 interface AddDishDialogProps {
   onDishAdded: () => void;
@@ -80,27 +90,20 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const errors: string[] = [];
-    if (!name) errors.push(t('addDish.name'));
-    if (!cuisine) errors.push(t('addDish.cuisine'));
-    if (!category) errors.push(t('addDish.category'));
-    if (tags.length === 0) errors.push(t('addDish.ingredients'));
-    
-    if (errors.length > 0) {
-      setValidationErrors(errors);
-      toast({
-        title: t('addDish.validationError'),
-        description: t('addDish.validationDescription'),
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    setValidationErrors([]);
-
-    setIsSubmitting(true);
-
     try {
+      // Validate with Zod
+      const validatedData = dishSchema.parse({
+        name,
+        cuisine,
+        category,
+        tags,
+        cookingTime,
+        difficulty,
+      });
+      
+      setValidationErrors([]);
+      setIsSubmitting(true);
+
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -114,12 +117,12 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
 
       const { error } = await supabase.from('user_dishes').insert({
         user_id: user.id,
-        name,
-        tags,
-        cooking_time: cookingTime,
-        difficulty,
-        cuisine,
-        category,
+        name: validatedData.name,
+        tags: validatedData.tags,
+        cooking_time: validatedData.cookingTime,
+        difficulty: validatedData.difficulty,
+        cuisine: validatedData.cuisine,
+        category: validatedData.category,
       });
 
       if (error) throw error;
@@ -140,12 +143,21 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
       setOpen(false);
       onDishAdded();
     } catch (error) {
-      console.error('Error adding dish:', error);
-      toast({
-        title: t('common.error'),
-        description: t('addDish.error'),
-        variant: 'destructive',
-      });
+      if (error instanceof z.ZodError) {
+        const errors = error.issues.map(err => err.message);
+        setValidationErrors(errors);
+        toast({
+          title: t('addDish.validationError'),
+          description: t('addDish.validationDescription'),
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: t('common.error'),
+          description: t('addDish.error'),
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }

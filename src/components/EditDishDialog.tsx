@@ -12,6 +12,16 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { getAllIngredients, type Dish } from '@/data/dishes';
 import { cn } from '@/lib/utils';
+import { z } from 'zod';
+
+const dishSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
+  cuisine: z.string().trim().min(1, 'Cuisine is required').max(50, 'Cuisine must be less than 50 characters'),
+  category: z.string().trim().min(1, 'Category is required').max(50, 'Category must be less than 50 characters'),
+  tags: z.array(z.string()).min(1, 'At least one ingredient is required'),
+  cookingTime: z.enum(['quick', 'medium', 'long']),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+});
 import {
   AlertDialog,
   AlertDialogAction,
@@ -96,35 +106,29 @@ export const EditDishDialog = ({ dish, dishId, open, onOpenChange, onDishUpdated
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const errors: string[] = [];
-    if (!name) errors.push('Name des Gerichts');
-    if (!cuisine) errors.push('Küche');
-    if (!category) errors.push('Kategorie');
-    if (tags.length === 0) errors.push('Mindestens eine Zutat');
-    
-    if (errors.length > 0) {
-      setValidationErrors(errors);
-      toast({
-        title: 'Fehlende Angaben',
-        description: 'Bitte fülle alle erforderlichen Felder aus',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    setValidationErrors([]);
-    setIsSubmitting(true);
-
     try {
+      // Validate with Zod
+      const validatedData = dishSchema.parse({
+        name,
+        cuisine,
+        category,
+        tags,
+        cookingTime,
+        difficulty,
+      });
+      
+      setValidationErrors([]);
+      setIsSubmitting(true);
+
       const { error } = await supabase
         .from('user_dishes')
         .update({
-          name,
-          tags,
-          cooking_time: cookingTime,
-          difficulty,
-          cuisine,
-          category,
+          name: validatedData.name,
+          tags: validatedData.tags,
+          cooking_time: validatedData.cookingTime,
+          difficulty: validatedData.difficulty,
+          cuisine: validatedData.cuisine,
+          category: validatedData.category,
         })
         .eq('id', dishId);
 
@@ -138,12 +142,21 @@ export const EditDishDialog = ({ dish, dishId, open, onOpenChange, onDishUpdated
       onDishUpdated();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error updating dish:', error);
-      toast({
-        title: t('common.error'),
-        description: 'Fehler beim Aktualisieren des Gerichts',
-        variant: 'destructive',
-      });
+      if (error instanceof z.ZodError) {
+        const errors = error.issues.map(err => err.message);
+        setValidationErrors(errors);
+        toast({
+          title: 'Fehlende Angaben',
+          description: 'Bitte fülle alle erforderlichen Felder aus',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: t('common.error'),
+          description: 'Fehler beim Aktualisieren des Gerichts',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -168,7 +181,6 @@ export const EditDishDialog = ({ dish, dishId, open, onOpenChange, onDishUpdated
       onDishDeleted();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error deleting dish:', error);
       toast({
         title: t('common.error'),
         description: 'Fehler beim Löschen des Gerichts',
