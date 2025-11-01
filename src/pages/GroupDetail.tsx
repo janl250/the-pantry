@@ -4,12 +4,32 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, Copy, Crown, Calendar } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Users, Copy, Crown, Calendar, Edit2, Trash2, UserMinus } from "lucide-react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 type Member = {
   user_id: string;
@@ -38,14 +58,17 @@ export default function GroupDetail() {
   const [group, setGroup] = useState<GroupDetail | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreator, setIsCreator] = useState(false);
+  const [editGroupName, setEditGroupName] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [deleteGroupDialog, setDeleteGroupDialog] = useState(false);
+  const [removeMemberId, setRemoveMemberId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isAuthenticated && user && groupId) {
+    if (groupId && user) {
       loadGroupDetails();
-    } else if (!isAuthenticated) {
-      navigate('/auth');
     }
-  }, [isAuthenticated, user, groupId]);
+  }, [groupId, user]);
 
   const loadGroupDetails = async () => {
     if (!user || !groupId) return;
@@ -61,6 +84,17 @@ export default function GroupDetail() {
 
       if (groupError) throw groupError;
       setGroup(groupData);
+      setNewGroupName(groupData.name);
+
+      // Check if current user is creator
+      const { data: membershipData } = await supabase
+        .from('group_members')
+        .select('role')
+        .eq('group_id', groupId)
+        .eq('user_id', user.id)
+        .single();
+
+      setIsCreator(membershipData?.role === 'creator');
 
       // Load members with profiles
       const { data: membersData, error: membersError } = await supabase
@@ -87,6 +121,87 @@ export default function GroupDetail() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateGroupName = async () => {
+    if (!groupId || !newGroupName.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('groups')
+        .update({ name: newGroupName.trim() })
+        .eq('id', groupId);
+
+      if (error) throw error;
+
+      toast({
+        title: language === 'de' ? "Erfolg" : "Success",
+        description: language === 'de' ? "Gruppenname geändert" : "Group name updated"
+      });
+
+      setEditGroupName(false);
+      loadGroupDetails();
+    } catch (error) {
+      toast({
+        title: language === 'de' ? "Fehler" : "Error",
+        description: language === 'de' ? "Fehler beim Ändern des Namens" : "Error updating name",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRemoveMember = async () => {
+    if (!removeMemberId || !groupId) return;
+
+    try {
+      const { error } = await supabase
+        .from('group_members')
+        .delete()
+        .eq('group_id', groupId)
+        .eq('user_id', removeMemberId);
+
+      if (error) throw error;
+
+      toast({
+        title: language === 'de' ? "Erfolg" : "Success",
+        description: language === 'de' ? "Mitglied entfernt" : "Member removed"
+      });
+
+      setRemoveMemberId(null);
+      loadGroupDetails();
+    } catch (error) {
+      toast({
+        title: language === 'de' ? "Fehler" : "Error",
+        description: language === 'de' ? "Fehler beim Entfernen" : "Error removing member",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!groupId) return;
+
+    try {
+      const { error } = await supabase
+        .from('groups')
+        .delete()
+        .eq('id', groupId);
+
+      if (error) throw error;
+
+      toast({
+        title: language === 'de' ? "Gruppe gelöscht" : "Group Deleted",
+        description: language === 'de' ? "Gruppe erfolgreich gelöscht" : "Group deleted successfully"
+      });
+
+      navigate('/groups');
+    } catch (error) {
+      toast({
+        title: language === 'de' ? "Fehler" : "Error",
+        description: language === 'de' ? "Fehler beim Löschen" : "Error deleting group",
+        variant: "destructive"
+      });
     }
   };
 
@@ -141,19 +256,42 @@ export default function GroupDetail() {
               </Button>
             </Link>
             <div className="flex-1">
-              <h1 className="text-3xl font-bold text-foreground">{group.name}</h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-foreground">{group.name}</h1>
+                {isCreator && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setEditGroupName(true)}
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
               <p className="text-muted-foreground mt-1">
                 {language === 'de' ? 'Gruppendetails' : 'Group Details'}
               </p>
             </div>
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/weekly-calendar?group=${group.id}`)}
-              className="flex items-center gap-2"
-            >
-              <Calendar className="h-4 w-4" />
-              {language === 'de' ? 'Kalender öffnen' : 'Open Calendar'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/weekly-calendar?group=${group.id}`)}
+                className="flex items-center gap-2"
+              >
+                <Calendar className="h-4 w-4" />
+                {language === 'de' ? 'Kalender öffnen' : 'Open Calendar'}
+              </Button>
+              {isCreator && (
+                <Button
+                  variant="destructive"
+                  onClick={() => setDeleteGroupDialog(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {language === 'de' ? 'Gruppe löschen' : 'Delete Group'}
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="space-y-6">
@@ -206,7 +344,7 @@ export default function GroupDetail() {
                         </div>
                         <div>
                           <div className="font-medium text-foreground">
-                            {member.profiles?.display_name || language === 'de' ? 'Unbekannter Benutzer' : 'Unknown User'}
+                            {member.profiles?.display_name || (language === 'de' ? 'Unbekannter Benutzer' : 'Unknown User')}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {language === 'de' ? 'Beigetreten am ' : 'Joined '}
@@ -214,12 +352,24 @@ export default function GroupDetail() {
                           </div>
                         </div>
                       </div>
-                      {member.role === 'creator' && (
-                        <Badge variant="default" className="flex items-center gap-1">
-                          <Crown className="h-3 w-3" />
-                          {t('groups.creator')}
-                        </Badge>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {member.role === 'creator' ? (
+                          <Badge variant="default" className="flex items-center gap-1">
+                            <Crown className="h-3 w-3" />
+                            {t('groups.creator')}
+                          </Badge>
+                        ) : (
+                          isCreator && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setRemoveMemberId(member.user_id)}
+                            >
+                              <UserMinus className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -230,6 +380,83 @@ export default function GroupDetail() {
       </main>
 
       <Footer />
+
+      {/* Edit Group Name Dialog */}
+      <Dialog open={editGroupName} onOpenChange={setEditGroupName}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {language === 'de' ? 'Gruppennamen ändern' : 'Edit Group Name'}
+            </DialogTitle>
+            <DialogDescription>
+              {language === 'de' 
+                ? 'Gib einen neuen Namen für die Gruppe ein.' 
+                : 'Enter a new name for the group.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="groupName">
+                {language === 'de' ? 'Gruppenname' : 'Group Name'}
+              </Label>
+              <Input
+                id="groupName"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                placeholder={language === 'de' ? 'Gruppenname' : 'Group name'}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditGroupName(false)}>
+              {language === 'de' ? 'Abbrechen' : 'Cancel'}
+            </Button>
+            <Button onClick={handleUpdateGroupName} disabled={!newGroupName.trim()}>
+              {language === 'de' ? 'Speichern' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Group Confirmation */}
+      <AlertDialog open={deleteGroupDialog} onOpenChange={setDeleteGroupDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('groups.deleteGroup')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('groups.deleteConfirm')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{language === 'de' ? 'Abbrechen' : 'Cancel'}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteGroup}>
+              {language === 'de' ? 'Löschen' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Remove Member Confirmation */}
+      <AlertDialog open={!!removeMemberId} onOpenChange={() => setRemoveMemberId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {language === 'de' ? 'Mitglied entfernen' : 'Remove Member'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {language === 'de' 
+                ? 'Möchtest du dieses Mitglied wirklich aus der Gruppe entfernen?' 
+                : 'Are you sure you want to remove this member from the group?'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{language === 'de' ? 'Abbrechen' : 'Cancel'}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRemoveMember}>
+              {language === 'de' ? 'Entfernen' : 'Remove'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
