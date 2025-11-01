@@ -266,7 +266,11 @@ export default function Groups() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {groups.map(group => (
-                <Card key={group.id}>
+                <Card 
+                  key={group.id} 
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate(`/groups/${group.id}`)}
+                >
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <CardTitle className="text-xl">{group.name}</CardTitle>
@@ -300,7 +304,10 @@ export default function Groups() {
                       <Button
                         variant="outline"
                         className="flex-1"
-                        onClick={() => navigate(`/weekly-calendar?group=${group.id}`)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/weekly-calendar?group=${group.id}`);
+                        }}
                       >
                         {language === 'de' ? 'Kalender öffnen' : 'Open Calendar'}
                       </Button>
@@ -308,7 +315,10 @@ export default function Groups() {
                         <Button
                           variant="destructive"
                           size="icon"
-                          onClick={() => setDeleteGroupId(group.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteGroupId(group.id);
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -316,7 +326,10 @@ export default function Groups() {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => setLeaveGroupId(group.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setLeaveGroupId(group.id);
+                          }}
                         >
                           <LogOut className="h-4 w-4" />
                         </Button>

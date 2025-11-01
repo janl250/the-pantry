@@ -10,6 +10,7 @@ import DishOfTheDay from "./pages/DishOfTheDay";
 import IngredientFinder from "./pages/IngredientFinder";
 import WeeklyCalendar from "./pages/WeeklyCalendar";
 import Groups from "./pages/Groups";
+import GroupDetail from "./pages/GroupDetail";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/ingredient-finder" element={<IngredientFinder />} />
             <Route path="/weekly-calendar" element={<WeeklyCalendar />} />
             <Route path="/groups" element={<Groups />} />
+            <Route path="/groups/:groupId" element={<GroupDetail />} />
             <Route path="/auth" element={<Auth />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
