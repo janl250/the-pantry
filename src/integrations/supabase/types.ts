@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      group_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          day_of_week: string | null
+          dish_name: string | null
+          group_id: string
+          id: string
+          user_id: string
+          week_start_date: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          day_of_week?: string | null
+          dish_name?: string | null
+          group_id: string
+          id?: string
+          user_id: string
+          week_start_date?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          day_of_week?: string | null
+          dish_name?: string | null
+          group_id?: string
+          id?: string
+          user_id?: string
+          week_start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_activities_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string
@@ -86,6 +127,7 @@ export type Database = {
           group_id: string | null
           id: string
           updated_at: string
+          user_dish_id: string | null
           user_id: string
           week_start_date: string
         }
@@ -97,6 +139,7 @@ export type Database = {
           group_id?: string | null
           id?: string
           updated_at?: string
+          user_dish_id?: string | null
           user_id: string
           week_start_date?: string
         }
@@ -108,6 +151,7 @@ export type Database = {
           group_id?: string | null
           id?: string
           updated_at?: string
+          user_dish_id?: string | null
           user_id?: string
           week_start_date?: string
         }
@@ -117,6 +161,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_plans_user_dish_id_fkey"
+            columns: ["user_dish_id"]
+            isOneToOne: false
+            referencedRelation: "user_dishes"
             referencedColumns: ["id"]
           },
         ]

@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { dinnerDishes, type Dish } from "@/data/dishes";
-import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users } from "lucide-react";
+import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
+import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,13 +56,17 @@ export default function WeeklyCalendar() {
   const [saving, setSaving] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [userDishes, setUserDishes] = useState<Dish[]>([]);
+  const [profiles, setProfiles] = useState<{ [key: string]: string }>({});
 
-  const cuisines = Array.from(new Set(dinnerDishes.map(dish => dish.cuisine))).sort();
+  const allDishes = [...dinnerDishes, ...userDishes];
+  const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
 
-  // Load groups when user logs in
+  // Load groups and user dishes when user logs in
   useEffect(() => {
     if (isAuthenticated && user) {
       loadGroups();
+      loadUserDishes();
     }
   }, [isAuthenticated, user]);
 
@@ -135,6 +139,48 @@ export default function WeeklyCalendar() {
     }
   };
 
+  const loadUserDishes = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_dishes')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      if (data) {
+        setUserDishes(data.map(convertUserDishToDish));
+      }
+    } catch (error) {
+      console.error('Error loading user dishes:', error);
+    }
+  };
+
+  const loadProfiles = async (userIds: string[]) => {
+    if (userIds.length === 0) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, display_name')
+        .in('id', userIds);
+      
+      if (error) throw error;
+      
+      if (data) {
+        const profilesMap: { [key: string]: string } = {};
+        data.forEach(profile => {
+          profilesMap[profile.id] = profile.display_name || 'Unknown';
+        });
+        setProfiles(prev => ({ ...prev, ...profilesMap }));
+      }
+    } catch (error) {
+      console.error('Error loading profiles:', error);
+    }
+  };
+
   const getWeekStartDate = () => {
     const today = new Date();
     const day = today.getDay();
@@ -177,10 +223,26 @@ export default function WeeklyCalendar() {
           sunday: null
         };
 
+        // Load profiles for added_by users
+        const userIds = [...new Set(data.map(mp => mp.added_by).filter(Boolean))];
+        if (userIds.length > 0) {
+          loadProfiles(userIds);
+        }
+
         data.forEach(mealPlan => {
-          const dish = dinnerDishes.find(d => d.name === mealPlan.dish_name);
+          let dish = dinnerDishes.find(d => d.name === mealPlan.dish_name);
+          
+          // If not found in standard dishes, check user dishes
+          if (!dish && mealPlan.user_dish_id) {
+            dish = allDishes.find(d => d.id === mealPlan.user_dish_id);
+          }
+          
           if (dish) {
-            loadedMeals[mealPlan.day_of_week as keyof WeeklyMeals] = dish;
+            loadedMeals[mealPlan.day_of_week as keyof WeeklyMeals] = {
+              ...dish,
+              addedBy: mealPlan.added_by,
+              isUserDish: !!mealPlan.user_dish_id
+            } as any;
           }
         });
 
@@ -191,25 +253,105 @@ export default function WeeklyCalendar() {
     }
   };
 
-  const filteredDishes = dinnerDishes.filter(dish => {
+  const filteredDishes = allDishes.filter(dish => {
     const matchesSearch = dish.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCuisine = selectedCuisine === "all" || dish.cuisine === selectedCuisine;
     return matchesSearch && matchesCuisine;
   });
 
-  const assignDishToDay = (day: string, dish: Dish) => {
+  const assignDishToDay = async (day: string, dish: Dish) => {
     setWeeklyMeals(prev => ({
       ...prev,
       [day]: dish
     }));
     setShowDishSelector(null);
+
+    // Log activity if in group mode
+    if (selectedGroupId && user) {
+      try {
+        const weekStart = getWeekStartDate();
+        const weekStartString = weekStart.toISOString().split('T')[0];
+        
+        await supabase.from('group_activities').insert({
+          group_id: selectedGroupId,
+          user_id: user.id,
+          activity_type: 'dish_added',
+          dish_name: dish.name,
+          day_of_week: day,
+          week_start_date: weekStartString
+        });
+      } catch (error) {
+        console.error('Error logging activity:', error);
+      }
+    }
   };
 
-  const removeDishFromDay = (day: string) => {
+  const removeDishFromDay = async (day: string) => {
+    const removedDish = weeklyMeals[day];
+    
     setWeeklyMeals(prev => ({
       ...prev,
       [day]: null
     }));
+
+    // Log activity if in group mode
+    if (selectedGroupId && user && removedDish) {
+      try {
+        const weekStart = getWeekStartDate();
+        const weekStartString = weekStart.toISOString().split('T')[0];
+        
+        await supabase.from('group_activities').insert({
+          group_id: selectedGroupId,
+          user_id: user.id,
+          activity_type: 'dish_removed',
+          dish_name: removedDish.name,
+          day_of_week: day,
+          week_start_date: weekStartString
+        });
+      } catch (error) {
+        console.error('Error logging activity:', error);
+      }
+    }
+  };
+
+  const addDishToLibrary = async (dish: Dish) => {
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase.from('user_dishes').insert({
+        user_id: user.id,
+        name: dish.name,
+        tags: dish.tags,
+        cooking_time: dish.cookingTime,
+        difficulty: dish.difficulty,
+        cuisine: dish.cuisine,
+        category: dish.category
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: language === 'de' ? "Hinzugefügt!" : "Added!",
+        description: language === 'de' 
+          ? `${dish.name} wurde zu deiner Gerichtesammlung hinzugefügt.`
+          : `${dish.name} has been added to your dish library.`
+      });
+
+      // Reload user dishes
+      await loadUserDishes();
+    } catch (error) {
+      toast({
+        title: language === 'de' ? "Fehler" : "Error",
+        description: language === 'de'
+          ? "Das Gericht konnte nicht hinzugefügt werden."
+          : "Failed to add dish to your library.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const isDishInLibrary = (dishName: string) => {
+    return userDishes.some(d => d.name === dishName) || dinnerDishes.some(d => d.name === dishName);
   };
 
   const clearWeek = async () => {
@@ -478,6 +620,26 @@ export default function WeeklyCalendar() {
                             <div className="text-xs text-muted-foreground">
                               {translateField('cookingTime', weeklyMeals[day.key]!.cookingTime)}
                             </div>
+                            {selectedGroupId && (weeklyMeals[day.key] as any).addedBy && (
+                              <div className="text-xs text-muted-foreground">
+                                {language === 'de' ? 'Hinzugefügt von' : 'Added by'}: {profiles[(weeklyMeals[day.key] as any).addedBy] || 'Loading...'}
+                              </div>
+                            )}
+                            {selectedGroupId && (weeklyMeals[day.key] as any).isUserDish && 
+                             !isDishInLibrary(weeklyMeals[day.key]!.name) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full mt-2 text-xs"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  addDishToLibrary(weeklyMeals[day.key]!);
+                                }}
+                              >
+                                <BookmarkPlus className="h-3 w-3 mr-1" />
+                                {language === 'de' ? 'Zu meiner Sammlung' : 'Add to my library'}
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>

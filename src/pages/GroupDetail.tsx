@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Users, Copy, Crown, Calendar, Edit2, Trash2, UserMinus } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, Users, Copy, Crown, Calendar, Edit2, Trash2, UserMinus, Activity } from "lucide-react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { formatDistanceToNow } from "date-fns";
+import { de } from "date-fns/locale";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,12 +66,39 @@ export default function GroupDetail() {
   const [newGroupName, setNewGroupName] = useState("");
   const [deleteGroupDialog, setDeleteGroupDialog] = useState(false);
   const [removeMemberId, setRemoveMemberId] = useState<string | null>(null);
+  const [activities, setActivities] = useState<any[]>([]);
 
   useEffect(() => {
     if (groupId && user) {
       loadGroupDetails();
+      loadActivities();
     }
   }, [groupId, user]);
+
+  // Setup realtime subscription for activities
+  useEffect(() => {
+    if (!groupId) return;
+
+    const channel = supabase
+      .channel('group-activities-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'group_activities',
+          filter: `group_id=eq.${groupId}`
+        },
+        () => {
+          loadActivities();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [groupId]);
 
   const loadGroupDetails = async () => {
     if (!user || !groupId) return;
@@ -121,6 +151,54 @@ export default function GroupDetail() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadActivities = async () => {
+    if (!groupId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('group_activities')
+        .select('*, profiles:user_id(display_name)')
+        .eq('group_id', groupId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      setActivities(data || []);
+    } catch (error) {
+      console.error('Error loading activities:', error);
+    }
+  };
+
+  const getActivityMessage = (activity: any) => {
+    const userName = activity.profiles?.display_name || (language === 'de' ? 'Jemand' : 'Someone');
+    const dayTranslation = activity.day_of_week ? 
+      (language === 'de' ? 
+        { monday: 'Montag', tuesday: 'Dienstag', wednesday: 'Mittwoch', thursday: 'Donnerstag', friday: 'Freitag', saturday: 'Samstag', sunday: 'Sonntag' }[activity.day_of_week] 
+        : activity.day_of_week) : '';
+
+    switch (activity.activity_type) {
+      case 'dish_added':
+        return language === 'de'
+          ? `${userName} hat ${activity.dish_name} am ${dayTranslation} hinzugefügt`
+          : `${userName} added ${activity.dish_name} on ${dayTranslation}`;
+      case 'dish_removed':
+        return language === 'de'
+          ? `${userName} hat ${activity.dish_name} am ${dayTranslation} entfernt`
+          : `${userName} removed ${activity.dish_name} from ${dayTranslation}`;
+      case 'member_joined':
+        return language === 'de'
+          ? `${userName} ist der Gruppe beigetreten`
+          : `${userName} joined the group`;
+      case 'member_removed':
+        return language === 'de'
+          ? `${userName} wurde aus der Gruppe entfernt`
+          : `${userName} was removed from the group`;
+      default:
+        return activity.activity_type;
     }
   };
 
@@ -373,6 +451,44 @@ export default function GroupDetail() {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Activity Feed */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  {language === 'de' ? 'Aktivitätsfeed' : 'Activity Feed'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {activities.length === 0 ? (
+                  <p className="text-muted-foreground text-sm text-center py-8">
+                    {language === 'de' ? 'Noch keine Aktivitäten' : 'No activities yet'}
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {activities.map((activity) => (
+                      <div key={activity.id} className="flex gap-3 pb-4 border-b border-border last:border-0 last:pb-0">
+                        <div className="flex-shrink-0 mt-1">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-foreground">
+                            {getActivityMessage(activity)}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {formatDistanceToNow(new Date(activity.created_at), {
+                              addSuffix: true,
+                              locale: language === 'de' ? de : undefined
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
