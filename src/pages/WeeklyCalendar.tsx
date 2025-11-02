@@ -443,14 +443,20 @@ export default function WeeklyCalendar() {
       // Then, insert new meal plans
       const mealPlansToInsert = Object.entries(weeklyMeals)
         .filter(([_, dish]) => dish !== null)
-        .map(([day, dish]) => ({
-          user_id: user!.id,
-          week_start_date: weekStartString,
-          day_of_week: day,
-          dish_name: dish!.name,
-          group_id: selectedGroupId,
-          added_by: user!.id
-        }));
+        .map(([day, dish]) => {
+          // Check if this is a user dish
+          const userDish = userDishes.find(ud => ud.name === dish!.name);
+          
+          return {
+            user_id: user!.id,
+            week_start_date: weekStartString,
+            day_of_week: day,
+            dish_name: dish!.name,
+            group_id: selectedGroupId,
+            added_by: user!.id,
+            user_dish_id: userDish?.id || null
+          };
+        });
 
       if (mealPlansToInsert.length > 0) {
         const { error: insertError } = await supabase
