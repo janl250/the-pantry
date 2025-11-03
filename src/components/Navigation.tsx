@@ -15,10 +15,10 @@ export const Navigation = () => {
   return (
     <nav className="bg-card shadow-card py-4 px-6">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <div className="flex items-center space-x-3">
+        <Link to="/" className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity">
           <Utensils className="h-8 w-8 text-primary" />
           <span className="text-xl font-bold text-foreground">{t('nav.brand')}</span>
-        </div>
+        </Link>
         
         <div className="hidden md:flex space-x-8 items-center">
           <Link to="/recipes">
