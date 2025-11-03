@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus } from "lucide-react";
+import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +58,7 @@ export default function WeeklyCalendar() {
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [userDishes, setUserDishes] = useState<Dish[]>([]);
   const [profiles, setProfiles] = useState<{ [key: string]: string }>({});
+  const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
 
   const allDishes = [...dinnerDishes, ...userDishes];
   const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
@@ -67,6 +68,7 @@ export default function WeeklyCalendar() {
     if (isAuthenticated && user) {
       loadGroups();
       loadUserDishes();
+      loadUserFavorites();
     }
   }, [isAuthenticated, user]);
 
@@ -109,6 +111,31 @@ export default function WeeklyCalendar() {
       supabase.removeChannel(channel);
     };
   }, [selectedGroupId]);
+
+  // Setup realtime for favorites
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('user-favorites-calendar')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_favorites',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          loadUserFavorites();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const loadGroups = async () => {
     if (!user) return;
@@ -178,6 +205,97 @@ export default function WeeklyCalendar() {
       }
     } catch (error) {
       console.error('Error loading profiles:', error);
+    }
+  };
+
+  const loadUserFavorites = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_favorites')
+        .select('dish_id')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      if (data) {
+        setUserFavorites(new Set(data.map(f => f.dish_id)));
+      }
+    } catch (error) {
+      console.error('Error loading favorites:', error);
+    }
+  };
+
+  const toggleFavorite = async (dishId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      toast({
+        title: t('favorites.loginRequired'),
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const isFavorited = userFavorites.has(dishId);
+    
+    // Optimistic UI update
+    setUserFavorites(prev => {
+      const newSet = new Set(prev);
+      if (isFavorited) {
+        newSet.delete(dishId);
+      } else {
+        newSet.add(dishId);
+      }
+      return newSet;
+    });
+
+    try {
+      if (isFavorited) {
+        const { error } = await supabase
+          .from('user_favorites')
+          .delete()
+          .eq('user_id', user!.id)
+          .eq('dish_id', dishId);
+        
+        if (error) throw error;
+        
+        toast({
+          title: t('favorites.removed')
+        });
+      } else {
+        const isUserDish = userDishes.some(d => d.id === dishId);
+        const { error } = await supabase
+          .from('user_favorites')
+          .insert({
+            user_id: user!.id,
+            dish_id: dishId,
+            is_user_dish: isUserDish
+          });
+        
+        if (error) throw error;
+        
+        toast({
+          title: t('favorites.added')
+        });
+      }
+    } catch (error) {
+      // Rollback on error
+      setUserFavorites(prev => {
+        const newSet = new Set(prev);
+        if (isFavorited) {
+          newSet.add(dishId);
+        } else {
+          newSet.delete(dishId);
+        }
+        return newSet;
+      });
+      
+      toast({
+        title: t('favorites.error'),
+        variant: "destructive"
+      });
     }
   };
 
@@ -257,6 +375,11 @@ export default function WeeklyCalendar() {
     const matchesSearch = dish.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCuisine = selectedCuisine === "all" || dish.cuisine === selectedCuisine;
     return matchesSearch && matchesCuisine;
+  }).sort((a, b) => {
+    // Sort favorites first
+    const aFav = userFavorites.has(a.id) ? 1 : 0;
+    const bFav = userFavorites.has(b.id) ? 1 : 0;
+    return bFav - aFav;
   });
 
   const assignDishToDay = async (day: string, dish: Dish) => {
@@ -714,28 +837,47 @@ export default function WeeklyCalendar() {
 
                   {/* Dish List */}
                   <div className="max-h-96 overflow-y-auto space-y-2">
-                    {filteredDishes.map(dish => (
-                      <div
-                        key={dish.id}
-                        className="p-3 border border-border rounded-lg hover:bg-accent cursor-pointer"
-                        onClick={() => assignDishToDay(showDishSelector, dish)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium text-foreground">{dish.name}</h4>
-                            <div className="flex gap-2 mt-1">
-                              <Badge variant="secondary" className="text-xs">
-                                {translateField('cuisine', dish.cuisine)}
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">
-                                {translateField('difficulty', dish.difficulty)}
-                              </Badge>
+                    {filteredDishes.map(dish => {
+                      const isFavorited = userFavorites.has(dish.id);
+                      return (
+                        <div
+                          key={dish.id}
+                          className={`p-3 border rounded-lg hover:bg-accent cursor-pointer relative ${
+                            isFavorited ? 'border-amber-400/60 bg-amber-50/50' : 'border-border'
+                          }`}
+                          onClick={() => assignDishToDay(showDishSelector, dish)}
+                        >
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`absolute top-2 right-2 h-7 w-7 transition-all duration-300 ${
+                              isFavorited 
+                                ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-100' 
+                                : 'text-muted-foreground hover:text-amber-500 hover:bg-amber-50'
+                            }`}
+                            onClick={(e) => toggleFavorite(dish.id, e)}
+                          >
+                            <Heart 
+                              className={`h-4 w-4 transition-all duration-300 ${isFavorited ? 'fill-amber-500' : ''}`}
+                            />
+                          </Button>
+                          <div className="flex items-center justify-between pr-8">
+                            <div>
+                              <h4 className="font-medium text-foreground">{dish.name}</h4>
+                              <div className="flex gap-2 mt-1">
+                                <Badge variant="secondary" className="text-xs">
+                                  {translateField('cuisine', dish.cuisine)}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {translateField('difficulty', dish.difficulty)}
+                                </Badge>
+                              </div>
                             </div>
+                            <Plus className="h-4 w-4 text-muted-foreground" />
                           </div>
-                          <Plus className="h-4 w-4 text-muted-foreground" />
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>

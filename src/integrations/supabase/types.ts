@@ -229,6 +229,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_favorites: {
+        Row: {
+          created_at: string
+          dish_id: string
+          id: string
+          is_user_dish: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dish_id: string
+          id?: string
+          is_user_dish?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dish_id?: string
+          id?: string
+          is_user_dish?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       Users: {
         Row: {
           created_at: string

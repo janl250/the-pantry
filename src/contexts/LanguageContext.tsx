@@ -185,6 +185,16 @@ const translations = {
     // Footer
     'footer.rights': 'Alle Rechte vorbehalten.',
     
+    // Favorites
+    'favorites.add': 'Zu Favoriten hinzufügen',
+    'favorites.remove': 'Von Favoriten entfernen',
+    'favorites.title': 'Favoriten',
+    'favorites.showOnly': 'Nur Favoriten anzeigen',
+    'favorites.added': 'Zu Favoriten hinzugefügt!',
+    'favorites.removed': 'Von Favoriten entfernt!',
+    'favorites.error': 'Fehler beim Aktualisieren der Favoriten',
+    'favorites.loginRequired': 'Bitte melde dich an, um Favoriten zu speichern',
+    
     // Common
     'common.loading': 'Laden...',
     'common.error': 'Ein Fehler ist aufgetreten',
@@ -526,6 +536,16 @@ const translations = {
     
     // Footer
     'footer.rights': 'All rights reserved.',
+    
+    // Favorites
+    'favorites.add': 'Add to favorites',
+    'favorites.remove': 'Remove from favorites',
+    'favorites.title': 'Favorites',
+    'favorites.showOnly': 'Show favorites only',
+    'favorites.added': 'Added to favorites!',
+    'favorites.removed': 'Removed from favorites!',
+    'favorites.error': 'Error updating favorites',
+    'favorites.loginRequired': 'Please log in to save favorites',
     
     // Common
     'common.loading': 'Loading...',

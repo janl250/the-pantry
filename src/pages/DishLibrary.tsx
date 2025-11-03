@@ -6,22 +6,29 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Search, Filter } from "lucide-react";
+import { ArrowLeft, Search, Filter, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AddDishDialog } from "@/components/AddDishDialog";
 import { EditDishDialog } from "@/components/EditDishDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function DishLibrary() {
   const { t, translateField } = useLanguage();
+  const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState<string>("all");
   const [selectedCookingTime, setSelectedCookingTime] = useState<string>("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [userDishes, setUserDishes] = useState<Dish[]>([]);
+  const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editingDish, setEditingDish] = useState<{ id: string; dish: Dish } | null>(null);
@@ -49,30 +56,157 @@ export default function DishLibrary() {
     }
   };
 
+  const loadUserFavorites = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('user_favorites')
+        .select('dish_id')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      if (data) {
+        setUserFavorites(new Set(data.map(f => f.dish_id)));
+      }
+    } catch (error) {
+      console.error('Error loading favorites:', error);
+    }
+  };
+
+  const toggleFavorite = async (dishId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      toast({
+        title: t('favorites.loginRequired'),
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const isFavorited = userFavorites.has(dishId);
+    
+    // Optimistic UI update
+    setUserFavorites(prev => {
+      const newSet = new Set(prev);
+      if (isFavorited) {
+        newSet.delete(dishId);
+      } else {
+        newSet.add(dishId);
+      }
+      return newSet;
+    });
+
+    try {
+      if (isFavorited) {
+        const { error } = await supabase
+          .from('user_favorites')
+          .delete()
+          .eq('user_id', user!.id)
+          .eq('dish_id', dishId);
+        
+        if (error) throw error;
+        
+        toast({
+          title: t('favorites.removed')
+        });
+      } else {
+        const isUserDish = userDishes.some(d => d.id === dishId);
+        const { error } = await supabase
+          .from('user_favorites')
+          .insert({
+            user_id: user!.id,
+            dish_id: dishId,
+            is_user_dish: isUserDish
+          });
+        
+        if (error) throw error;
+        
+        toast({
+          title: t('favorites.added')
+        });
+      }
+    } catch (error) {
+      // Rollback on error
+      setUserFavorites(prev => {
+        const newSet = new Set(prev);
+        if (isFavorited) {
+          newSet.add(dishId);
+        } else {
+          newSet.delete(dishId);
+        }
+        return newSet;
+      });
+      
+      toast({
+        title: t('favorites.error'),
+        variant: "destructive"
+      });
+    }
+  };
+
   const isUserDish = (dishId: string) => {
     return userDishes.some(d => d.id === dishId);
   };
 
   useEffect(() => {
     loadUserDishes();
-  }, []);
+    if (isAuthenticated) {
+      loadUserFavorites();
+    }
+  }, [isAuthenticated]);
+
+  // Setup realtime for favorites
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('user-favorites-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_favorites',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          loadUserFavorites();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const allDishes = [...dinnerDishes, ...userDishes];
   const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
   const categories = Array.from(new Set(allDishes.map(dish => dish.category))).sort();
 
   const filteredDishes = useMemo(() => {
-    return allDishes.filter(dish => {
+    let dishes = allDishes.filter(dish => {
       const matchesSearch = dish.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            dish.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesCuisine = selectedCuisine === "all" || dish.cuisine === selectedCuisine;
       const matchesCookingTime = selectedCookingTime === "all" || dish.cookingTime === selectedCookingTime;
       const matchesDifficulty = selectedDifficulty === "all" || dish.difficulty === selectedDifficulty;
       const matchesCategory = selectedCategory === "all" || dish.category === selectedCategory;
+      const matchesFavorites = !showFavoritesOnly || userFavorites.has(dish.id);
 
-      return matchesSearch && matchesCuisine && matchesCookingTime && matchesDifficulty && matchesCategory;
+      return matchesSearch && matchesCuisine && matchesCookingTime && matchesDifficulty && matchesCategory && matchesFavorites;
     });
-  }, [searchTerm, selectedCuisine, selectedCookingTime, selectedDifficulty, selectedCategory, allDishes]);
+
+    // Sort favorites first
+    return dishes.sort((a, b) => {
+      const aFav = userFavorites.has(a.id) ? 1 : 0;
+      const bFav = userFavorites.has(b.id) ? 1 : 0;
+      return bFav - aFav;
+    });
+  }, [searchTerm, selectedCuisine, selectedCookingTime, selectedDifficulty, selectedCategory, showFavoritesOnly, allDishes, userFavorites]);
 
   const clearFilters = () => {
     setSelectedCuisine("all");
@@ -80,6 +214,7 @@ export default function DishLibrary() {
     setSelectedDifficulty("all");
     setSelectedCategory("all");
     setSearchTerm("");
+    setShowFavoritesOnly(false);
   };
 
   return (
@@ -173,6 +308,20 @@ export default function DishLibrary() {
               <Button variant="outline" onClick={clearFilters} className="hover:bg-accent">
                 {t('dishLibrary.clearFilters')}
               </Button>
+
+              <div className="flex items-center gap-2 ml-auto">
+                <Checkbox 
+                  id="favorites-only" 
+                  checked={showFavoritesOnly}
+                  onCheckedChange={(checked) => setShowFavoritesOnly(checked as boolean)}
+                />
+                <label 
+                  htmlFor="favorites-only" 
+                  className="text-sm font-medium cursor-pointer hover:text-primary transition-colors"
+                >
+                  {t('favorites.showOnly')}
+                </label>
+              </div>
             </div>
           </div>
 
@@ -185,14 +334,32 @@ export default function DishLibrary() {
 
           {/* Dishes Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filteredDishes.map((dish) => (
-              <Card 
-                key={dish.id} 
-                className={`group overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-border/40 bg-card/50 backdrop-blur-sm ${isUserDish(dish.id) ? 'cursor-pointer' : ''}`}
-                onClick={() => isUserDish(dish.id) && setEditingDish({ id: dish.id, dish })}
-              >
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">{dish.name}</h3>
+            {filteredDishes.map((dish) => {
+              const isFavorited = userFavorites.has(dish.id);
+              return (
+                <Card 
+                  key={dish.id} 
+                  className={`group overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border bg-card/50 backdrop-blur-sm relative ${
+                    isFavorited ? 'border-amber-400/60 shadow-amber-400/20' : 'border-border/40'
+                  } ${isUserDish(dish.id) ? 'cursor-pointer' : ''}`}
+                  onClick={() => isUserDish(dish.id) && setEditingDish({ id: dish.id, dish })}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={`absolute top-2 right-2 z-10 transition-all duration-300 ${
+                      isFavorited 
+                        ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-50' 
+                        : 'text-muted-foreground hover:text-amber-500 hover:bg-amber-50'
+                    }`}
+                    onClick={(e) => toggleFavorite(dish.id, e)}
+                  >
+                    <Heart 
+                      className={`h-5 w-5 transition-all duration-300 ${isFavorited ? 'fill-amber-500' : ''}`}
+                    />
+                  </Button>
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors pr-8">{dish.name}</h3>
                   
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm">
@@ -225,7 +392,8 @@ export default function DishLibrary() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
 
           {editingDish && (
