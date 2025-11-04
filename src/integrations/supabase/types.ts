@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      dish_ratings: {
+        Row: {
+          created_at: string
+          dish_id: string
+          id: string
+          is_user_dish: boolean
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dish_id: string
+          id?: string
+          is_user_dish?: boolean
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dish_id?: string
+          id?: string
+          is_user_dish?: boolean
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       group_activities: {
         Row: {
           activity_type: string
@@ -126,6 +156,8 @@ export type Database = {
           dish_name: string
           group_id: string | null
           id: string
+          is_leftover: boolean
+          leftover_of_dish: string | null
           updated_at: string
           user_dish_id: string | null
           user_id: string
@@ -138,6 +170,8 @@ export type Database = {
           dish_name: string
           group_id?: string | null
           id?: string
+          is_leftover?: boolean
+          leftover_of_dish?: string | null
           updated_at?: string
           user_dish_id?: string | null
           user_id: string
@@ -150,6 +184,8 @@ export type Database = {
           dish_name?: string
           group_id?: string | null
           id?: string
+          is_leftover?: boolean
+          leftover_of_dish?: string | null
           updated_at?: string
           user_dish_id?: string | null
           user_id?: string

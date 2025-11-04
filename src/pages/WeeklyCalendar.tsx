@@ -59,6 +59,7 @@ export default function WeeklyCalendar() {
   const [userDishes, setUserDishes] = useState<Dish[]>([]);
   const [profiles, setProfiles] = useState<{ [key: string]: string }>({});
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
+  const [dishRatings, setDishRatings] = useState<Map<string, { avg: number, count: number, userRating?: number }>>(new Map());
 
   const allDishes = [...dinnerDishes, ...userDishes];
   const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
@@ -240,7 +241,6 @@ export default function WeeklyCalendar() {
 
     const isFavorited = userFavorites.has(dishId);
     
-    // Optimistic UI update
     setUserFavorites(prev => {
       const newSet = new Set(prev);
       if (isFavorited) {
@@ -281,7 +281,6 @@ export default function WeeklyCalendar() {
         });
       }
     } catch (error) {
-      // Rollback on error
       setUserFavorites(prev => {
         const newSet = new Set(prev);
         if (isFavorited) {
@@ -297,6 +296,77 @@ export default function WeeklyCalendar() {
         variant: "destructive"
       });
     }
+  };
+
+  const loadDishRatings = async () => {
+    if (!user) return;
+
+    const { data: allRatings, error } = await supabase
+      .from('dish_ratings')
+      .select('*');
+
+    if (error) {
+      console.error('Error loading ratings:', error);
+      return;
+    }
+
+    const ratingsMap = new Map<string, { avg: number, count: number, userRating?: number }>();
+    const dishGroups = new Map<string, { total: number, count: number, userRating?: number }>();
+
+    allRatings?.forEach(rating => {
+      const key = rating.dish_id;
+      if (!dishGroups.has(key)) {
+        dishGroups.set(key, { total: 0, count: 0 });
+      }
+      const group = dishGroups.get(key)!;
+      group.total += rating.rating;
+      group.count += 1;
+      if (rating.user_id === user.id) {
+        group.userRating = rating.rating;
+      }
+    });
+
+    dishGroups.forEach((value, key) => {
+      ratingsMap.set(key, {
+        avg: value.total / value.count,
+        count: value.count,
+        userRating: value.userRating
+      });
+    });
+
+    setDishRatings(ratingsMap);
+  };
+
+  const rateDish = async (dishId: string, isUserDish: boolean, rating: number) => {
+    if (!user) {
+      toast({
+        title: t.pleaseLoginFirst,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('dish_ratings')
+      .upsert({
+        user_id: user.id,
+        dish_id: dishId,
+        is_user_dish: isUserDish,
+        rating: rating
+      }, {
+        onConflict: 'user_id,dish_id'
+      });
+
+    if (error) {
+      console.error('Error rating dish:', error);
+      toast({
+        title: "Fehler beim Bewerten",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await loadDishRatings();
   };
 
   const getWeekStartDate = () => {
