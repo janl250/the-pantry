@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart } from "lucide-react";
+import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +15,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type WeeklyMeals = {
-  [key: string]: Dish | null;
+  [key: string]: {
+    dish: Dish | null;
+    isLeftover: boolean;
+    leftoverOf?: string;
+  };
 };
 
 type Group = {
@@ -41,16 +45,17 @@ export default function WeeklyCalendar() {
   ];
   
   const [weeklyMeals, setWeeklyMeals] = useState<WeeklyMeals>({
-    monday: null,
-    tuesday: null,
-    wednesday: null,
-    thursday: null,
-    friday: null,
-    saturday: null,
-    sunday: null
+    monday: { dish: null, isLeftover: false },
+    tuesday: { dish: null, isLeftover: false },
+    wednesday: { dish: null, isLeftover: false },
+    thursday: { dish: null, isLeftover: false },
+    friday: { dish: null, isLeftover: false },
+    saturday: { dish: null, isLeftover: false },
+    sunday: { dish: null, isLeftover: false }
   });
 
   const [showDishSelector, setShowDishSelector] = useState<string | null>(null);
+  const [showLeftoverSelector, setShowLeftoverSelector] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState<string>("all");
   const [saving, setSaving] = useState(false);
@@ -70,6 +75,7 @@ export default function WeeklyCalendar() {
       loadGroups();
       loadUserDishes();
       loadUserFavorites();
+      loadDishRatings();
     }
   }, [isAuthenticated, user]);
 
@@ -129,6 +135,30 @@ export default function WeeklyCalendar() {
         },
         () => {
           loadUserFavorites();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  // Setup realtime for ratings
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('dish-ratings-calendar')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'dish_ratings'
+        },
+        () => {
+          loadDishRatings();
         }
       )
       .subscribe();
@@ -340,7 +370,7 @@ export default function WeeklyCalendar() {
   const rateDish = async (dishId: string, isUserDish: boolean, rating: number) => {
     if (!user) {
       toast({
-        title: t.pleaseLoginFirst,
+        title: t('rating.loginRequired'),
         variant: "destructive",
       });
       return;
@@ -402,13 +432,13 @@ export default function WeeklyCalendar() {
 
       if (data) {
         const loadedMeals: WeeklyMeals = {
-          monday: null,
-          tuesday: null,
-          wednesday: null,
-          thursday: null,
-          friday: null,
-          saturday: null,
-          sunday: null
+          monday: { dish: null, isLeftover: false },
+          tuesday: { dish: null, isLeftover: false },
+          wednesday: { dish: null, isLeftover: false },
+          thursday: { dish: null, isLeftover: false },
+          friday: { dish: null, isLeftover: false },
+          saturday: { dish: null, isLeftover: false },
+          sunday: { dish: null, isLeftover: false }
         };
 
         // Load profiles for added_by users
@@ -427,10 +457,14 @@ export default function WeeklyCalendar() {
           
           if (dish) {
             loadedMeals[mealPlan.day_of_week as keyof WeeklyMeals] = {
-              ...dish,
-              addedBy: mealPlan.added_by,
-              isUserDish: !!mealPlan.user_dish_id
-            } as any;
+              dish: {
+                ...dish,
+                addedBy: mealPlan.added_by,
+                isUserDish: !!mealPlan.user_dish_id
+              } as any,
+              isLeftover: mealPlan.is_leftover || false,
+              leftoverOf: mealPlan.leftover_of_dish || undefined
+            };
           }
         });
 
@@ -452,12 +486,13 @@ export default function WeeklyCalendar() {
     return bFav - aFav;
   });
 
-  const assignDishToDay = async (day: string, dish: Dish) => {
+  const assignDishToDay = async (day: string, dish: Dish, isLeftover: boolean = false, leftoverOf?: string) => {
     setWeeklyMeals(prev => ({
       ...prev,
-      [day]: dish
+      [day]: { dish, isLeftover, leftoverOf }
     }));
     setShowDishSelector(null);
+    setShowLeftoverSelector(null);
 
     // Log activity if in group mode
     if (selectedGroupId && user) {
@@ -480,11 +515,11 @@ export default function WeeklyCalendar() {
   };
 
   const removeDishFromDay = async (day: string) => {
-    const removedDish = weeklyMeals[day];
+    const removedDish = weeklyMeals[day].dish;
     
     setWeeklyMeals(prev => ({
       ...prev,
-      [day]: null
+      [day]: { dish: null, isLeftover: false }
     }));
 
     // Log activity if in group mode
@@ -551,13 +586,13 @@ export default function WeeklyCalendar() {
     if (!isAuthenticated) return;
     
     const newMeals = {
-      monday: null,
-      tuesday: null,
-      wednesday: null,
-      thursday: null,
-      friday: null,
-      saturday: null,
-      sunday: null
+      monday: { dish: null, isLeftover: false },
+      tuesday: { dish: null, isLeftover: false },
+      wednesday: { dish: null, isLeftover: false },
+      thursday: { dish: null, isLeftover: false },
+      friday: { dish: null, isLeftover: false },
+      saturday: { dish: null, isLeftover: false },
+      sunday: { dish: null, isLeftover: false }
     };
     
     setWeeklyMeals(newMeals);
@@ -635,19 +670,21 @@ export default function WeeklyCalendar() {
 
       // Then, insert new meal plans
       const mealPlansToInsert = Object.entries(weeklyMeals)
-        .filter(([_, dish]) => dish !== null)
-        .map(([day, dish]) => {
+        .filter(([_, mealData]) => mealData.dish !== null)
+        .map(([day, mealData]) => {
           // Check if this is a user dish
-          const userDish = userDishes.find(ud => ud.name === dish!.name);
+          const userDish = userDishes.find(ud => ud.name === mealData.dish!.name);
           
           return {
             user_id: user!.id,
             week_start_date: weekStartString,
             day_of_week: day,
-            dish_name: dish!.name,
+            dish_name: mealData.dish!.name,
             group_id: selectedGroupId,
             added_by: user!.id,
-            user_dish_id: userDish?.id || null
+            user_dish_id: userDish?.id || null,
+            is_leftover: mealData.isLeftover,
+            leftover_of_dish: mealData.leftoverOf || null
           };
         });
 
@@ -677,9 +714,16 @@ export default function WeeklyCalendar() {
   };
 
   const getWeekProgress = () => {
-    const plannedDays = Object.values(weeklyMeals).filter(meal => meal !== null).length;
+    const plannedDays = Object.values(weeklyMeals).filter(mealData => mealData.dish !== null).length;
     return Math.round((plannedDays / 7) * 100);
   };
+  
+  const availableLeftovers = daysOfWeek
+    .map(day => weeklyMeals[day.key])
+    .filter((mealData): mealData is { dish: Dish; isLeftover: boolean; leftoverOf?: string } => 
+      mealData.dish !== null && !mealData.isLeftover
+    )
+    .map(mealData => mealData.dish);
 
 
   return (
@@ -797,7 +841,7 @@ export default function WeeklyCalendar() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 h-full">
-                  {weeklyMeals[day.key] ? (
+                  {weeklyMeals[day.key].dish ? (
                     <div className="space-y-3">
                       <div className="relative">
                         <Button
@@ -808,31 +852,46 @@ export default function WeeklyCalendar() {
                         >
                           <X className="h-3 w-3" />
                         </Button>
-                        <div className="bg-gradient-card p-3 rounded-lg">
-                          <h4 className="font-medium text-sm text-foreground mb-2 line-clamp-2">
-                            {weeklyMeals[day.key]!.name}
-                          </h4>
+                        <div className={`bg-gradient-card p-3 rounded-lg ${
+                          weeklyMeals[day.key].isLeftover ? 'border-l-4 border-l-blue-400' : ''
+                        }`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-sm text-foreground line-clamp-2">
+                              {weeklyMeals[day.key].dish!.name}
+                            </h4>
+                            {weeklyMeals[day.key].isLeftover && (
+                              <Badge variant="secondary" className="text-xs">
+                                <RefreshCw className="w-3 h-3 mr-1" />
+                                {t('leftovers.title')}
+                              </Badge>
+                            )}
+                          </div>
+                          {weeklyMeals[day.key].isLeftover && weeklyMeals[day.key].leftoverOf && (
+                            <div className="text-xs text-muted-foreground mb-2">
+                              {t('leftovers.from')}: {weeklyMeals[day.key].leftoverOf}
+                            </div>
+                          )}
                           <div className="space-y-1">
                             <Badge variant="secondary" className="text-xs">
-                              {translateField('cuisine', weeklyMeals[day.key]!.cuisine)}
+                              {translateField('cuisine', weeklyMeals[day.key].dish!.cuisine)}
                             </Badge>
                             <div className="text-xs text-muted-foreground">
-                              {translateField('cookingTime', weeklyMeals[day.key]!.cookingTime)}
+                              {translateField('cookingTime', weeklyMeals[day.key].dish!.cookingTime)}
                             </div>
-                            {selectedGroupId && (weeklyMeals[day.key] as any).addedBy && (
+                            {selectedGroupId && (weeklyMeals[day.key].dish as any).addedBy && (
                               <div className="text-xs text-muted-foreground">
-                                {language === 'de' ? 'Hinzugefügt von' : 'Added by'}: {profiles[(weeklyMeals[day.key] as any).addedBy] || 'Loading...'}
+                                {language === 'de' ? 'Hinzugefügt von' : 'Added by'}: {profiles[(weeklyMeals[day.key].dish as any).addedBy] || 'Loading...'}
                               </div>
                             )}
-                            {selectedGroupId && (weeklyMeals[day.key] as any).isUserDish && 
-                             !isDishInLibrary(weeklyMeals[day.key]!.name) && (
+                            {selectedGroupId && (weeklyMeals[day.key].dish as any).isUserDish && 
+                             !isDishInLibrary(weeklyMeals[day.key].dish!.name) && (
                               <Button
                                 variant="outline"
                                 size="sm"
                                 className="w-full mt-2 text-xs"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  addDishToLibrary(weeklyMeals[day.key]!);
+                                  addDishToLibrary(weeklyMeals[day.key].dish!);
                                 }}
                               >
                                 <BookmarkPlus className="h-3 w-3 mr-1" />
@@ -844,16 +903,26 @@ export default function WeeklyCalendar() {
                       </div>
                     </div>
                   ) : (
-                    <div className="h-full flex flex-col items-center justify-center">
+                    <div className="h-full flex flex-col items-center justify-center gap-2">
                       <Button
                         variant="ghost"
-                        className="w-full h-full border-2 border-dashed border-muted hover:border-primary hover:bg-primary/5 flex flex-col items-center justify-center gap-2"
+                        className="w-full h-16 border-2 border-dashed border-muted hover:border-primary hover:bg-primary/5 flex items-center justify-center gap-2"
                         onClick={() => setShowDishSelector(day.key)}
                       >
-                        <Plus className="h-6 w-6 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">
+                        <Plus className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
                           {language === 'de' ? 'Gericht hinzufügen' : 'Add Dish'}
                         </span>
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="w-full text-xs"
+                        onClick={() => setShowLeftoverSelector(day.key)}
+                        disabled={availableLeftovers.length === 0}
+                      >
+                        <RefreshCw className="h-3 w-3 mr-1" />
+                        {t('leftovers.add')}
                       </Button>
                     </div>
                   )}
@@ -931,16 +1000,25 @@ export default function WeeklyCalendar() {
                               className={`h-4 w-4 transition-all duration-300 ${isFavorited ? 'fill-amber-500' : ''}`}
                             />
                           </Button>
-                          <div className="flex items-center justify-between pr-8">
-                            <div>
+                           <div className="flex items-center justify-between pr-8">
+                            <div className="flex-1">
                               <h4 className="font-medium text-foreground">{dish.name}</h4>
-                              <div className="flex gap-2 mt-1">
+                              <div className="flex gap-2 mt-1 items-center">
                                 <Badge variant="secondary" className="text-xs">
                                   {translateField('cuisine', dish.cuisine)}
                                 </Badge>
                                 <Badge variant="outline" className="text-xs">
                                   {translateField('difficulty', dish.difficulty)}
                                 </Badge>
+                                {/* Rating Display */}
+                                {dishRatings.get(dish.id || dish.name) && (
+                                  <div className="flex items-center gap-1">
+                                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                    <span className="text-xs text-muted-foreground">
+                                      {dishRatings.get(dish.id || dish.name)!.avg.toFixed(1)}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                             <Plus className="h-4 w-4 text-muted-foreground" />
@@ -949,6 +1027,62 @@ export default function WeeklyCalendar() {
                       );
                     })}
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Leftover Selector Dialog */}
+          {showLeftoverSelector && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <Card className="w-full max-w-2xl max-h-[80vh] overflow-hidden">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <RefreshCw className="w-5 h-5 text-primary" />
+                      {t('leftovers.select')}
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowLeftoverSelector(null)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {availableLeftovers.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      {t('leftovers.none')}
+                    </div>
+                  ) : (
+                    <div className="max-h-96 overflow-y-auto space-y-2">
+                      {availableLeftovers.map(dish => (
+                        <div
+                          key={dish.id}
+                          className="p-3 border-2 border-blue-400/50 hover:border-blue-400 rounded-lg cursor-pointer transition-all hover:bg-blue-50/50"
+                          onClick={() => showLeftoverSelector && assignDishToDay(showLeftoverSelector, dish, true, dish.name)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <RefreshCw className="w-4 h-4 text-blue-500" />
+                            <div className="flex-1">
+                              <h4 className="font-medium text-foreground">{dish.name}</h4>
+                              <div className="flex gap-2 mt-1">
+                                <Badge variant="secondary" className="text-xs">
+                                  {translateField('cuisine', dish.cuisine)}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  {translateField('cookingTime', dish.cookingTime)}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Search, Filter, Heart } from "lucide-react";
+import { ArrowLeft, Search, Filter, Heart, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AddDishDialog } from "@/components/AddDishDialog";
@@ -32,6 +32,7 @@ export default function DishLibrary() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editingDish, setEditingDish] = useState<{ id: string; dish: Dish } | null>(null);
+  const [dishRatings, setDishRatings] = useState<Map<string, { avg: number, count: number, userRating?: number }>>(new Map());
 
   const loadUserDishes = async () => {
     try {
@@ -73,6 +74,76 @@ export default function DishLibrary() {
     } catch (error) {
       console.error('Error loading favorites:', error);
     }
+  };
+
+  const loadDishRatings = async () => {
+    try {
+      const { data: allRatings, error } = await supabase
+        .from('dish_ratings')
+        .select('*');
+
+      if (error) throw error;
+
+      const ratingsMap = new Map<string, { avg: number, count: number, userRating?: number }>();
+      const dishGroups = new Map<string, { total: number, count: number, userRating?: number }>();
+
+      allRatings?.forEach(rating => {
+        const key = rating.dish_id;
+        if (!dishGroups.has(key)) {
+          dishGroups.set(key, { total: 0, count: 0 });
+        }
+        const group = dishGroups.get(key)!;
+        group.total += rating.rating;
+        group.count += 1;
+        if (user && rating.user_id === user.id) {
+          group.userRating = rating.rating;
+        }
+      });
+
+      dishGroups.forEach((value, key) => {
+        ratingsMap.set(key, {
+          avg: value.total / value.count,
+          count: value.count,
+          userRating: value.userRating
+        });
+      });
+
+      setDishRatings(ratingsMap);
+    } catch (error) {
+      console.error('Error loading ratings:', error);
+    }
+  };
+
+  const rateDish = async (dishId: string, isUserDish: boolean, rating: number) => {
+    if (!isAuthenticated) {
+      toast({
+        title: t('rating.loginRequired'),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('dish_ratings')
+      .upsert({
+        user_id: user!.id,
+        dish_id: dishId,
+        is_user_dish: isUserDish,
+        rating: rating
+      }, {
+        onConflict: 'user_id,dish_id'
+      });
+
+    if (error) {
+      console.error('Error rating dish:', error);
+      toast({
+        title: "Error rating dish",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await loadDishRatings();
   };
 
   const toggleFavorite = async (dishId: string, e: React.MouseEvent) => {
@@ -156,6 +227,7 @@ export default function DishLibrary() {
     if (isAuthenticated) {
       loadUserFavorites();
     }
+    loadDishRatings();
   }, [isAuthenticated]);
 
   // Setup realtime for favorites
@@ -182,6 +254,28 @@ export default function DishLibrary() {
       supabase.removeChannel(channel);
     };
   }, [user]);
+
+  // Setup realtime for ratings
+  useEffect(() => {
+    const channel = supabase
+      .channel('dish-ratings-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'dish_ratings'
+        },
+        () => {
+          loadDishRatings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const allDishes = [...dinnerDishes, ...userDishes];
   const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
@@ -387,6 +481,44 @@ export default function DishLibrary() {
                         <Badge variant="outline" className="text-xs bg-terracotta/10 text-terracotta">
                           +{dish.tags.length - 4} more
                         </Badge>
+                      )}
+                    </div>
+
+                    {/* Rating System */}
+                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => {
+                          const dishKey = dish.id || dish.name;
+                          const ratingData = dishRatings.get(dishKey);
+                          const userRating = ratingData?.userRating || 0;
+                          const isFilled = star <= userRating;
+                          
+                          return (
+                            <button
+                              key={star}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                rateDish(dishKey, !!dish.id, star);
+                              }}
+                              className="transition-all duration-200 hover:scale-110"
+                              title={t('rating.rate')}
+                            >
+                              <Star
+                                className={`w-4 h-4 ${
+                                  isFilled
+                                    ? 'fill-yellow-400 text-yellow-400'
+                                    : 'text-muted-foreground hover:text-yellow-400'
+                                }`}
+                              />
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {dishRatings.get(dish.id || dish.name) && (
+                        <span className="text-xs text-muted-foreground">
+                          {dishRatings.get(dish.id || dish.name)!.avg.toFixed(1)} 
+                          ({dishRatings.get(dish.id || dish.name)!.count})
+                        </span>
                       )}
                     </div>
                   </div>
