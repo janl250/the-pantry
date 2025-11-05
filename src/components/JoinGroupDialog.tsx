@@ -22,16 +22,38 @@ export function JoinGroupDialog({ open, onOpenChange, onSuccess }: JoinGroupDial
   const [loading, setLoading] = useState(false);
 
   const handleJoin = async () => {
-    if (!user || !inviteCode.trim()) return;
+    // Preflight checks
+    if (!inviteCode.trim()) {
+      toast({
+        title: language === 'de' ? 'Code erforderlich' : 'Invite code required',
+        description: language === 'de' ? 'Bitte den Einladungs-Code eingeben.' : 'Please enter the invite code.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: language === 'de' ? 'Bitte anmelden' : 'Please sign in',
+        description: t('rating.loginRequired') ?? (language === 'de' ? 'Bitte zuerst einloggen.' : 'Please log in first.'),
+        variant: 'destructive'
+      });
+      return;
+    }
 
     setLoading(true);
     try {
       // Join via secure RPC to avoid RLS issues when looking up by invite code
+      const code = inviteCode.trim().toUpperCase();
+      console.log('[JoinGroup] Attempt RPC join_group_by_code with code:', code);
       const { data: result, error: rpcError } = await supabase.rpc('join_group_by_code', {
-        p_invite_code: inviteCode.trim().toUpperCase(),
+        p_invite_code: code,
       });
 
-      if (rpcError) throw rpcError;
+      if (rpcError) {
+        console.error('[JoinGroup] RPC error:', rpcError);
+        throw rpcError;
+      }
 
       const status = (result && (result as any).status) as string | undefined;
 
