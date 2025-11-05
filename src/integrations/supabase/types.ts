@@ -318,7 +318,7 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
-      join_group_by_code: { Args: { invite_code: string }; Returns: Json }
+      join_group_by_code: { Args: { p_invite_code: string }; Returns: Json }
     }
     Enums: {
       group_role: "creator" | "member"

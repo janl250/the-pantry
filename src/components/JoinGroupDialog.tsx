@@ -28,7 +28,7 @@ export function JoinGroupDialog({ open, onOpenChange, onSuccess }: JoinGroupDial
     try {
       // Join via secure RPC to avoid RLS issues when looking up by invite code
       const { data: result, error: rpcError } = await supabase.rpc('join_group_by_code', {
-        invite_code: inviteCode.trim().toUpperCase(),
+        p_invite_code: inviteCode.trim().toUpperCase(),
       });
 
       if (rpcError) throw rpcError;
@@ -62,13 +62,21 @@ export function JoinGroupDialog({ open, onOpenChange, onSuccess }: JoinGroupDial
       setInviteCode("");
       onOpenChange(false);
       onSuccess();
-    } catch (error) {
-      // Generic error message
-      toast({
-        title: language === 'de' ? "Fehler" : "Error",
-        description: language === 'de' ? "Gruppe konnte nicht beigetreten werden" : "Unable to join group",
-        variant: "destructive"
-      });
+    } catch (error: any) {
+      const msg = error?.message || '';
+      if (msg.includes('not_authenticated')) {
+        toast({
+          title: language === 'de' ? 'Bitte anmelden' : 'Please sign in',
+          description: t('rating.loginRequired') ?? (language === 'de' ? 'Bitte zuerst einloggen.' : 'Please log in first.'),
+          variant: 'destructive'
+        });
+      } else {
+        toast({
+          title: language === 'de' ? "Fehler" : "Error",
+          description: language === 'de' ? "Gruppe konnte nicht beigetreten werden" : "Unable to join group",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
