@@ -26,16 +26,16 @@ export function JoinGroupDialog({ open, onOpenChange, onSuccess }: JoinGroupDial
 
     setLoading(true);
     try {
-      // Find group by invite code
-      const { data: group, error: groupError } = await supabase
-        .from('groups')
-        .select('id')
-        .eq('invite_code', inviteCode.trim().toUpperCase())
-        .maybeSingle();
+      // Join via secure RPC to avoid RLS issues when looking up by invite code
+      const { data: result, error: rpcError } = await supabase.rpc('join_group_by_code', {
+        invite_code: inviteCode.trim().toUpperCase(),
+      });
 
-      if (groupError) throw groupError;
+      if (rpcError) throw rpcError;
 
-      if (!group) {
+      const status = (result && (result as any).status) as string | undefined;
+
+      if (status === 'not_found') {
         // Generic error message to prevent enumeration
         toast({
           title: language === 'de' ? "Fehler" : "Error",
@@ -45,15 +45,7 @@ export function JoinGroupDialog({ open, onOpenChange, onSuccess }: JoinGroupDial
         return;
       }
 
-      // Check if already a member
-      const { data: existing } = await supabase
-        .from('group_members')
-        .select('id')
-        .eq('group_id', group.id)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (existing) {
+      if (status === 'already_member') {
         toast({
           title: language === 'de' ? "Bereits Mitglied" : "Already Member",
           description: t('joinGroup.alreadyMember'),
@@ -61,17 +53,6 @@ export function JoinGroupDialog({ open, onOpenChange, onSuccess }: JoinGroupDial
         });
         return;
       }
-
-      // Add user as member
-      const { error: memberError } = await supabase
-        .from('group_members')
-        .insert({
-          group_id: group.id,
-          user_id: user.id,
-          role: 'member'
-        });
-
-      if (memberError) throw memberError;
 
       toast({
         title: language === 'de' ? "Beigetreten!" : "Joined!",
