@@ -26,6 +26,7 @@ export default function DishLibrary() {
   const [selectedCookingTime, setSelectedCookingTime] = useState<string>("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedSortBy, setSelectedSortBy] = useState<string>("rating-desc");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [userDishes, setUserDishes] = useState<Dish[]>([]);
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
@@ -294,19 +295,57 @@ export default function DishLibrary() {
       return matchesSearch && matchesCuisine && matchesCookingTime && matchesDifficulty && matchesCategory && matchesFavorites;
     });
 
-    // Sort favorites first
+    // Apply sorting
     return dishes.sort((a, b) => {
+      // Favorites always first
       const aFav = userFavorites.has(a.id) ? 1 : 0;
       const bFav = userFavorites.has(b.id) ? 1 : 0;
-      return bFav - aFav;
+      if (bFav !== aFav) return bFav - aFav;
+
+      // Then apply selected sort
+      switch (selectedSortBy) {
+        case "rating-desc": {
+          const aRating = dishRatings.get(a.id)?.avg || 0;
+          const bRating = dishRatings.get(b.id)?.avg || 0;
+          return bRating - aRating;
+        }
+        case "rating-asc": {
+          const aRating = dishRatings.get(a.id)?.avg || 0;
+          const bRating = dishRatings.get(b.id)?.avg || 0;
+          return aRating - bRating;
+        }
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        case "time-asc": {
+          const timeOrder = { quick: 1, medium: 2, long: 3 };
+          return timeOrder[a.cookingTime as keyof typeof timeOrder] - timeOrder[b.cookingTime as keyof typeof timeOrder];
+        }
+        case "time-desc": {
+          const timeOrder = { quick: 1, medium: 2, long: 3 };
+          return timeOrder[b.cookingTime as keyof typeof timeOrder] - timeOrder[a.cookingTime as keyof typeof timeOrder];
+        }
+        case "difficulty-asc": {
+          const diffOrder = { easy: 1, medium: 2, hard: 3 };
+          return diffOrder[a.difficulty as keyof typeof diffOrder] - diffOrder[b.difficulty as keyof typeof diffOrder];
+        }
+        case "difficulty-desc": {
+          const diffOrder = { easy: 1, medium: 2, hard: 3 };
+          return diffOrder[b.difficulty as keyof typeof diffOrder] - diffOrder[a.difficulty as keyof typeof diffOrder];
+        }
+        default:
+          return 0;
+      }
     });
-  }, [searchTerm, selectedCuisine, selectedCookingTime, selectedDifficulty, selectedCategory, showFavoritesOnly, allDishes, userFavorites]);
+  }, [searchTerm, selectedCuisine, selectedCookingTime, selectedDifficulty, selectedCategory, selectedSortBy, showFavoritesOnly, allDishes, userFavorites, dishRatings]);
 
   const clearFilters = () => {
     setSelectedCuisine("all");
     setSelectedCookingTime("all");
     setSelectedDifficulty("all");
     setSelectedCategory("all");
+    setSelectedSortBy("rating-desc");
     setSearchTerm("");
     setShowFavoritesOnly(false);
   };
@@ -396,6 +435,22 @@ export default function DishLibrary() {
                   {categories.map(category => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedSortBy} onValueChange={setSelectedSortBy}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder={t('dishLibrary.sort.label')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rating-desc">{t('dishLibrary.sort.ratingDesc')}</SelectItem>
+                  <SelectItem value="rating-asc">{t('dishLibrary.sort.ratingAsc')}</SelectItem>
+                  <SelectItem value="name-asc">{t('dishLibrary.sort.nameAsc')}</SelectItem>
+                  <SelectItem value="name-desc">{t('dishLibrary.sort.nameDesc')}</SelectItem>
+                  <SelectItem value="time-asc">{t('dishLibrary.sort.timeAsc')}</SelectItem>
+                  <SelectItem value="time-desc">{t('dishLibrary.sort.timeDesc')}</SelectItem>
+                  <SelectItem value="difficulty-asc">{t('dishLibrary.sort.difficultyAsc')}</SelectItem>
+                  <SelectItem value="difficulty-desc">{t('dishLibrary.sort.difficultyDesc')}</SelectItem>
                 </SelectContent>
               </Select>
 
