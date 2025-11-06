@@ -718,12 +718,8 @@ export default function WeeklyCalendar() {
     return Math.round((plannedDays / 7) * 100);
   };
   
-  const availableLeftovers = daysOfWeek
-    .map(day => weeklyMeals[day.key])
-    .filter((mealData): mealData is { dish: Dish; isLeftover: boolean; leftoverOf?: string } => 
-      mealData.dish !== null && !mealData.isLeftover
-    )
-    .map(mealData => mealData.dish);
+  // Allow all dishes to be marked as leftovers, not just those in the weekly plan
+  const availableLeftovers = allDishes;
 
 
   return (

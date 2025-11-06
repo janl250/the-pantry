@@ -96,6 +96,13 @@ const translations = {
     'friday': 'Freitag',
     'saturday': 'Samstag',
     'sunday': 'Sonntag',
+    'weeklyCalendar.days.monday': 'Montag',
+    'weeklyCalendar.days.tuesday': 'Dienstag',
+    'weeklyCalendar.days.wednesday': 'Mittwoch',
+    'weeklyCalendar.days.thursday': 'Donnerstag',
+    'weeklyCalendar.days.friday': 'Freitag',
+    'weeklyCalendar.days.saturday': 'Samstag',
+    'weeklyCalendar.days.sunday': 'Sonntag',
     
     // Groups
     'groups.title': 'Meine Gruppen',
@@ -128,6 +135,8 @@ const translations = {
     'createGroup.create': 'Erstellen',
     'createGroup.success': 'Gruppe erfolgreich erstellt!',
     'createGroup.error': 'Fehler beim Erstellen der Gruppe',
+    'createGroup.limitReached': 'Gruppenlimit erreicht',
+    'createGroup.limitDescription': 'Du kannst maximal 10 Gruppen erstellen. Du kannst jedoch unbegrenzt vielen Gruppen beitreten.',
     
     // Join Group Dialog
     'joinGroup.title': 'Gruppe beitreten',
@@ -360,6 +369,13 @@ const translations = {
     'friday': 'Friday',
     'saturday': 'Saturday',
     'sunday': 'Sunday',
+    'weeklyCalendar.days.monday': 'Monday',
+    'weeklyCalendar.days.tuesday': 'Tuesday',
+    'weeklyCalendar.days.wednesday': 'Wednesday',
+    'weeklyCalendar.days.thursday': 'Thursday',
+    'weeklyCalendar.days.friday': 'Friday',
+    'weeklyCalendar.days.saturday': 'Saturday',
+    'weeklyCalendar.days.sunday': 'Sunday',
     
     // Groups
     'groups.title': 'My Groups',
@@ -392,6 +408,8 @@ const translations = {
     'createGroup.create': 'Create',
     'createGroup.success': 'Group created successfully!',
     'createGroup.error': 'Error creating group',
+    'createGroup.limitReached': 'Group Limit Reached',
+    'createGroup.limitDescription': 'You can create a maximum of 10 groups. However, you can join unlimited groups.',
     
     // Join Group Dialog
     'joinGroup.title': 'Join Group',

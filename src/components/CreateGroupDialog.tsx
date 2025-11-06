@@ -35,6 +35,24 @@ export function CreateGroupDialog({ open, onOpenChange, onSuccess }: CreateGroup
       
       setLoading(true);
 
+      // Check if user has already created 10 groups
+      const { data: createdGroups, error: countError } = await supabase
+        .from('groups')
+        .select('id', { count: 'exact' })
+        .eq('created_by', user.id);
+
+      if (countError) throw countError;
+
+      if (createdGroups && createdGroups.length >= 10) {
+        toast({
+          title: t('createGroup.limitReached'),
+          description: t('createGroup.limitDescription'),
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
       // Generate invite code
       const { data: codeData, error: codeError } = await supabase
         .rpc('generate_invite_code');
