@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Search, Filter, Heart, Star } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { dinnerDishes, convertUserDishToDish, type Dish, getSeasonalDishes, getCurrentSeason } from "@/data/dishes";
+import { ArrowLeft, Search, Filter, Heart, Star, Shuffle, CalendarPlus, Snowflake, Sun, Leaf, Flower2, BarChart3 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AddDishDialog } from "@/components/AddDishDialog";
 import { EditDishDialog } from "@/components/EditDishDialog";
@@ -21,12 +22,14 @@ export default function DishLibrary() {
   const { t, translateField } = useLanguage();
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState<string>("all");
   const [selectedCookingTime, setSelectedCookingTime] = useState<string>("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSortBy, setSelectedSortBy] = useState<string>("rating-desc");
+  const [selectedSeason, setSelectedSeason] = useState<string>("all");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [userDishes, setUserDishes] = useState<Dish[]>([]);
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
@@ -34,6 +37,11 @@ export default function DishLibrary() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editingDish, setEditingDish] = useState<{ id: string; dish: Dish } | null>(null);
   const [dishRatings, setDishRatings] = useState<Map<string, { avg: number, count: number, userRating?: number }>>(new Map());
+  const [randomDish, setRandomDish] = useState<Dish | null>(null);
+  const [showRandomDialog, setShowRandomDialog] = useState(false);
+  const [dishStats, setDishStats] = useState<Map<string, { count: number, lastCooked?: string }>>(new Map());
+
+  const currentSeason = getCurrentSeason();
 
   const loadUserDishes = async () => {
     try {
@@ -227,9 +235,95 @@ export default function DishLibrary() {
     loadUserDishes();
     if (isAuthenticated) {
       loadUserFavorites();
+      loadDishStats();
     }
     loadDishRatings();
   }, [isAuthenticated]);
+
+  const loadDishStats = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('meal_plans')
+        .select('dish_name, week_start_date')
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      const statsMap = new Map<string, { count: number, lastCooked?: string }>();
+      data?.forEach(plan => {
+        const existing = statsMap.get(plan.dish_name) || { count: 0 };
+        statsMap.set(plan.dish_name, {
+          count: existing.count + 1,
+          lastCooked: !existing.lastCooked || plan.week_start_date > existing.lastCooked 
+            ? plan.week_start_date 
+            : existing.lastCooked
+        });
+      });
+      setDishStats(statsMap);
+    } catch (error) {
+      console.error('Error loading dish stats:', error);
+    }
+  };
+
+  const surpriseMe = () => {
+    const availableDishes = filteredDishes.length > 0 ? filteredDishes : allDishes;
+    const randomIndex = Math.floor(Math.random() * availableDishes.length);
+    setRandomDish(availableDishes[randomIndex]);
+    setShowRandomDialog(true);
+  };
+
+  const addToToday = async (dish: Dish) => {
+    if (!isAuthenticated) {
+      toast({
+        title: t('weeklyCalendar.loginRequired'),
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const todayKey = dayNames[dayOfWeek];
+    
+    // Get week start date
+    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    const weekStart = new Date(today.setDate(diff));
+    const weekStartString = weekStart.toISOString().split('T')[0];
+
+    try {
+      const isUserDishItem = userDishes.some(d => d.id === dish.id);
+      
+      const { error } = await supabase
+        .from('meal_plans')
+        .upsert({
+          user_id: user!.id,
+          week_start_date: weekStartString,
+          day_of_week: todayKey,
+          dish_name: dish.name,
+          user_dish_id: isUserDishItem ? dish.id : null,
+          added_by: user!.id
+        }, {
+          onConflict: 'user_id,week_start_date,day_of_week,group_id'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: t('quickActions.addedToToday'),
+        description: dish.name
+      });
+      setShowRandomDialog(false);
+    } catch (error) {
+      console.error('Error adding to today:', error);
+      toast({
+        title: t('common.error'),
+        variant: "destructive"
+      });
+    }
+  };
 
   // Setup realtime for favorites
   useEffect(() => {
@@ -281,6 +375,7 @@ export default function DishLibrary() {
   const allDishes = [...dinnerDishes, ...userDishes];
   const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
   const categories = Array.from(new Set(allDishes.map(dish => dish.category))).sort();
+  const seasonalDishes = getSeasonalDishes(currentSeason);
 
   const filteredDishes = useMemo(() => {
     let dishes = allDishes.filter(dish => {
@@ -291,8 +386,9 @@ export default function DishLibrary() {
       const matchesDifficulty = selectedDifficulty === "all" || dish.difficulty === selectedDifficulty;
       const matchesCategory = selectedCategory === "all" || dish.category === selectedCategory;
       const matchesFavorites = !showFavoritesOnly || userFavorites.has(dish.id);
+      const matchesSeason = selectedSeason === "all" || seasonalDishes.some(sd => sd.id === dish.id);
 
-      return matchesSearch && matchesCuisine && matchesCookingTime && matchesDifficulty && matchesCategory && matchesFavorites;
+      return matchesSearch && matchesCuisine && matchesCookingTime && matchesDifficulty && matchesCategory && matchesFavorites && matchesSeason;
     });
 
     // Apply sorting
@@ -334,11 +430,11 @@ export default function DishLibrary() {
           const diffOrder = { easy: 1, medium: 2, hard: 3 };
           return diffOrder[b.difficulty as keyof typeof diffOrder] - diffOrder[a.difficulty as keyof typeof diffOrder];
         }
-        default:
-          return 0;
-      }
-    });
-  }, [searchTerm, selectedCuisine, selectedCookingTime, selectedDifficulty, selectedCategory, selectedSortBy, showFavoritesOnly, allDishes, userFavorites, dishRatings]);
+      default:
+        return 0;
+    }
+  });
+}, [searchTerm, selectedCuisine, selectedCookingTime, selectedDifficulty, selectedCategory, selectedSortBy, selectedSeason, showFavoritesOnly, allDishes, userFavorites, dishRatings, seasonalDishes]);
 
   const clearFilters = () => {
     setSelectedCuisine("all");
@@ -346,8 +442,19 @@ export default function DishLibrary() {
     setSelectedDifficulty("all");
     setSelectedCategory("all");
     setSelectedSortBy("rating-desc");
+    setSelectedSeason("all");
     setSearchTerm("");
     setShowFavoritesOnly(false);
+  };
+
+  const getSeasonIcon = (season: string) => {
+    switch (season) {
+      case 'winter': return <Snowflake className="h-4 w-4" />;
+      case 'spring': return <Flower2 className="h-4 w-4" />;
+      case 'summer': return <Sun className="h-4 w-4" />;
+      case 'fall': return <Leaf className="h-4 w-4" />;
+      default: return null;
+    }
   };
 
   return (
@@ -369,7 +476,17 @@ export default function DishLibrary() {
                 <p className="text-muted-foreground mt-2">{allDishes.length} {t('dishLibrary.results')}</p>
               </div>
             </div>
-            <AddDishDialog onDishAdded={loadUserDishes} />
+            <div className="flex gap-2">
+              <Button 
+                onClick={surpriseMe} 
+                variant="outline" 
+                className="gap-2 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 hover:border-primary/50"
+              >
+                <Shuffle className="h-4 w-4" />
+                {t('dishLibrary.surpriseMe')}
+              </Button>
+              <AddDishDialog onDishAdded={loadUserDishes} />
+            </div>
           </div>
 
           {/* Search and Filters */}
@@ -451,6 +568,21 @@ export default function DishLibrary() {
                   <SelectItem value="time-desc">{t('dishLibrary.sort.timeDesc')}</SelectItem>
                   <SelectItem value="difficulty-asc">{t('dishLibrary.sort.difficultyAsc')}</SelectItem>
                   <SelectItem value="difficulty-desc">{t('dishLibrary.sort.difficultyDesc')}</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedSeason} onValueChange={setSelectedSeason}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder={t('dishLibrary.filters.season')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('dishLibrary.filters.all')}</SelectItem>
+                  <SelectItem value="current">
+                    <span className="flex items-center gap-2">
+                      {getSeasonIcon(currentSeason)}
+                      {t(`season.${currentSeason}`)}
+                    </span>
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
@@ -539,42 +671,66 @@ export default function DishLibrary() {
                       )}
                     </div>
 
-                    {/* Rating System */}
-                    <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
-                      <div className="flex gap-0.5">
-                        {[1, 2, 3, 4, 5].map((star) => {
-                          const dishKey = dish.id || dish.name;
-                          const ratingData = dishRatings.get(dishKey);
-                          const userRating = ratingData?.userRating || 0;
-                          const isFilled = star <= userRating;
-                          
-                          return (
-                            <button
-                              key={star}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                rateDish(dishKey, !!dish.id, star);
-                              }}
-                              className="transition-all duration-200 hover:scale-110"
-                              title={t('rating.rate')}
-                            >
-                              <Star
-                                className={`w-4 h-4 ${
-                                  isFilled
-                                    ? 'fill-yellow-400 text-yellow-400'
-                                    : 'text-muted-foreground hover:text-yellow-400'
-                                }`}
-                              />
-                            </button>
-                          );
-                        })}
+                    {/* Rating System & Stats */}
+                    <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-border/50">
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => {
+                            const dishKey = dish.id || dish.name;
+                            const ratingData = dishRatings.get(dishKey);
+                            const userRating = ratingData?.userRating || 0;
+                            const isFilled = star <= userRating;
+                            
+                            return (
+                              <button
+                                key={star}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  rateDish(dishKey, !!dish.id, star);
+                                }}
+                                className="transition-all duration-200 hover:scale-110"
+                                title={t('rating.rate')}
+                              >
+                                <Star
+                                  className={`w-4 h-4 ${
+                                    isFilled
+                                      ? 'fill-yellow-400 text-yellow-400'
+                                      : 'text-muted-foreground hover:text-yellow-400'
+                                  }`}
+                                />
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {dishRatings.get(dish.id || dish.name) && (
+                          <span className="text-xs text-muted-foreground">
+                            {dishRatings.get(dish.id || dish.name)!.avg.toFixed(1)} 
+                            ({dishRatings.get(dish.id || dish.name)!.count})
+                          </span>
+                        )}
                       </div>
-                      {dishRatings.get(dish.id || dish.name) && (
-                        <span className="text-xs text-muted-foreground">
-                          {dishRatings.get(dish.id || dish.name)!.avg.toFixed(1)} 
-                          ({dishRatings.get(dish.id || dish.name)!.count})
-                        </span>
-                      )}
+                      
+                      {/* Quick Actions & Stats */}
+                      <div className="flex items-center gap-1">
+                        {dishStats.get(dish.name) && (
+                          <Badge variant="outline" className="text-xs gap-1" title={t('stats.lastCooked') + ': ' + dishStats.get(dish.name)?.lastCooked}>
+                            <BarChart3 className="h-3 w-3" />
+                            {dishStats.get(dish.name)?.count}x
+                          </Badge>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 hover:bg-primary/10 hover:text-primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToToday(dish);
+                          }}
+                          title={t('quickActions.addToToday')}
+                        >
+                          <CalendarPlus className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -610,6 +766,47 @@ export default function DishLibrary() {
           )}
         </div>
       </main>
+
+      {/* Random Dish Dialog */}
+      <Dialog open={showRandomDialog} onOpenChange={setShowRandomDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shuffle className="h-5 w-5 text-primary" />
+              {t('dishLibrary.surpriseMe')}
+            </DialogTitle>
+          </DialogHeader>
+          {randomDish && (
+            <div className="space-y-4">
+              <div className="text-center py-4">
+                <h3 className="text-2xl font-bold text-foreground mb-2">{randomDish.name}</h3>
+                <div className="flex justify-center gap-2 mb-3">
+                  <Badge variant="secondary">{translateField('cuisine', randomDish.cuisine)}</Badge>
+                  <Badge variant="outline">{translateField('difficulty', randomDish.difficulty)}</Badge>
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  {translateField('cookingTime', randomDish.cookingTime)} • {translateField('category', randomDish.category)}
+                </p>
+                {dishStats.get(randomDish.name) && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {t('stats.cookedTimes')}: {dishStats.get(randomDish.name)?.count}x
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={surpriseMe}>
+                  <Shuffle className="h-4 w-4 mr-2" />
+                  {t('dishLibrary.tryAnother')}
+                </Button>
+                <Button className="flex-1" onClick={() => addToToday(randomDish)}>
+                  <CalendarPlus className="h-4 w-4 mr-2" />
+                  {t('quickActions.addToToday')}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

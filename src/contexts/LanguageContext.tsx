@@ -244,6 +244,28 @@ const translations = {
     'common.filter': 'Filtern',
     'common.remove': 'Entfernen',
     
+    // Surprise Me & Quick Actions
+    'dishLibrary.surpriseMe': 'Überrasch mich!',
+    'dishLibrary.tryAnother': 'Nochmal würfeln',
+    'quickActions.addToToday': 'Zu Heute hinzufügen',
+    'quickActions.addedToToday': 'Zum heutigen Menü hinzugefügt!',
+    
+    // Seasons
+    'dishLibrary.filters.season': 'Saison',
+    'season.winter': 'Winter',
+    'season.spring': 'Frühling',
+    'season.summer': 'Sommer',
+    'season.fall': 'Herbst',
+    
+    // Statistics
+    'stats.cookedTimes': 'Gekocht',
+    'stats.lastCooked': 'Zuletzt gekocht',
+    
+    // Weekly Calendar Export
+    'weeklyCalendar.export': 'Exportieren',
+    'weeklyCalendar.exportSuccess': 'Wochenplan in Zwischenablage kopiert!',
+    'weeklyCalendar.today': 'Heute',
+    
     // Cuisines
     'cuisine.italian': 'Italienisch',
     'cuisine.asian': 'Asiatisch',
@@ -525,6 +547,28 @@ const translations = {
     'common.search': 'Search',
     'common.filter': 'Filter',
     'common.remove': 'Remove',
+    
+    // Surprise Me & Quick Actions
+    'dishLibrary.surpriseMe': 'Surprise me!',
+    'dishLibrary.tryAnother': 'Try another',
+    'quickActions.addToToday': 'Add to today',
+    'quickActions.addedToToday': 'Added to today\'s menu!',
+    
+    // Seasons
+    'dishLibrary.filters.season': 'Season',
+    'season.winter': 'Winter',
+    'season.spring': 'Spring',
+    'season.summer': 'Summer',
+    'season.fall': 'Fall',
+    
+    // Statistics
+    'stats.cookedTimes': 'Cooked',
+    'stats.lastCooked': 'Last cooked',
+    
+    // Weekly Calendar Export
+    'weeklyCalendar.export': 'Export',
+    'weeklyCalendar.exportSuccess': 'Week plan copied to clipboard!',
+    'weeklyCalendar.today': 'Today',
     
     // Cuisines
     'cuisine.italian': 'Italian',
