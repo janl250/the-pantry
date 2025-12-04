@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2 } from "lucide-react";
+import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Share2, Copy } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -721,6 +721,45 @@ export default function WeeklyCalendar() {
   // Allow all dishes to be marked as leftovers, not just those in the weekly plan
   const availableLeftovers = allDishes;
 
+  // Get today's day key
+  const getTodayKey = () => {
+    const dayIndex = new Date().getDay();
+    const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    return dayKeys[dayIndex];
+  };
+
+  const todayKey = getTodayKey();
+
+  // Export week plan to clipboard
+  const exportWeekPlan = () => {
+    const weekStart = getWeekStartDate();
+    const dateStr = weekStart.toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    let exportText = `🍽️ ${language === 'de' ? 'Wochenplan ab' : 'Weekly Plan from'} ${dateStr}\n\n`;
+    
+    daysOfWeek.forEach(day => {
+      const meal = weeklyMeals[day.key];
+      const isToday = day.key === todayKey;
+      const prefix = isToday ? '📍 ' : '';
+      
+      if (meal.dish) {
+        const leftoverTag = meal.isLeftover ? ` (${t('leftovers.title')})` : '';
+        exportText += `${prefix}${day.label}: ${meal.dish.name}${leftoverTag}\n`;
+      } else {
+        exportText += `${prefix}${day.label}: —\n`;
+      }
+    });
+
+    navigator.clipboard.writeText(exportText);
+    toast({
+      title: t('weeklyCalendar.exportSuccess'),
+    });
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -744,6 +783,10 @@ export default function WeeklyCalendar() {
             <div className="flex gap-2">
               {isAuthenticated ? (
                 <>
+                  <Button variant="outline" onClick={exportWeekPlan} className="flex items-center gap-2">
+                    <Share2 className="h-4 w-4" />
+                    {t('weeklyCalendar.export')}
+                  </Button>
                   <Button variant="outline" onClick={clearWeek}>
                     {t('weeklyCalendar.clear')}
                   </Button>
@@ -829,11 +872,22 @@ export default function WeeklyCalendar() {
 
           {/* Weekly Calendar Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-            {daysOfWeek.map(day => (
-              <Card key={day.key} className="h-64">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-center">
+            {daysOfWeek.map(day => {
+              const isToday = day.key === todayKey;
+              return (
+              <Card key={day.key} className={`h-64 transition-all ${
+                isToday 
+                  ? 'ring-2 ring-primary shadow-lg shadow-primary/20' 
+                  : ''
+              }`}>
+                <CardHeader className={`pb-3 ${isToday ? 'bg-primary/10' : ''}`}>
+                  <CardTitle className="text-sm font-medium text-center flex items-center justify-center gap-2">
                     {day.label}
+                    {isToday && (
+                      <Badge variant="default" className="text-xs">
+                        {t('weeklyCalendar.today')}
+                      </Badge>
+                    )}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 h-full">
@@ -924,7 +978,8 @@ export default function WeeklyCalendar() {
                   )}
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </div>
 
           {/* Dish Selector Modal */}

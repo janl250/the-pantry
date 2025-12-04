@@ -253,3 +253,32 @@ export const convertUserDishToDish = (userDish: any): Dish => {
     category: userDish.category,
   };
 };
+
+export type Season = 'winter' | 'spring' | 'summer' | 'fall';
+
+export const getCurrentSeason = (): Season => {
+  const month = new Date().getMonth();
+  if (month >= 2 && month <= 4) return 'spring';
+  if (month >= 5 && month <= 7) return 'summer';
+  if (month >= 8 && month <= 10) return 'fall';
+  return 'winter';
+};
+
+// Seasonal ingredient mappings
+const seasonalIngredients: Record<Season, string[]> = {
+  winter: ['cabbage', 'potatoes', 'carrots', 'onions', 'beef', 'pork', 'cheese', 'cream', 'beans', 'mushrooms'],
+  spring: ['asparagus', 'herbs', 'eggs', 'chicken', 'lamb', 'peas', 'spinach', 'lettuce', 'radish'],
+  summer: ['tomatoes', 'zucchini', 'bell peppers', 'cucumber', 'basil', 'shrimp', 'fish', 'lime', 'avocado', 'corn'],
+  fall: ['pumpkin', 'squash', 'apples', 'mushrooms', 'game', 'nuts', 'cinnamon', 'ginger', 'root vegetables']
+};
+
+export const getSeasonalDishes = (season: Season): Dish[] => {
+  const ingredients = seasonalIngredients[season];
+  return dinnerDishes.filter(dish => 
+    dish.tags.some(tag => 
+      ingredients.some(ingredient => 
+        tag.toLowerCase().includes(ingredient.toLowerCase())
+      )
+    )
+  );
+};
