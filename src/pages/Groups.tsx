@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, Plus, LogIn, Copy, Trash2, LogOut } from "lucide-react";
+import { ArrowLeft, Users, Plus, LogIn, Copy, Trash2, LogOut, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -228,6 +228,9 @@ export default function Groups() {
               </p>
             </div>
             <div className="flex gap-2">
+              <Button onClick={() => navigate('/profile')} variant="ghost" size="icon" title={language === 'de' ? 'Profil' : 'Profile'}>
+                <User className="h-5 w-5" />
+              </Button>
               <Button onClick={() => setShowJoinDialog(true)} variant="outline" className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
                 {t('groups.joinGroup')}

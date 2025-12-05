@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Share2, Copy } from "lucide-react";
+import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Printer, Shuffle } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -730,7 +730,7 @@ export default function WeeklyCalendar() {
 
   const todayKey = getTodayKey();
 
-  // Export week plan to clipboard
+  // Export week plan to print view
   const exportWeekPlan = () => {
     const weekStart = getWeekStartDate();
     const dateStr = weekStart.toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', {
@@ -739,25 +739,105 @@ export default function WeeklyCalendar() {
       year: 'numeric'
     });
 
-    let exportText = `🍽️ ${language === 'de' ? 'Wochenplan ab' : 'Weekly Plan from'} ${dateStr}\n\n`;
-    
-    daysOfWeek.forEach(day => {
-      const meal = weeklyMeals[day.key];
-      const isToday = day.key === todayKey;
-      const prefix = isToday ? '📍 ' : '';
-      
-      if (meal.dish) {
-        const leftoverTag = meal.isLeftover ? ` (${t('leftovers.title')})` : '';
-        exportText += `${prefix}${day.label}: ${meal.dish.name}${leftoverTag}\n`;
-      } else {
-        exportText += `${prefix}${day.label}: —\n`;
-      }
-    });
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${language === 'de' ? 'Wochenplan' : 'Weekly Plan'}</title>
+        <style>
+          body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            padding: 40px; 
+            max-width: 800px; 
+            margin: 0 auto;
+            color: #333;
+          }
+          h1 { 
+            text-align: center; 
+            color: #c56b3b; 
+            margin-bottom: 10px;
+            font-size: 28px;
+          }
+          .date { 
+            text-align: center; 
+            color: #666; 
+            margin-bottom: 30px;
+            font-size: 14px;
+          }
+          .day { 
+            display: flex; 
+            align-items: center;
+            padding: 16px 0; 
+            border-bottom: 1px solid #e5e5e5; 
+          }
+          .day:last-child { border-bottom: none; }
+          .day-name { 
+            font-weight: 600; 
+            width: 120px;
+            color: #555;
+          }
+          .dish-name { 
+            flex: 1;
+            font-size: 16px;
+          }
+          .today { 
+            background: #fff8f5; 
+            margin: 0 -20px;
+            padding: 16px 20px;
+            border-radius: 8px;
+          }
+          .today .day-name { color: #c56b3b; }
+          .leftover { 
+            color: #3b82f6; 
+            font-style: italic;
+          }
+          .badge {
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 8px;
+          }
+          .no-dish { color: #999; }
+          @media print {
+            body { padding: 20px; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>🍽️ ${language === 'de' ? 'Wochenplan' : 'Weekly Plan'}</h1>
+        <div class="date">${language === 'de' ? 'Woche ab' : 'Week of'} ${dateStr}</div>
+        ${daysOfWeek.map(day => {
+          const meal = weeklyMeals[day.key];
+          const isToday = day.key === todayKey;
+          return `
+            <div class="day ${isToday ? 'today' : ''}">
+              <div class="day-name">${isToday ? '📍 ' : ''}${day.label}</div>
+              <div class="dish-name ${!meal.dish ? 'no-dish' : ''} ${meal.isLeftover ? 'leftover' : ''}">
+                ${meal.dish ? meal.dish.name : '—'}
+                ${meal.isLeftover ? `<span class="badge">${t('leftovers.title')}</span>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </body>
+      </html>
+    `;
 
-    navigator.clipboard.writeText(exportText);
-    toast({
-      title: t('weeklyCalendar.exportSuccess'),
-    });
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => printWindow.print(), 250);
+    }
+  };
+
+  // Surprise me - pick random dish
+  const surpriseMe = () => {
+    const randomIndex = Math.floor(Math.random() * allDishes.length);
+    return allDishes[randomIndex];
   };
 
 
@@ -784,8 +864,8 @@ export default function WeeklyCalendar() {
               {isAuthenticated ? (
                 <>
                   <Button variant="outline" onClick={exportWeekPlan} className="flex items-center gap-2">
-                    <Share2 className="h-4 w-4" />
-                    {t('weeklyCalendar.export')}
+                    <Printer className="h-4 w-4" />
+                    {t('weeklyCalendar.print')}
                   </Button>
                   <Button variant="outline" onClick={clearWeek}>
                     {t('weeklyCalendar.clear')}
@@ -1023,6 +1103,19 @@ export default function WeeklyCalendar() {
                         ))}
                       </SelectContent>
                     </Select>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        const randomDish = surpriseMe();
+                        if (randomDish && showDishSelector) {
+                          assignDishToDay(showDishSelector, randomDish);
+                        }
+                      }}
+                      className="gap-2 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 hover:border-primary/50"
+                    >
+                      <Shuffle className="h-4 w-4" />
+                      {language === 'de' ? 'Überrasch mich!' : 'Surprise me!'}
+                    </Button>
                   </div>
 
                   {/* Dish List */}

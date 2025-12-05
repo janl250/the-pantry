@@ -260,8 +260,11 @@ const translations = {
     // Statistics
     'stats.cookedTimes': 'Gekocht',
     'stats.lastCooked': 'Zuletzt gekocht',
+    'stats.title': 'Statistiken',
+    'stats.neverCooked': 'Noch nie gekocht',
     
     // Weekly Calendar Export
+    'weeklyCalendar.print': 'Drucken',
     'weeklyCalendar.export': 'Exportieren',
     'weeklyCalendar.exportSuccess': 'Wochenplan in Zwischenablage kopiert!',
     'weeklyCalendar.today': 'Heute',
@@ -564,8 +567,11 @@ const translations = {
     // Statistics
     'stats.cookedTimes': 'Cooked',
     'stats.lastCooked': 'Last cooked',
+    'stats.title': 'Statistics',
+    'stats.neverCooked': 'Never cooked',
     
     // Weekly Calendar Export
+    'weeklyCalendar.print': 'Print',
     'weeklyCalendar.export': 'Export',
     'weeklyCalendar.exportSuccess': 'Week plan copied to clipboard!',
     'weeklyCalendar.today': 'Today',

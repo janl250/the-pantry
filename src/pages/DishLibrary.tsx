@@ -8,8 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { dinnerDishes, convertUserDishToDish, type Dish, getSeasonalDishes, getCurrentSeason } from "@/data/dishes";
-import { ArrowLeft, Search, Filter, Heart, Star, Shuffle, CalendarPlus, Snowflake, Sun, Leaf, Flower2, BarChart3 } from "lucide-react";
+import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
+import { ArrowLeft, Search, Filter, Heart, Star, Shuffle, CalendarPlus, BarChart3, Clock, ChefHat, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AddDishDialog } from "@/components/AddDishDialog";
@@ -29,7 +29,6 @@ export default function DishLibrary() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSortBy, setSelectedSortBy] = useState<string>("rating-desc");
-  const [selectedSeason, setSelectedSeason] = useState<string>("all");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [userDishes, setUserDishes] = useState<Dish[]>([]);
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
@@ -40,8 +39,7 @@ export default function DishLibrary() {
   const [randomDish, setRandomDish] = useState<Dish | null>(null);
   const [showRandomDialog, setShowRandomDialog] = useState(false);
   const [dishStats, setDishStats] = useState<Map<string, { count: number, lastCooked?: string }>>(new Map());
-
-  const currentSeason = getCurrentSeason();
+  const [selectedDishForStats, setSelectedDishForStats] = useState<Dish | null>(null);
 
   const loadUserDishes = async () => {
     try {
@@ -375,7 +373,6 @@ export default function DishLibrary() {
   const allDishes = [...dinnerDishes, ...userDishes];
   const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
   const categories = Array.from(new Set(allDishes.map(dish => dish.category))).sort();
-  const seasonalDishes = getSeasonalDishes(currentSeason);
 
   const filteredDishes = useMemo(() => {
     let dishes = allDishes.filter(dish => {
@@ -386,9 +383,8 @@ export default function DishLibrary() {
       const matchesDifficulty = selectedDifficulty === "all" || dish.difficulty === selectedDifficulty;
       const matchesCategory = selectedCategory === "all" || dish.category === selectedCategory;
       const matchesFavorites = !showFavoritesOnly || userFavorites.has(dish.id);
-      const matchesSeason = selectedSeason === "all" || seasonalDishes.some(sd => sd.id === dish.id);
 
-      return matchesSearch && matchesCuisine && matchesCookingTime && matchesDifficulty && matchesCategory && matchesFavorites && matchesSeason;
+      return matchesSearch && matchesCuisine && matchesCookingTime && matchesDifficulty && matchesCategory && matchesFavorites;
     });
 
     // Apply sorting
@@ -434,7 +430,7 @@ export default function DishLibrary() {
         return 0;
     }
   });
-}, [searchTerm, selectedCuisine, selectedCookingTime, selectedDifficulty, selectedCategory, selectedSortBy, selectedSeason, showFavoritesOnly, allDishes, userFavorites, dishRatings, seasonalDishes]);
+}, [searchTerm, selectedCuisine, selectedCookingTime, selectedDifficulty, selectedCategory, selectedSortBy, showFavoritesOnly, allDishes, userFavorites, dishRatings]);
 
   const clearFilters = () => {
     setSelectedCuisine("all");
@@ -442,19 +438,8 @@ export default function DishLibrary() {
     setSelectedDifficulty("all");
     setSelectedCategory("all");
     setSelectedSortBy("rating-desc");
-    setSelectedSeason("all");
     setSearchTerm("");
     setShowFavoritesOnly(false);
-  };
-
-  const getSeasonIcon = (season: string) => {
-    switch (season) {
-      case 'winter': return <Snowflake className="h-4 w-4" />;
-      case 'spring': return <Flower2 className="h-4 w-4" />;
-      case 'summer': return <Sun className="h-4 w-4" />;
-      case 'fall': return <Leaf className="h-4 w-4" />;
-      default: return null;
-    }
   };
 
   return (
@@ -568,21 +553,6 @@ export default function DishLibrary() {
                   <SelectItem value="time-desc">{t('dishLibrary.sort.timeDesc')}</SelectItem>
                   <SelectItem value="difficulty-asc">{t('dishLibrary.sort.difficultyAsc')}</SelectItem>
                   <SelectItem value="difficulty-desc">{t('dishLibrary.sort.difficultyDesc')}</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder={t('dishLibrary.filters.season')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('dishLibrary.filters.all')}</SelectItem>
-                  <SelectItem value="current">
-                    <span className="flex items-center gap-2">
-                      {getSeasonIcon(currentSeason)}
-                      {t(`season.${currentSeason}`)}
-                    </span>
-                  </SelectItem>
                 </SelectContent>
               </Select>
 

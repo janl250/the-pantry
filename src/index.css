@@ -88,41 +88,58 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 84 15% 8%;
-    --foreground: 48 33% 93%;
+    /* Deep warm dark background */
+    --background: 25 20% 8%;
+    --foreground: 40 25% 92%;
     
-    --card: 84 15% 12%;
-    --card-foreground: 48 33% 93%;
+    /* Cards with subtle warmth */
+    --card: 25 18% 12%;
+    --card-foreground: 40 25% 92%;
     
-    --popover: 84 15% 12%;
-    --popover-foreground: 48 33% 93%;
+    --popover: 25 18% 14%;
+    --popover-foreground: 40 25% 92%;
     
-    --primary: 15 65% 62%;
+    /* Warm terracotta primary */
+    --primary: 18 65% 55%;
     --primary-foreground: 0 0% 100%;
     
-    --secondary: 84 15% 25%;
-    --secondary-foreground: 48 33% 93%;
+    /* Muted sage secondary */
+    --secondary: 82 20% 22%;
+    --secondary-foreground: 82 30% 85%;
     
-    --muted: 84 15% 15%;
-    --muted-foreground: 48 20% 65%;
+    /* Subtle muted tones */
+    --muted: 25 15% 16%;
+    --muted-foreground: 40 15% 60%;
     
-    --accent: 84 15% 20%;
-    --accent-foreground: 48 33% 93%;
+    /* Warm accent */
+    --accent: 82 20% 18%;
+    --accent-foreground: 82 30% 85%;
     
-    --destructive: 0 62.8% 50%;
+    --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 84 15% 20%;
-    --input: 84 15% 20%;
-    --ring: 15 65% 62%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    /* Subtle borders */
+    --border: 25 15% 22%;
+    --input: 25 15% 18%;
+    --ring: 18 65% 55%;
+    
+    /* Custom dark mode variables */
+    --sage: 82 20% 40%;
+    --sage-light: 82 25% 25%;
+    --terracotta: 18 65% 55%;
+    --terracotta-light: 18 55% 35%;
+    --cream: 25 20% 12%;
+    --honey: 42 50% 45%;
+    
+    /* Sidebar */
+    --sidebar-background: 25 18% 10%;
+    --sidebar-foreground: 40 25% 92%;
+    --sidebar-primary: 18 65% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 25 15% 16%;
+    --sidebar-accent-foreground: 40 25% 92%;
+    --sidebar-border: 25 15% 20%;
+    --sidebar-ring: 18 65% 55%;
   }
 }
 
