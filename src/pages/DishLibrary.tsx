@@ -449,28 +449,31 @@ export default function DishLibrary() {
       <main className="py-8 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col gap-4 mb-8">
             <div className="flex items-center gap-4">
               <Link to="/">
                 <Button variant="ghost" size="icon" className="hover:bg-accent">
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               </Link>
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">{t('dishLibrary.title')}</h1>
-                <p className="text-muted-foreground mt-2">{allDishes.length} {t('dishLibrary.results')}</p>
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t('dishLibrary.title')}</h1>
+                <p className="text-muted-foreground mt-1">{allDishes.length} {t('dishLibrary.results')}</p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full">
               <Button 
                 onClick={surpriseMe} 
                 variant="outline" 
-                className="gap-2 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 hover:border-primary/50"
+                className="flex-1 sm:flex-none gap-2 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 hover:border-primary/50"
               >
                 <Shuffle className="h-4 w-4" />
-                {t('dishLibrary.surpriseMe')}
+                <span className="hidden sm:inline">{t('dishLibrary.surpriseMe')}</span>
+                <span className="sm:hidden">Zufällig</span>
               </Button>
-              <AddDishDialog onDishAdded={loadUserDishes} />
+              <div className="flex-1 sm:flex-none">
+                <AddDishDialog onDishAdded={loadUserDishes} />
+              </div>
             </div>
           </div>
 
