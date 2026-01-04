@@ -500,7 +500,7 @@ export default function DishLibrary() {
                   <SelectValue placeholder={t('dishLibrary.filters.cuisine')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('dishLibrary.filters.all')}</SelectItem>
+                  <SelectItem value="all">{t('dishLibrary.filters.cuisine')}</SelectItem>
                   {cuisines.map(cuisine => (
                     <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
                   ))}
@@ -512,7 +512,7 @@ export default function DishLibrary() {
                   <SelectValue placeholder={t('dishLibrary.filters.cookingTime')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('dishLibrary.filters.all')}</SelectItem>
+                  <SelectItem value="all">{t('dishLibrary.filters.cookingTime')}</SelectItem>
                   <SelectItem value="quick">{t('dishLibrary.filters.quick')}</SelectItem>
                   <SelectItem value="medium">{t('dishLibrary.filters.medium')}</SelectItem>
                   <SelectItem value="long">{t('dishLibrary.filters.long')}</SelectItem>
@@ -524,7 +524,7 @@ export default function DishLibrary() {
                   <SelectValue placeholder={t('dishLibrary.filters.difficulty')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('dishLibrary.filters.all')}</SelectItem>
+                  <SelectItem value="all">{t('dishLibrary.filters.difficulty')}</SelectItem>
                   <SelectItem value="easy">{t('dishLibrary.filters.easy')}</SelectItem>
                   <SelectItem value="medium">{t('dishLibrary.filters.medium')}</SelectItem>
                   <SelectItem value="hard">{t('dishLibrary.filters.hard')}</SelectItem>
@@ -536,7 +536,7 @@ export default function DishLibrary() {
                   <SelectValue placeholder={t('dishLibrary.filters.category')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t('dishLibrary.filters.all')}</SelectItem>
+                  <SelectItem value="all">{t('dishLibrary.filters.category')}</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
                   ))}
