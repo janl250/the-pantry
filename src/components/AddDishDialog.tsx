@@ -181,9 +181,10 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
         }}
       >
       <DialogTrigger asChild>
-        <Button className="gap-2">
+        <Button className="gap-2 w-full sm:w-auto">
           <Plus className="h-4 w-4" />
-          {t('addDish.button')}
+          <span className="hidden sm:inline">{t('addDish.button')}</span>
+          <span className="sm:hidden">Neu</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

@@ -848,37 +848,41 @@ export default function WeeklyCalendar() {
       <main className="py-8 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <Link to="/">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-foreground">{t('weeklyCalendar.title')}</h1>
-              <p className="text-muted-foreground mt-2">
-                {t('weeklyCalendar.subtitle')}
-              </p>
+          <div className="flex flex-col gap-4 mb-8">
+            <div className="flex items-center gap-4">
+              <Link to="/">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t('weeklyCalendar.title')}</h1>
+                <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+                  {t('weeklyCalendar.subtitle')}
+                </p>
+              </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {isAuthenticated ? (
                 <>
-                  <Button variant="outline" onClick={exportWeekPlan} className="flex items-center gap-2">
+                  <Button variant="outline" onClick={exportWeekPlan} size="sm" className="flex items-center gap-2">
                     <Printer className="h-4 w-4" />
-                    {t('weeklyCalendar.print')}
+                    <span className="hidden sm:inline">{t('weeklyCalendar.print')}</span>
                   </Button>
-                  <Button variant="outline" onClick={clearWeek}>
-                    {t('weeklyCalendar.clear')}
+                  <Button variant="outline" onClick={clearWeek} size="sm">
+                    <Trash2 className="h-4 w-4 sm:hidden" />
+                    <span className="hidden sm:inline">{t('weeklyCalendar.clear')}</span>
                   </Button>
-                  <Button onClick={saveMealPlan} className="flex items-center gap-2" disabled={saving}>
+                  <Button onClick={saveMealPlan} size="sm" className="flex items-center gap-2 ml-auto" disabled={saving}>
                     <Save className="h-4 w-4" />
-                    {saving ? (language === 'de' ? "Wird gespeichert..." : "Saving...") : t('weeklyCalendar.save')}
+                    <span className="hidden sm:inline">{saving ? (language === 'de' ? "Wird gespeichert..." : "Saving...") : t('weeklyCalendar.save')}</span>
                   </Button>
                 </>
               ) : (
-                <Button onClick={() => navigate('/auth')} className="flex items-center gap-2">
+                <Button onClick={() => navigate('/auth')} size="sm" className="flex items-center gap-2">
                   <LogIn className="h-4 w-4" />
-                  {language === 'de' ? 'Anmelden zum Speichern' : 'Login to Save'}
+                  <span className="hidden sm:inline">{language === 'de' ? 'Anmelden zum Speichern' : 'Login to Save'}</span>
+                  <span className="sm:hidden">{language === 'de' ? 'Anmelden' : 'Login'}</span>
                 </Button>
               )}
             </div>
@@ -982,7 +986,7 @@ export default function WeeklyCalendar() {
                         >
                           <X className="h-3 w-3" />
                         </Button>
-                        <div className={`bg-gradient-card p-3 rounded-lg ${
+                        <div className={`bg-accent/50 border border-border p-3 rounded-lg ${
                           weeklyMeals[day.key].isLeftover ? 'border-l-4 border-l-blue-400' : ''
                         }`}>
                           <div className="flex items-center justify-between mb-2">
