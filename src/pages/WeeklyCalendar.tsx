@@ -1086,7 +1086,7 @@ export default function WeeklyCalendar() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {/* Search and Filter */}
-                  <div className="flex gap-4">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -1096,30 +1096,33 @@ export default function WeeklyCalendar() {
                         className="pl-9"
                       />
                     </div>
-                    <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder={language === 'de' ? 'Küche' : 'Cuisine'} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">{language === 'de' ? 'Alle Küchen' : 'All cuisines'}</SelectItem>
-                        {cuisines.map(cuisine => (
-                          <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => {
-                        const randomDish = surpriseMe();
-                        if (randomDish && showDishSelector) {
-                          assignDishToDay(showDishSelector, randomDish);
-                        }
-                      }}
-                      className="gap-2 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 hover:border-primary/50"
-                    >
-                      <Shuffle className="h-4 w-4" />
-                      {language === 'de' ? 'Überrasch mich!' : 'Surprise me!'}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
+                        <SelectTrigger className="w-full sm:w-32">
+                          <SelectValue placeholder={language === 'de' ? 'Küche' : 'Cuisine'} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">{language === 'de' ? 'Küche' : 'Cuisine'}</SelectItem>
+                          {cuisines.map(cuisine => (
+                            <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => {
+                          const randomDish = surpriseMe();
+                          if (randomDish && showDishSelector) {
+                            assignDishToDay(showDishSelector, randomDish);
+                          }
+                        }}
+                        className="shrink-0 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 hover:border-primary/50"
+                        title={language === 'de' ? 'Überrasch mich!' : 'Surprise me!'}
+                      >
+                        <Shuffle className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Dish List */}

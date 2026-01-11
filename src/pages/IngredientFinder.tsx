@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -6,25 +6,84 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { filterDishesByIngredients, type Dish } from "@/data/dishes";
+import { filterDishesByIngredients, convertUserDishToDish, dinnerDishes, type Dish } from "@/data/dishes";
 import { useIngredients } from "@/hooks/useIngredients";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Search, ChefHat, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function IngredientFinder() {
   const { t, language, translateField } = useLanguage();
+  const { user } = useAuth();
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [userDishes, setUserDishes] = useState<Dish[]>([]);
   
   const { ingredients: allIngredients } = useIngredients();
   const filteredIngredients = allIngredients.filter(ingredient => 
     ingredient.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Load user dishes
+  useEffect(() => {
+    const loadUserDishes = async () => {
+      if (!user) {
+        setUserDishes([]);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('user_dishes')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (!error && data) {
+        setUserDishes(data.map(convertUserDishToDish));
+      }
+    };
+    
+    loadUserDishes();
+  }, [user?.id]);
+
+  // Realtime subscription for user dishes
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('ingredient-finder-dishes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_dishes',
+          filter: `user_id=eq.${user.id}`
+        },
+        async () => {
+          const { data, error } = await supabase
+            .from('user_dishes')
+            .select('*')
+            .eq('user_id', user.id);
+          
+          if (!error && data) {
+            setUserDishes(data.map(convertUserDishToDish));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
+  const allDishes = useMemo(() => [...dinnerDishes, ...userDishes], [userDishes]);
   
   const matchingDishes = useMemo(() => {
-    return filterDishesByIngredients(selectedIngredients);
-  }, [selectedIngredients]);
+    return filterDishesByIngredients(selectedIngredients, allDishes);
+  }, [selectedIngredients, allDishes]);
 
   const toggleIngredient = (ingredient: string) => {
     setSelectedIngredients(prev => 

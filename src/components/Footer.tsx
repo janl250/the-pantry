@@ -6,7 +6,7 @@ export const Footer = () => {
   const { t } = useLanguage();
   
   return (
-    <footer className="bg-gradient-to-r from-secondary to-sage text-secondary-foreground py-12 px-4">
+    <footer className="bg-secondary text-secondary-foreground py-12 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0 text-center md:text-left">
