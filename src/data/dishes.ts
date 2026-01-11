@@ -225,10 +225,11 @@ export const getAllIngredients = (): string[] => {
   return Array.from(ingredients).sort();
 };
 
-export const filterDishesByIngredients = (selectedIngredients: string[]): Dish[] => {
-  if (selectedIngredients.length === 0) return dinnerDishes;
+export const filterDishesByIngredients = (selectedIngredients: string[], allDishes?: Dish[]): Dish[] => {
+  const dishes = allDishes || dinnerDishes;
+  if (selectedIngredients.length === 0) return dishes;
   
-  return dinnerDishes.filter(dish => 
+  return dishes.filter(dish => 
     selectedIngredients.every(ingredient => 
       dish.tags.some(tag => tag.toLowerCase().includes(ingredient.toLowerCase()))
     )
