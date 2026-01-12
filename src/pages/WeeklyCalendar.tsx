@@ -65,6 +65,7 @@ export default function WeeklyCalendar() {
   const [profiles, setProfiles] = useState<{ [key: string]: string }>({});
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [dishRatings, setDishRatings] = useState<Map<string, { avg: number, count: number, userRating?: number }>>(new Map());
+  const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = last week, 1 = next week
 
   const allDishes = [...dinnerDishes, ...userDishes];
   const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
@@ -87,12 +88,12 @@ export default function WeeklyCalendar() {
     }
   }, [searchParams]);
 
-  // Load meal plan when user or selected group changes
+  // Load meal plan when user or selected group or week changes
   useEffect(() => {
     if (isAuthenticated && user) {
       loadMealPlan();
     }
-  }, [isAuthenticated, user, selectedGroupId]);
+  }, [isAuthenticated, user, selectedGroupId, weekOffset]);
 
   // Setup realtime subscription for group calendars
   useEffect(() => {
@@ -399,11 +400,13 @@ export default function WeeklyCalendar() {
     await loadDishRatings();
   };
 
-  const getWeekStartDate = () => {
+  const getWeekStartDate = (offset: number = 0) => {
     const today = new Date();
     const day = today.getDay();
     const diff = today.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
-    return new Date(today.setDate(diff));
+    const weekStart = new Date(today.setDate(diff));
+    weekStart.setDate(weekStart.getDate() + (offset * 7));
+    return weekStart;
   };
 
   const loadMealPlan = async () => {

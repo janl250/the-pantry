@@ -269,6 +269,22 @@ const translations = {
     'weeklyCalendar.exportSuccess': 'Wochenplan in Zwischenablage kopiert!',
     'weeklyCalendar.today': 'Heute',
     
+    // Empty States
+    'emptyState.noDishes.title': 'Noch keine Gerichte',
+    'emptyState.noDishes.description': 'Fügen Sie Ihr erstes Gericht hinzu und starten Sie Ihre Sammlung!',
+    'emptyState.noResults.title': 'Keine Ergebnisse',
+    'emptyState.noResults.description': 'Versuchen Sie andere Suchbegriffe oder setzen Sie die Filter zurück.',
+    'emptyState.noGroups.title': 'Noch keine Gruppen',
+    'emptyState.noGroups.description': 'Erstellen Sie eine Gruppe oder treten Sie mit einem Einladungscode bei.',
+    'emptyState.noFavorites.title': 'Keine Favoriten',
+    'emptyState.noFavorites.description': 'Markieren Sie Gerichte mit einem Herz, um sie hier zu sehen.',
+    'emptyState.noIngredients.title': 'Keine Zutaten ausgewählt',
+    'emptyState.noIngredients.description': 'Wählen Sie Zutaten aus, um passende Gerichte zu finden.',
+    'emptyState.noMealPlan.title': 'Woche noch leer',
+    'emptyState.noMealPlan.description': 'Klicken Sie auf einen Tag, um Gerichte hinzuzufügen.',
+    'emptyState.loginRequired.title': 'Anmeldung erforderlich',
+    'emptyState.loginRequired.description': 'Melden Sie sich an, um diese Funktion zu nutzen.',
+    
     // Cuisines
     'cuisine.italian': 'Italienisch',
     'cuisine.asian': 'Asiatisch',
@@ -595,6 +611,22 @@ const translations = {
     'weeklyCalendar.export': 'Export',
     'weeklyCalendar.exportSuccess': 'Week plan copied to clipboard!',
     'weeklyCalendar.today': 'Today',
+    
+    // Empty States
+    'emptyState.noDishes.title': 'No dishes yet',
+    'emptyState.noDishes.description': 'Add your first dish and start your collection!',
+    'emptyState.noResults.title': 'No results',
+    'emptyState.noResults.description': 'Try different search terms or clear the filters.',
+    'emptyState.noGroups.title': 'No groups yet',
+    'emptyState.noGroups.description': 'Create a group or join with an invite code.',
+    'emptyState.noFavorites.title': 'No favorites',
+    'emptyState.noFavorites.description': 'Mark dishes with a heart to see them here.',
+    'emptyState.noIngredients.title': 'No ingredients selected',
+    'emptyState.noIngredients.description': 'Select ingredients to find matching dishes.',
+    'emptyState.noMealPlan.title': 'Week is empty',
+    'emptyState.noMealPlan.description': 'Click on a day to add dishes.',
+    'emptyState.loginRequired.title': 'Login required',
+    'emptyState.loginRequired.description': 'Please log in to use this feature.',
     
     // Cuisines
     'cuisine.italian': 'Italian',

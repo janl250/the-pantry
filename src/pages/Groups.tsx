@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CreateGroupDialog } from "@/components/CreateGroupDialog";
 import { JoinGroupDialog } from "@/components/JoinGroupDialog";
+import { EmptyState } from "@/components/EmptyState";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -243,27 +245,21 @@ export default function Groups() {
           </div>
 
           {loading ? (
-            <div className="text-center py-12">
-              <div className="text-muted-foreground">{language === 'de' ? 'Lädt...' : 'Loading...'}</div>
-            </div>
+            <LoadingSkeleton type="group-grid" count={3} />
           ) : groups.length === 0 ? (
             <Card>
-              <CardContent className="p-12 text-center">
-                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {t('groups.noGroups')}
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  {t('groups.noGroupsDescription')}
-                </p>
-                <div className="flex gap-2 justify-center">
-                  <Button onClick={() => setShowJoinDialog(true)} variant="outline">
-                    {t('groups.joinGroup')}
-                  </Button>
-                  <Button onClick={() => setShowCreateDialog(true)}>
-                    {t('groups.createGroup')}
-                  </Button>
-                </div>
+              <CardContent className="p-6">
+                <EmptyState 
+                  type="no-groups"
+                  action={{
+                    label: t('groups.createGroup'),
+                    onClick: () => setShowCreateDialog(true)
+                  }}
+                  secondaryAction={{
+                    label: t('groups.joinGroup'),
+                    onClick: () => setShowJoinDialog(true)
+                  }}
+                />
               </CardContent>
             </Card>
           ) : (
