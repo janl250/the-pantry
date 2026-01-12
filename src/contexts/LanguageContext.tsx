@@ -318,6 +318,26 @@ const translations = {
     'category.fish': 'Fisch',
     'category.seafood': 'Meeresfrüchte',
     'category.vegetable': 'Gemüse',
+    
+    // Welcome Tour
+    'tour.welcome.title': 'Willkommen bei The Pantry!',
+    'tour.welcome.description': 'Entdecken Sie Ihre neue Küchen-App. Wir zeigen Ihnen die wichtigsten Funktionen.',
+    'tour.dishes.title': 'Gerichte-Sammlung',
+    'tour.dishes.description': 'Durchstöbern Sie über 75 Gerichte, erstellen Sie eigene und markieren Sie Favoriten.',
+    'tour.calendar.title': 'Wochenplaner',
+    'tour.calendar.description': 'Planen Sie Ihre Mahlzeiten für die ganze Woche im Voraus.',
+    'tour.ingredients.title': 'Zutatenfinder',
+    'tour.ingredients.description': 'Finden Sie Rezepte basierend auf den Zutaten, die Sie haben.',
+    'tour.groups.title': 'Gruppen',
+    'tour.groups.description': 'Teilen Sie Wochenpläne mit Familie oder Mitbewohnern.',
+    'tour.favorites.title': 'Los geht\'s!',
+    'tour.favorites.description': 'Bewerten Sie Gerichte, markieren Sie Favoriten und genießen Sie das Kochen!',
+    'tour.next': 'Weiter',
+    'tour.prev': 'Zurück',
+    'tour.skip': 'Tour überspringen',
+    'tour.finish': 'Fertig',
+    'tour.tryIt': 'Ausprobieren',
+    'tour.restart': 'Tour neu starten',
   },
   en: {
     // Navigation
@@ -625,6 +645,26 @@ const translations = {
     'category.fish': 'Fish',
     'category.seafood': 'Seafood',
     'category.vegetable': 'Vegetable',
+    
+    // Welcome Tour
+    'tour.welcome.title': 'Welcome to The Pantry!',
+    'tour.welcome.description': 'Discover your new kitchen app. We\'ll show you the key features.',
+    'tour.dishes.title': 'Dish Collection',
+    'tour.dishes.description': 'Browse over 75 dishes, create your own, and mark favorites.',
+    'tour.calendar.title': 'Weekly Planner',
+    'tour.calendar.description': 'Plan your meals for the entire week in advance.',
+    'tour.ingredients.title': 'Ingredient Finder',
+    'tour.ingredients.description': 'Find recipes based on ingredients you have.',
+    'tour.groups.title': 'Groups',
+    'tour.groups.description': 'Share weekly plans with family or roommates.',
+    'tour.favorites.title': 'Let\'s go!',
+    'tour.favorites.description': 'Rate dishes, mark favorites, and enjoy cooking!',
+    'tour.next': 'Next',
+    'tour.prev': 'Back',
+    'tour.skip': 'Skip tour',
+    'tour.finish': 'Finish',
+    'tour.tryIt': 'Try it',
+    'tour.restart': 'Restart tour',
   },
 } as const;
 
