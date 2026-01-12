@@ -14,6 +14,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AddDishDialog } from "@/components/AddDishDialog";
 import { EditDishDialog } from "@/components/EditDishDialog";
+import { ScrollToTopButton } from "@/components/ScrollToTopButton";
+import { LoadingSkeleton } from "@/components/LoadingSkeleton";
+import { EmptyState } from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -782,6 +785,7 @@ export default function DishLibrary() {
       </Dialog>
 
       <Footer />
+      <ScrollToTopButton />
     </div>
   );
 }

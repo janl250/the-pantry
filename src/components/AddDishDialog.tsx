@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { useIngredients } from "@/hooks/useIngredients";
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
+import { checkAndTriggerFirstDishConfetti } from '@/lib/confetti';
 
 const dishSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
@@ -127,8 +128,13 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
 
       if (error) throw error;
 
+      // Check for first dish and trigger confetti
+      const isFirstDish = checkAndTriggerFirstDishConfetti();
+      
       toast({
-        title: 'Success',
+        title: isFirstDish 
+          ? (t('addDish.firstDishSuccess') || '🎉 Erstes Gericht erstellt!') 
+          : 'Success',
         description: t('addDish.success'),
       });
 

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import Index from "./pages/Index";
 import DishLibrary from "./pages/DishLibrary";
 import DishOfTheDay from "./pages/DishOfTheDay";
@@ -17,6 +18,12 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Keyboard shortcuts wrapper component
+function KeyboardShortcutsProvider({ children }: { children: React.ReactNode }) {
+  useKeyboardShortcuts();
+  return <>{children}</>;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
@@ -24,19 +31,21 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/recipes" element={<DishLibrary />} />
-            <Route path="/dish-of-the-day" element={<DishOfTheDay />} />
-            <Route path="/ingredient-finder" element={<IngredientFinder />} />
-            <Route path="/weekly-calendar" element={<WeeklyCalendar />} />
-            <Route path="/groups" element={<Groups />} />
-            <Route path="/groups/:groupId" element={<GroupDetail />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/auth" element={<Auth />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <KeyboardShortcutsProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/recipes" element={<DishLibrary />} />
+              <Route path="/dish-of-the-day" element={<DishOfTheDay />} />
+              <Route path="/ingredient-finder" element={<IngredientFinder />} />
+              <Route path="/weekly-calendar" element={<WeeklyCalendar />} />
+              <Route path="/groups" element={<Groups />} />
+              <Route path="/groups/:groupId" element={<GroupDetail />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/auth" element={<Auth />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </KeyboardShortcutsProvider>
         </BrowserRouter>
       </TooltipProvider>
     </LanguageProvider>
