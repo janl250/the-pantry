@@ -7,13 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Printer, Shuffle, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Printer, Shuffle, ChevronLeft, ChevronRight, RotateCcw, GripVertical } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-
+import { DndContext, DragOverlay, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { cn } from "@/lib/utils";
 type WeeklyMeals = {
   [key: string]: {
     dish: Dish | null;
@@ -26,6 +28,185 @@ type Group = {
   id: string;
   name: string;
 };
+
+// Inline Draggable Day Card Component
+interface DraggableDayCardInlineProps {
+  dayKey: string;
+  dayLabel: string;
+  isToday: boolean;
+  mealData: WeeklyMeals[string];
+  profiles: { [key: string]: string };
+  selectedGroupId: string | null;
+  onRemoveDish: (day: string) => void;
+  onShowDishSelector: (day: string | null) => void;
+  onShowLeftoverSelector: (day: string | null) => void;
+  onAddDishToLibrary: (dish: Dish) => void;
+  isDishInLibrary: (dishName: string) => boolean;
+  translateField: (type: 'cuisine' | 'difficulty' | 'cookingTime' | 'category' | 'ingredient', value: string) => string;
+  language: string;
+  t: (key: string) => string;
+  availableLeftoversCount: number;
+  isDragging: boolean;
+}
+
+function DraggableDayCardInline({
+  dayKey,
+  dayLabel,
+  isToday,
+  mealData,
+  profiles,
+  selectedGroupId,
+  onRemoveDish,
+  onShowDishSelector,
+  onShowLeftoverSelector,
+  onAddDishToLibrary,
+  isDishInLibrary,
+  translateField,
+  language,
+  t,
+  availableLeftoversCount,
+  isDragging,
+}: DraggableDayCardInlineProps) {
+  const { attributes, listeners, setNodeRef: setDragRef, transform } = useDraggable({
+    id: dayKey,
+    data: { dayKey, mealData },
+    disabled: !mealData.dish,
+  });
+
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `drop-${dayKey}`,
+    data: { dayKey },
+  });
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    zIndex: 50,
+  } : undefined;
+
+  return (
+    <div ref={setDropRef} className="relative">
+      <Card
+        ref={setDragRef}
+        style={style}
+        className={cn(
+          'h-64 transition-all',
+          isToday && 'ring-2 ring-primary shadow-lg shadow-primary/20',
+          isDragging && 'opacity-50 scale-105',
+          isOver && !isDragging && 'ring-2 ring-accent bg-accent/10',
+          mealData.dish && 'cursor-grab active:cursor-grabbing'
+        )}
+        {...(mealData.dish ? { ...attributes, ...listeners } : {})}
+      >
+        <CardHeader className={cn('pb-3', isToday && 'bg-primary/10')}>
+          <CardTitle className="text-sm font-medium text-center flex items-center justify-center gap-2">
+            {mealData.dish && (
+              <GripVertical className="h-4 w-4 text-muted-foreground" />
+            )}
+            {dayLabel}
+            {isToday && (
+              <Badge variant="default" className="text-xs">
+                {t('weeklyCalendar.today')}
+              </Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-3 h-full">
+          {mealData.dish ? (
+            <div className="space-y-3">
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 z-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemoveDish(dayKey);
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+                <div className={cn(
+                  'bg-accent/50 border border-border p-3 rounded-lg',
+                  mealData.isLeftover && 'border-l-4 border-l-blue-400'
+                )}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm text-foreground line-clamp-2">
+                      {mealData.dish.name}
+                    </h4>
+                    {mealData.isLeftover && (
+                      <Badge variant="secondary" className="text-xs">
+                        <RefreshCw className="w-3 h-3 mr-1" />
+                        {t('leftovers.title')}
+                      </Badge>
+                    )}
+                  </div>
+                  {mealData.isLeftover && mealData.leftoverOf && (
+                    <div className="text-xs text-muted-foreground mb-2">
+                      {t('leftovers.from')}: {mealData.leftoverOf}
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    <Badge variant="secondary" className="text-xs">
+                      {translateField('cuisine', mealData.dish.cuisine)}
+                    </Badge>
+                    <div className="text-xs text-muted-foreground">
+                      {translateField('cookingTime', mealData.dish.cookingTime)}
+                    </div>
+                    {selectedGroupId && (mealData.dish as any).addedBy && (
+                      <div className="text-xs text-muted-foreground">
+                        {language === 'de' ? 'Hinzugefügt von' : 'Added by'}: {profiles[(mealData.dish as any).addedBy] || 'Loading...'}
+                      </div>
+                    )}
+                    {selectedGroupId && (mealData.dish as any).isUserDish &&
+                      !isDishInLibrary(mealData.dish.name) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full mt-2 text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAddDishToLibrary(mealData.dish!);
+                          }}
+                          onPointerDown={(e) => e.stopPropagation()}
+                        >
+                          <BookmarkPlus className="h-3 w-3 mr-1" />
+                          {language === 'de' ? 'Zu meiner Sammlung' : 'Add to my library'}
+                        </Button>
+                      )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center gap-2">
+              <Button
+                variant="ghost"
+                className="w-full h-16 border-2 border-dashed border-muted hover:border-primary hover:bg-primary/5 flex items-center justify-center gap-2"
+                onClick={() => onShowDishSelector(dayKey)}
+              >
+                <Plus className="h-5 w-5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {language === 'de' ? 'Gericht hinzufügen' : 'Add Dish'}
+                </span>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full text-xs"
+                onClick={() => onShowLeftoverSelector(dayKey)}
+                disabled={availableLeftoversCount === 0}
+              >
+                <RefreshCw className="h-3 w-3 mr-1" />
+                {t('leftovers.add')}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 export default function WeeklyCalendar() {
   const { t, language, translateField } = useLanguage();
@@ -66,7 +247,17 @@ export default function WeeklyCalendar() {
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [dishRatings, setDishRatings] = useState<Map<string, { avg: number, count: number, userRating?: number }>>(new Map());
   const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = last week, 1 = next week
+  const [activeDragDay, setActiveDragDay] = useState<string | null>(null);
 
+  // DnD Sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor)
+  );
   const allDishes = [...dinnerDishes, ...userDishes];
   const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
 
@@ -939,6 +1130,48 @@ export default function WeeklyCalendar() {
     }
   };
 
+  // Drag & Drop handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    const dayKey = event.active.id as string;
+    setActiveDragDay(dayKey);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveDragDay(null);
+
+    if (!over || active.id === over.id) return;
+
+    const sourceDayKey = active.id as string;
+    const targetDayKey = (over.id as string).replace('drop-', '');
+
+    // Skip if same day or source has no dish
+    if (sourceDayKey === targetDayKey || !weeklyMeals[sourceDayKey]?.dish) return;
+
+    // Swap the meals between the two days
+    setWeeklyMeals(prev => {
+      const sourceMeal = prev[sourceDayKey];
+      const targetMeal = prev[targetDayKey];
+
+      return {
+        ...prev,
+        [sourceDayKey]: targetMeal,
+        [targetDayKey]: sourceMeal,
+      };
+    });
+
+    toast({
+      title: language === 'de' ? 'Gerichte getauscht!' : 'Dishes swapped!',
+      description: language === 'de'
+        ? `${daysOfWeek.find(d => d.key === sourceDayKey)?.label} ↔ ${daysOfWeek.find(d => d.key === targetDayKey)?.label}`
+        : `${daysOfWeek.find(d => d.key === sourceDayKey)?.label} ↔ ${daysOfWeek.find(d => d.key === targetDayKey)?.label}`
+    });
+  };
+
+  const handleDragCancel = () => {
+    setActiveDragDay(null);
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -1098,117 +1331,65 @@ export default function WeeklyCalendar() {
             </CardContent>
           </Card>
 
-          {/* Weekly Calendar Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-            {daysOfWeek.map(day => {
-              const isToday = isCurrentWeek && day.key === todayKey;
-              return (
-              <Card key={day.key} className={`h-64 transition-all ${
-                isToday 
-                  ? 'ring-2 ring-primary shadow-lg shadow-primary/20' 
-                  : ''
-              }`}>
-                <CardHeader className={`pb-3 ${isToday ? 'bg-primary/10' : ''}`}>
-                  <CardTitle className="text-sm font-medium text-center flex items-center justify-center gap-2">
-                    {day.label}
-                    {isToday && (
-                      <Badge variant="default" className="text-xs">
-                        {t('weeklyCalendar.today')}
+          {/* Weekly Calendar Grid with Drag & Drop */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+              {daysOfWeek.map(day => {
+                const isToday = isCurrentWeek && day.key === todayKey;
+                const mealData = weeklyMeals[day.key];
+                return (
+                  <DraggableDayCardInline
+                    key={day.key}
+                    dayKey={day.key}
+                    dayLabel={day.label}
+                    isToday={isToday}
+                    mealData={mealData}
+                    profiles={profiles}
+                    selectedGroupId={selectedGroupId}
+                    onRemoveDish={removeDishFromDay}
+                    onShowDishSelector={setShowDishSelector}
+                    onShowLeftoverSelector={setShowLeftoverSelector}
+                    onAddDishToLibrary={addDishToLibrary}
+                    isDishInLibrary={isDishInLibrary}
+                    translateField={translateField}
+                    language={language}
+                    t={t}
+                    availableLeftoversCount={availableLeftovers.length}
+                    isDragging={activeDragDay === day.key}
+                  />
+                );
+              })}
+            </div>
+            
+            {/* Drag Overlay */}
+            <DragOverlay>
+              {activeDragDay && weeklyMeals[activeDragDay]?.dish && (
+                <Card className="h-64 opacity-90 shadow-2xl rotate-3 border-2 border-primary">
+                  <CardHeader className="pb-3 bg-primary/10">
+                    <CardTitle className="text-sm font-medium text-center">
+                      {daysOfWeek.find(d => d.key === activeDragDay)?.label}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-3">
+                    <div className="bg-accent/50 border border-border p-3 rounded-lg">
+                      <h4 className="font-medium text-sm text-foreground line-clamp-2">
+                        {weeklyMeals[activeDragDay].dish!.name}
+                      </h4>
+                      <Badge variant="secondary" className="text-xs mt-2">
+                        {translateField('cuisine', weeklyMeals[activeDragDay].dish!.cuisine)}
                       </Badge>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 h-full">
-                  {weeklyMeals[day.key].dish ? (
-                    <div className="space-y-3">
-                      <div className="relative">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          onClick={() => removeDishFromDay(day.key)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                        <div className={`bg-accent/50 border border-border p-3 rounded-lg ${
-                          weeklyMeals[day.key].isLeftover ? 'border-l-4 border-l-blue-400' : ''
-                        }`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-sm text-foreground line-clamp-2">
-                              {weeklyMeals[day.key].dish!.name}
-                            </h4>
-                            {weeklyMeals[day.key].isLeftover && (
-                              <Badge variant="secondary" className="text-xs">
-                                <RefreshCw className="w-3 h-3 mr-1" />
-                                {t('leftovers.title')}
-                              </Badge>
-                            )}
-                          </div>
-                          {weeklyMeals[day.key].isLeftover && weeklyMeals[day.key].leftoverOf && (
-                            <div className="text-xs text-muted-foreground mb-2">
-                              {t('leftovers.from')}: {weeklyMeals[day.key].leftoverOf}
-                            </div>
-                          )}
-                          <div className="space-y-1">
-                            <Badge variant="secondary" className="text-xs">
-                              {translateField('cuisine', weeklyMeals[day.key].dish!.cuisine)}
-                            </Badge>
-                            <div className="text-xs text-muted-foreground">
-                              {translateField('cookingTime', weeklyMeals[day.key].dish!.cookingTime)}
-                            </div>
-                            {selectedGroupId && (weeklyMeals[day.key].dish as any).addedBy && (
-                              <div className="text-xs text-muted-foreground">
-                                {language === 'de' ? 'Hinzugefügt von' : 'Added by'}: {profiles[(weeklyMeals[day.key].dish as any).addedBy] || 'Loading...'}
-                              </div>
-                            )}
-                            {selectedGroupId && (weeklyMeals[day.key].dish as any).isUserDish && 
-                             !isDishInLibrary(weeklyMeals[day.key].dish!.name) && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full mt-2 text-xs"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  addDishToLibrary(weeklyMeals[day.key].dish!);
-                                }}
-                              >
-                                <BookmarkPlus className="h-3 w-3 mr-1" />
-                                {language === 'de' ? 'Zu meiner Sammlung' : 'Add to my library'}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
                     </div>
-                  ) : (
-                    <div className="h-full flex flex-col items-center justify-center gap-2">
-                      <Button
-                        variant="ghost"
-                        className="w-full h-16 border-2 border-dashed border-muted hover:border-primary hover:bg-primary/5 flex items-center justify-center gap-2"
-                        onClick={() => setShowDishSelector(day.key)}
-                      >
-                        <Plus className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                          {language === 'de' ? 'Gericht hinzufügen' : 'Add Dish'}
-                        </span>
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="w-full text-xs"
-                        onClick={() => setShowLeftoverSelector(day.key)}
-                        disabled={availableLeftovers.length === 0}
-                      >
-                        <RefreshCw className="h-3 w-3 mr-1" />
-                        {t('leftovers.add')}
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-              );
-            })}
-          </div>
+                  </CardContent>
+                </Card>
+              )}
+            </DragOverlay>
+          </DndContext>
 
           {/* Dish Selector Modal */}
           {showDishSelector && (
