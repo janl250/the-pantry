@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Printer, Shuffle } from "lucide-react";
+import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Printer, Shuffle, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -404,15 +404,30 @@ export default function WeeklyCalendar() {
     const today = new Date();
     const day = today.getDay();
     const diff = today.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
-    const weekStart = new Date(today.setDate(diff));
-    weekStart.setDate(weekStart.getDate() + (offset * 7));
-    return weekStart;
+    const monday = new Date(today);
+    monday.setDate(diff);
+    monday.setDate(monday.getDate() + (offset * 7));
+    return monday;
   };
+
+  const getFormattedWeekRange = () => {
+    const weekStart = getWeekStartDate(weekOffset);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    
+    const locale = language === 'de' ? 'de-DE' : 'en-US';
+    const startStr = weekStart.toLocaleDateString(locale, { day: 'numeric', month: 'short' });
+    const endStr = weekEnd.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+    
+    return `${startStr} - ${endStr}`;
+  };
+
+  const isCurrentWeek = weekOffset === 0;
 
   const loadMealPlan = async () => {
     if (!user) return;
     
-    const weekStart = getWeekStartDate();
+    const weekStart = getWeekStartDate(weekOffset);
     const weekStartString = weekStart.toISOString().split('T')[0];
     
     try {
@@ -500,7 +515,7 @@ export default function WeeklyCalendar() {
     // Log activity if in group mode
     if (selectedGroupId && user) {
       try {
-        const weekStart = getWeekStartDate();
+        const weekStart = getWeekStartDate(weekOffset);
         const weekStartString = weekStart.toISOString().split('T')[0];
         
         await supabase.from('group_activities').insert({
@@ -528,7 +543,7 @@ export default function WeeklyCalendar() {
     // Log activity if in group mode
     if (selectedGroupId && user && removedDish) {
       try {
-        const weekStart = getWeekStartDate();
+        const weekStart = getWeekStartDate(weekOffset);
         const weekStartString = weekStart.toISOString().split('T')[0];
         
         await supabase.from('group_activities').insert({
@@ -601,7 +616,7 @@ export default function WeeklyCalendar() {
     setWeeklyMeals(newMeals);
     
     if (user) {
-      const weekStart = getWeekStartDate();
+      const weekStart = getWeekStartDate(weekOffset);
       const weekStartString = weekStart.toISOString().split('T')[0];
       
       try {
@@ -650,7 +665,7 @@ export default function WeeklyCalendar() {
     setSaving(true);
     
     try {
-      const weekStart = getWeekStartDate();
+      const weekStart = getWeekStartDate(weekOffset);
       const weekStartString = weekStart.toISOString().split('T')[0];
       
       // First, delete existing meal plans for this week
@@ -735,7 +750,7 @@ export default function WeeklyCalendar() {
 
   // Export week plan to print view
   const exportWeekPlan = () => {
-    const weekStart = getWeekStartDate();
+    const weekStart = getWeekStartDate(weekOffset);
     const dateStr = weekStart.toLocaleDateString(language === 'de' ? 'de-DE' : 'en-US', {
       day: 'numeric',
       month: 'long',
@@ -843,6 +858,87 @@ export default function WeeklyCalendar() {
     return allDishes[randomIndex];
   };
 
+  // Repeat last week - copy previous week's plan to current week
+  const repeatLastWeek = async () => {
+    if (!user) return;
+    
+    const lastWeekStart = getWeekStartDate(weekOffset - 1);
+    const lastWeekString = lastWeekStart.toISOString().split('T')[0];
+    
+    try {
+      let query = supabase
+        .from('meal_plans')
+        .select('*')
+        .eq('week_start_date', lastWeekString);
+
+      if (selectedGroupId) {
+        query = query.eq('group_id', selectedGroupId);
+      } else {
+        query = query.eq('user_id', user.id).is('group_id', null);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        toast({
+          title: language === 'de' ? 'Keine Daten' : 'No data',
+          description: language === 'de' 
+            ? 'Die Vorwoche hat keine geplanten Gerichte.'
+            : 'The previous week has no planned dishes.',
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Apply previous week's meals to current state
+      const loadedMeals: WeeklyMeals = {
+        monday: { dish: null, isLeftover: false },
+        tuesday: { dish: null, isLeftover: false },
+        wednesday: { dish: null, isLeftover: false },
+        thursday: { dish: null, isLeftover: false },
+        friday: { dish: null, isLeftover: false },
+        saturday: { dish: null, isLeftover: false },
+        sunday: { dish: null, isLeftover: false }
+      };
+
+      data.forEach(mealPlan => {
+        let dish = dinnerDishes.find(d => d.name === mealPlan.dish_name);
+        
+        if (!dish && mealPlan.user_dish_id) {
+          dish = allDishes.find(d => d.id === mealPlan.user_dish_id);
+        }
+        
+        if (dish) {
+          loadedMeals[mealPlan.day_of_week as keyof WeeklyMeals] = {
+            dish,
+            isLeftover: mealPlan.is_leftover || false,
+            leftoverOf: mealPlan.leftover_of_dish || undefined
+          };
+        }
+      });
+
+      setWeeklyMeals(loadedMeals);
+      
+      toast({
+        title: language === 'de' ? 'Vorwoche übernommen!' : 'Previous week copied!',
+        description: language === 'de' 
+          ? 'Die Gerichte der Vorwoche wurden geladen. Speichern nicht vergessen!'
+          : 'Dishes from last week have been loaded. Don\'t forget to save!'
+      });
+    } catch (error) {
+      console.error('Error copying last week:', error);
+      toast({
+        title: language === 'de' ? 'Fehler' : 'Error',
+        description: language === 'de'
+          ? 'Die Vorwoche konnte nicht geladen werden.'
+          : 'Failed to load previous week.',
+        variant: "destructive"
+      });
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -865,9 +961,54 @@ export default function WeeklyCalendar() {
                 </p>
               </div>
             </div>
+
+            {/* Week Navigation */}
+            <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setWeekOffset(weekOffset - 1)}
+                aria-label={language === 'de' ? 'Vorherige Woche' : 'Previous week'}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              
+              <div className="flex items-center gap-3">
+                <Calendar className="h-5 w-5 text-primary" />
+                <span className="font-medium text-foreground">
+                  {getFormattedWeekRange()}
+                </span>
+                {!isCurrentWeek && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setWeekOffset(0)}
+                    className="flex items-center gap-1 text-xs"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    {t('weeklyCalendar.today')}
+                  </Button>
+                )}
+              </div>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setWeekOffset(weekOffset + 1)}
+                aria-label={language === 'de' ? 'Nächste Woche' : 'Next week'}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+
             <div className="flex flex-wrap gap-2">
               {isAuthenticated ? (
                 <>
+                  <Button variant="outline" onClick={repeatLastWeek} size="sm" className="flex items-center gap-2">
+                    <RotateCcw className="h-4 w-4" />
+                    <span className="hidden sm:inline">{language === 'de' ? 'Vorwoche wiederholen' : 'Repeat last week'}</span>
+                    <span className="sm:hidden">{language === 'de' ? 'Vorige' : 'Repeat'}</span>
+                  </Button>
                   <Button variant="outline" onClick={exportWeekPlan} size="sm" className="flex items-center gap-2">
                     <Printer className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('weeklyCalendar.print')}</span>
@@ -960,7 +1101,7 @@ export default function WeeklyCalendar() {
           {/* Weekly Calendar Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
             {daysOfWeek.map(day => {
-              const isToday = day.key === todayKey;
+              const isToday = isCurrentWeek && day.key === todayKey;
               return (
               <Card key={day.key} className={`h-64 transition-all ${
                 isToday 
