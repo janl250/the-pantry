@@ -268,6 +268,9 @@ const translations = {
     'weeklyCalendar.export': 'Exportieren',
     'weeklyCalendar.exportSuccess': 'Wochenplan in Zwischenablage kopiert!',
     'weeklyCalendar.today': 'Heute',
+    'weeklyCalendar.repeatLastWeek': 'Vorwoche wiederholen',
+    'weeklyCalendar.swapped': 'Gerichte getauscht!',
+    'weeklyCalendar.dragHint': 'Ziehen Sie Gerichte um sie zu tauschen',
     
     // Empty States
     'emptyState.noDishes.title': 'Noch keine Gerichte',
@@ -611,6 +614,9 @@ const translations = {
     'weeklyCalendar.export': 'Export',
     'weeklyCalendar.exportSuccess': 'Week plan copied to clipboard!',
     'weeklyCalendar.today': 'Today',
+    'weeklyCalendar.repeatLastWeek': 'Repeat last week',
+    'weeklyCalendar.swapped': 'Dishes swapped!',
+    'weeklyCalendar.dragHint': 'Drag dishes to swap them',
     
     // Empty States
     'emptyState.noDishes.title': 'No dishes yet',
