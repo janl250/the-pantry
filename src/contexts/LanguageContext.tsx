@@ -271,6 +271,11 @@ const translations = {
     'weeklyCalendar.repeatLastWeek': 'Vorwoche wiederholen',
     'weeklyCalendar.swapped': 'Gerichte getauscht!',
     'weeklyCalendar.dragHint': 'Ziehen Sie Gerichte um sie zu tauschen',
+    'weeklyCalendar.notes': 'Notizen',
+    'weeklyCalendar.addNote': 'Notiz hinzufügen',
+    'weeklyCalendar.editNote': 'Notiz bearbeiten',
+    'weeklyCalendar.notePlaceholder': 'z.B. Einkaufen nicht vergessen...',
+    'weeklyCalendar.noteSaved': 'Notiz gespeichert!',
     
     // Empty States
     'emptyState.noDishes.title': 'Noch keine Gerichte',
@@ -617,6 +622,11 @@ const translations = {
     'weeklyCalendar.repeatLastWeek': 'Repeat last week',
     'weeklyCalendar.swapped': 'Dishes swapped!',
     'weeklyCalendar.dragHint': 'Drag dishes to swap them',
+    'weeklyCalendar.notes': 'Notes',
+    'weeklyCalendar.addNote': 'Add note',
+    'weeklyCalendar.editNote': 'Edit note',
+    'weeklyCalendar.notePlaceholder': 'e.g. Don\'t forget to buy...',
+    'weeklyCalendar.noteSaved': 'Note saved!',
     
     // Empty States
     'emptyState.noDishes.title': 'No dishes yet',

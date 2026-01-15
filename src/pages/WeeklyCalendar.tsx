@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Printer, Shuffle, ChevronLeft, ChevronRight, RotateCcw, GripVertical } from "lucide-react";
+import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Printer, Shuffle, ChevronLeft, ChevronRight, RotateCcw, GripVertical, StickyNote, MessageSquare } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,7 @@ type WeeklyMeals = {
     dish: Dish | null;
     isLeftover: boolean;
     leftoverOf?: string;
+    notes?: string;
   };
 };
 
@@ -47,6 +49,7 @@ interface DraggableDayCardInlineProps {
   t: (key: string) => string;
   availableLeftoversCount: number;
   isDragging: boolean;
+  onEditNote: (day: string) => void;
 }
 
 function DraggableDayCardInline({
@@ -66,6 +69,7 @@ function DraggableDayCardInline({
   t,
   availableLeftoversCount,
   isDragging,
+  onEditNote,
 }: DraggableDayCardInlineProps) {
   const { attributes, listeners, setNodeRef: setDragRef, transform } = useDraggable({
     id: dayKey,
@@ -112,7 +116,7 @@ function DraggableDayCardInline({
         </CardHeader>
         <CardContent className="p-3 h-full">
           {mealData.dish ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="relative">
                 <Button
                   variant="ghost"
@@ -177,6 +181,36 @@ function DraggableDayCardInline({
                   </div>
                 </div>
               </div>
+              {/* Notes section */}
+              {mealData.notes ? (
+                <button
+                  className="w-full text-left p-2 rounded-md bg-muted/50 border border-dashed border-muted-foreground/30 hover:bg-muted transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditNote(dayKey);
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-start gap-2">
+                    <StickyNote className="h-3 w-3 text-primary mt-0.5 shrink-0" />
+                    <span className="text-xs text-muted-foreground line-clamp-2">{mealData.notes}</span>
+                  </div>
+                </button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full h-7 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditNote(dayKey);
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  <StickyNote className="h-3 w-3 mr-1" />
+                  {t('weeklyCalendar.addNote')}
+                </Button>
+              )}
             </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center gap-2">
@@ -248,6 +282,8 @@ export default function WeeklyCalendar() {
   const [dishRatings, setDishRatings] = useState<Map<string, { avg: number, count: number, userRating?: number }>>(new Map());
   const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = last week, 1 = next week
   const [activeDragDay, setActiveDragDay] = useState<string | null>(null);
+  const [editingNoteDay, setEditingNoteDay] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState("");
 
   // DnD Sensors
   const sensors = useSensors(
@@ -672,7 +708,8 @@ export default function WeeklyCalendar() {
                 isUserDish: !!mealPlan.user_dish_id
               } as any,
               isLeftover: mealPlan.is_leftover || false,
-              leftoverOf: mealPlan.leftover_of_dish || undefined
+              leftoverOf: mealPlan.leftover_of_dish || undefined,
+              notes: mealPlan.notes || undefined
             };
           }
         });
@@ -893,7 +930,8 @@ export default function WeeklyCalendar() {
             added_by: user!.id,
             user_dish_id: userDish?.id || null,
             is_leftover: mealData.isLeftover,
-            leftover_of_dish: mealData.leftoverOf || null
+            leftover_of_dish: mealData.leftoverOf || null,
+            notes: mealData.notes || null
           };
         });
 
@@ -1105,7 +1143,8 @@ export default function WeeklyCalendar() {
           loadedMeals[mealPlan.day_of_week as keyof WeeklyMeals] = {
             dish,
             isLeftover: mealPlan.is_leftover || false,
-            leftoverOf: mealPlan.leftover_of_dish || undefined
+            leftoverOf: mealPlan.leftover_of_dish || undefined,
+            notes: mealPlan.notes || undefined
           };
         }
       });
@@ -1172,6 +1211,45 @@ export default function WeeklyCalendar() {
     setActiveDragDay(null);
   };
 
+  // Notes handlers
+  const openNoteEditor = (day: string) => {
+    setEditingNoteDay(day);
+    setNoteText(weeklyMeals[day]?.notes || '');
+  };
+
+  const saveNote = () => {
+    if (!editingNoteDay) return;
+    
+    setWeeklyMeals(prev => ({
+      ...prev,
+      [editingNoteDay]: {
+        ...prev[editingNoteDay],
+        notes: noteText.trim() || undefined
+      }
+    }));
+    
+    toast({
+      title: t('weeklyCalendar.noteSaved'),
+    });
+    
+    setEditingNoteDay(null);
+    setNoteText('');
+  };
+
+  const clearNote = () => {
+    if (!editingNoteDay) return;
+    
+    setWeeklyMeals(prev => ({
+      ...prev,
+      [editingNoteDay]: {
+        ...prev[editingNoteDay],
+        notes: undefined
+      }
+    }));
+    
+    setEditingNoteDay(null);
+    setNoteText('');
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -1362,6 +1440,7 @@ export default function WeeklyCalendar() {
                     t={t}
                     availableLeftoversCount={availableLeftovers.length}
                     isDragging={activeDragDay === day.key}
+                    onEditNote={openNoteEditor}
                   />
                 );
               })}
@@ -1588,6 +1667,62 @@ export default function WeeklyCalendar() {
           )}
         </div>
       </main>
+
+      {/* Note Editor Modal */}
+      {editingNoteDay && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <StickyNote className="h-5 w-5 text-primary" />
+                  {weeklyMeals[editingNoteDay]?.notes 
+                    ? t('weeklyCalendar.editNote')
+                    : t('weeklyCalendar.addNote')
+                  } - {daysOfWeek.find(d => d.key === editingNoteDay)?.label}
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setEditingNoteDay(null);
+                    setNoteText('');
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                placeholder={t('weeklyCalendar.notePlaceholder')}
+                className="min-h-[100px] resize-none"
+                autoFocus
+              />
+              <div className="flex gap-2 justify-end">
+                {weeklyMeals[editingNoteDay]?.notes && (
+                  <Button variant="outline" onClick={clearNote} className="text-destructive">
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    {t('common.delete')}
+                  </Button>
+                )}
+                <Button variant="outline" onClick={() => {
+                  setEditingNoteDay(null);
+                  setNoteText('');
+                }}>
+                  {t('common.cancel')}
+                </Button>
+                <Button onClick={saveNote}>
+                  <Save className="h-4 w-4 mr-1" />
+                  {t('common.save')}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Footer />
     </div>
