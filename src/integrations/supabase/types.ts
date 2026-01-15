@@ -158,6 +158,7 @@ export type Database = {
           id: string
           is_leftover: boolean
           leftover_of_dish: string | null
+          notes: string | null
           updated_at: string
           user_dish_id: string | null
           user_id: string
@@ -172,6 +173,7 @@ export type Database = {
           id?: string
           is_leftover?: boolean
           leftover_of_dish?: string | null
+          notes?: string | null
           updated_at?: string
           user_dish_id?: string | null
           user_id: string
@@ -186,6 +188,7 @@ export type Database = {
           id?: string
           is_leftover?: boolean
           leftover_of_dish?: string | null
+          notes?: string | null
           updated_at?: string
           user_dish_id?: string | null
           user_id?: string
