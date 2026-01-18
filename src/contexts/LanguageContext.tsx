@@ -262,6 +262,13 @@ const translations = {
     'stats.lastCooked': 'Zuletzt gekocht',
     'stats.title': 'Statistiken',
     'stats.neverCooked': 'Noch nie gekocht',
+    'stats.today': 'Heute',
+    'stats.yesterday': 'Gestern',
+    'stats.daysAgo': 'vor {days} Tagen',
+    'stats.lastWeek': 'Letzte Woche',
+    'stats.weeksAgo': 'vor {weeks} Wochen',
+    'stats.lastMonth': 'Letzten Monat',
+    'stats.monthsAgo': 'vor {months} Monaten',
     
     // Weekly Calendar Export
     'weeklyCalendar.print': 'Drucken',
@@ -276,6 +283,14 @@ const translations = {
     'weeklyCalendar.editNote': 'Notiz bearbeiten',
     'weeklyCalendar.notePlaceholder': 'z.B. Einkaufen nicht vergessen...',
     'weeklyCalendar.noteSaved': 'Notiz gespeichert!',
+    'weeklyCalendar.exportJSON': 'Als JSON exportieren',
+    'weeklyCalendar.importJSON': 'JSON importieren',
+    'weeklyCalendar.exportJSONSuccess': 'Wochenplan als JSON exportiert!',
+    'weeklyCalendar.importJSONSuccess': 'Wochenplan erfolgreich importiert!',
+    'weeklyCalendar.importJSONError': 'Fehler beim Importieren. Ungültiges Format.',
+    'weeklyCalendar.importJSONEmpty': 'Die importierte Datei enthält keine Daten.',
+    'weeklyCalendar.duplicateWarning': 'Gericht bereits geplant',
+    'weeklyCalendar.duplicateDescription': 'Dieses Gericht ist bereits am {day} eingeplant.',
     
     // Empty States
     'emptyState.noDishes.title': 'Noch keine Gerichte',
@@ -613,6 +628,13 @@ const translations = {
     'stats.lastCooked': 'Last cooked',
     'stats.title': 'Statistics',
     'stats.neverCooked': 'Never cooked',
+    'stats.today': 'Today',
+    'stats.yesterday': 'Yesterday',
+    'stats.daysAgo': '{days} days ago',
+    'stats.lastWeek': 'Last week',
+    'stats.weeksAgo': '{weeks} weeks ago',
+    'stats.lastMonth': 'Last month',
+    'stats.monthsAgo': '{months} months ago',
     
     // Weekly Calendar Export
     'weeklyCalendar.print': 'Print',
@@ -627,6 +649,14 @@ const translations = {
     'weeklyCalendar.editNote': 'Edit note',
     'weeklyCalendar.notePlaceholder': 'e.g. Don\'t forget to buy...',
     'weeklyCalendar.noteSaved': 'Note saved!',
+    'weeklyCalendar.exportJSON': 'Export as JSON',
+    'weeklyCalendar.importJSON': 'Import JSON',
+    'weeklyCalendar.exportJSONSuccess': 'Week plan exported as JSON!',
+    'weeklyCalendar.importJSONSuccess': 'Week plan imported successfully!',
+    'weeklyCalendar.importJSONError': 'Import error. Invalid format.',
+    'weeklyCalendar.importJSONEmpty': 'The imported file contains no data.',
+    'weeklyCalendar.duplicateWarning': 'Dish already planned',
+    'weeklyCalendar.duplicateDescription': 'This dish is already scheduled for {day}.',
     
     // Empty States
     'emptyState.noDishes.title': 'No dishes yet',
