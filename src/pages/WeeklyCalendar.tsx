@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Printer, Shuffle, ChevronLeft, ChevronRight, RotateCcw, GripVertical, StickyNote, MessageSquare } from "lucide-react";
+import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Printer, Shuffle, ChevronLeft, ChevronRight, RotateCcw, GripVertical, StickyNote, MessageSquare, Download, Upload } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -733,9 +733,37 @@ export default function WeeklyCalendar() {
   });
 
   const assignDishToDay = async (day: string, dish: Dish, isLeftover: boolean = false, leftoverOf?: string) => {
+    // Check for duplicate dishes in the week (except leftovers)
+    if (!isLeftover) {
+      const duplicateDay = Object.entries(weeklyMeals).find(([dayKey, meal]) => 
+        dayKey !== day && 
+        meal.dish?.name === dish.name && 
+        !meal.isLeftover
+      );
+      
+      if (duplicateDay) {
+        const dayTranslations: Record<string, string> = {
+          monday: t('monday'),
+          tuesday: t('tuesday'),
+          wednesday: t('wednesday'),
+          thursday: t('thursday'),
+          friday: t('friday'),
+          saturday: t('saturday'),
+          sunday: t('sunday'),
+        };
+        
+        toast({
+          title: t('weeklyCalendar.duplicateWarning'),
+          description: t('weeklyCalendar.duplicateDescription').replace('{day}', dayTranslations[duplicateDay[0]]),
+          variant: "default",
+          duration: 4000
+        });
+      }
+    }
+    
     setWeeklyMeals(prev => ({
       ...prev,
-      [day]: { dish, isLeftover, leftoverOf }
+      [day]: { dish, isLeftover, leftoverOf, notes: prev[day]?.notes }
     }));
     setShowDishSelector(null);
     setShowLeftoverSelector(null);
@@ -1081,6 +1109,104 @@ export default function WeeklyCalendar() {
     }
   };
 
+  // Export week plan as JSON file
+  const exportWeekAsJSON = () => {
+    const weekStart = getWeekStartDate(weekOffset);
+    const weekStartString = weekStart.toISOString().split('T')[0];
+    
+    const exportData = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      weekStartDate: weekStartString,
+      groupId: selectedGroupId,
+      meals: weeklyMeals
+    };
+    
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `wochenplan-${weekStartString}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: t('weeklyCalendar.exportJSONSuccess'),
+      duration: 2000
+    });
+  };
+
+  // Import week plan from JSON file
+  const importWeekFromJSON = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        
+        // Validate structure
+        if (!data.meals || typeof data.meals !== 'object') {
+          throw new Error('Invalid format');
+        }
+        
+        // Check if there are any dishes
+        const hasDishes = Object.values(data.meals).some((meal: any) => meal?.dish);
+        if (!hasDishes) {
+          toast({
+            title: t('weeklyCalendar.importJSONEmpty'),
+            variant: "destructive",
+            duration: 3000
+          });
+          return;
+        }
+        
+        // Validate each day entry
+        const validDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const importedMeals: WeeklyMeals = {};
+        
+        for (const day of validDays) {
+          if (data.meals[day]) {
+            const meal = data.meals[day];
+            importedMeals[day] = {
+              dish: meal.dish || null,
+              isLeftover: meal.isLeftover || false,
+              leftoverOf: meal.leftoverOf,
+              notes: meal.notes
+            };
+          } else {
+            importedMeals[day] = { dish: null, isLeftover: false };
+          }
+        }
+        
+        setWeeklyMeals(importedMeals);
+        
+        toast({
+          title: t('weeklyCalendar.importJSONSuccess'),
+          duration: 2000
+        });
+      } catch (error) {
+        console.error('Import error:', error);
+        toast({
+          title: t('weeklyCalendar.importJSONError'),
+          variant: "destructive",
+          duration: 3000
+        });
+      }
+    };
+    
+    input.click();
+  };
+
   // Surprise me - pick random dish
   const surpriseMe = () => {
     const randomIndex = Math.floor(Math.random() * allDishes.length);
@@ -1323,6 +1449,15 @@ export default function WeeklyCalendar() {
                   <Button variant="outline" onClick={exportWeekPlan} size="sm" className="flex items-center gap-2">
                     <Printer className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('weeklyCalendar.print')}</span>
+                  </Button>
+                  <Button variant="outline" onClick={exportWeekAsJSON} size="sm" className="flex items-center gap-2">
+                    <Download className="h-4 w-4" />
+                    <span className="hidden lg:inline">{t('weeklyCalendar.exportJSON')}</span>
+                    <span className="hidden sm:inline lg:hidden">JSON</span>
+                  </Button>
+                  <Button variant="outline" onClick={importWeekFromJSON} size="sm" className="flex items-center gap-2">
+                    <Upload className="h-4 w-4" />
+                    <span className="hidden lg:inline">{t('weeklyCalendar.importJSON')}</span>
                   </Button>
                   <Button variant="outline" onClick={clearWeek} size="sm">
                     <Trash2 className="h-4 w-4 sm:hidden" />

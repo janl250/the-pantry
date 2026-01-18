@@ -41,7 +41,7 @@ export default function DishLibrary() {
   const [dishRatings, setDishRatings] = useState<Map<string, { avg: number, count: number, userRating?: number }>>(new Map());
   const [randomDish, setRandomDish] = useState<Dish | null>(null);
   const [showRandomDialog, setShowRandomDialog] = useState(false);
-  const [dishStats, setDishStats] = useState<Map<string, { count: number, lastCooked?: string }>>(new Map());
+  const [dishStats, setDishStats] = useState<Map<string, { count: number, lastCooked?: Date }>>(new Map());
   const [selectedDishForStats, setSelectedDishForStats] = useState<Dish | null>(null);
 
   const loadUserDishes = async () => {
@@ -247,24 +247,61 @@ export default function DishLibrary() {
     try {
       const { data, error } = await supabase
         .from('meal_plans')
-        .select('dish_name, week_start_date')
+        .select('dish_name, week_start_date, day_of_week')
         .eq('user_id', user.id);
       
       if (error) throw error;
       
-      const statsMap = new Map<string, { count: number, lastCooked?: string }>();
+      const dayOffsets: Record<string, number> = {
+        'monday': 0, 'tuesday': 1, 'wednesday': 2, 'thursday': 3,
+        'friday': 4, 'saturday': 5, 'sunday': 6
+      };
+      
+      const statsMap = new Map<string, { count: number, lastCooked?: Date }>();
       data?.forEach(plan => {
         const existing = statsMap.get(plan.dish_name) || { count: 0 };
+        
+        // Calculate actual date from week_start_date + day_of_week offset
+        const weekStart = new Date(plan.week_start_date);
+        const dayOffset = dayOffsets[plan.day_of_week?.toLowerCase() || 'monday'] || 0;
+        const actualDate = new Date(weekStart);
+        actualDate.setDate(weekStart.getDate() + dayOffset);
+        
+        const isNewer = !existing.lastCooked || actualDate > existing.lastCooked;
+        
         statsMap.set(plan.dish_name, {
           count: existing.count + 1,
-          lastCooked: !existing.lastCooked || plan.week_start_date > existing.lastCooked 
-            ? plan.week_start_date 
-            : existing.lastCooked
+          lastCooked: isNewer ? actualDate : existing.lastCooked
         });
       });
       setDishStats(statsMap);
     } catch (error) {
       console.error('Error loading dish stats:', error);
+    }
+  };
+  
+  // Format relative time for "last cooked" display
+  const formatRelativeTime = (date: Date): string => {
+    const now = new Date();
+    const diffTime = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+      return t('stats.today');
+    } else if (diffDays === 1) {
+      return t('stats.yesterday');
+    } else if (diffDays < 7) {
+      return t('stats.daysAgo').replace('{days}', diffDays.toString());
+    } else if (diffDays < 14) {
+      return t('stats.lastWeek');
+    } else if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return t('stats.weeksAgo').replace('{weeks}', weeks.toString());
+    } else if (diffDays < 60) {
+      return t('stats.lastMonth');
+    } else {
+      const months = Math.floor(diffDays / 30);
+      return t('stats.monthsAgo').replace('{months}', months.toString());
     }
   };
 
@@ -688,12 +725,17 @@ export default function DishLibrary() {
                       
                       {/* Quick Actions & Stats */}
                       <div className="flex items-center gap-1">
-                        {dishStats.get(dish.name) && (
-                          <Badge variant="outline" className="text-xs gap-1" title={t('stats.lastCooked') + ': ' + dishStats.get(dish.name)?.lastCooked}>
-                            <BarChart3 className="h-3 w-3" />
-                            {dishStats.get(dish.name)?.count}x
-                          </Badge>
-                        )}
+                        {dishStats.get(dish.name) ? (
+                          <div 
+                            className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md cursor-default"
+                            title={`${t('stats.cookedTimes')}: ${dishStats.get(dish.name)?.count}x`}
+                          >
+                            <Clock className="h-3 w-3" />
+                            <span>{formatRelativeTime(dishStats.get(dish.name)!.lastCooked!)}</span>
+                            <span className="text-muted-foreground/60">•</span>
+                            <span className="font-medium">{dishStats.get(dish.name)?.count}x</span>
+                          </div>
+                        ) : null}
                         <Button
                           variant="ghost"
                           size="icon"
