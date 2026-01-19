@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Users, Copy, Crown, Calendar, Edit2, Trash2, UserMinus, Activity, MessageCircle } from "lucide-react";
+import { ArrowLeft, Users, Copy, Crown, Calendar, Edit2, Trash2, UserMinus, Activity, MessageCircle, Plus, Minus, UserPlus, RefreshCw } from "lucide-react";
 import { GroupChat } from "@/components/GroupChat";
+import { format, isToday, isYesterday } from "date-fns";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -174,6 +175,23 @@ export default function GroupDetail() {
     }
   };
 
+  const getActivityIcon = (activityType: string) => {
+    switch (activityType) {
+      case 'dish_added':
+        return <Plus className="h-4 w-4 text-green-500" />;
+      case 'dish_removed':
+        return <Minus className="h-4 w-4 text-red-500" />;
+      case 'member_joined':
+        return <UserPlus className="h-4 w-4 text-blue-500" />;
+      case 'member_removed':
+        return <UserMinus className="h-4 w-4 text-orange-500" />;
+      case 'week_repeated':
+        return <RefreshCw className="h-4 w-4 text-purple-500" />;
+      default:
+        return <Activity className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
   const getActivityMessage = (activity: any) => {
     const userName = activity.profiles?.display_name || (language === 'de' ? 'Jemand' : 'Someone');
     const dayTranslation = activity.day_of_week ? 
@@ -184,12 +202,12 @@ export default function GroupDetail() {
     switch (activity.activity_type) {
       case 'dish_added':
         return language === 'de'
-          ? `${userName} hat ${activity.dish_name} am ${dayTranslation} hinzugefügt`
-          : `${userName} added ${activity.dish_name} on ${dayTranslation}`;
+          ? `${userName} hat "${activity.dish_name}" am ${dayTranslation} hinzugefügt`
+          : `${userName} added "${activity.dish_name}" on ${dayTranslation}`;
       case 'dish_removed':
         return language === 'de'
-          ? `${userName} hat ${activity.dish_name} am ${dayTranslation} entfernt`
-          : `${userName} removed ${activity.dish_name} from ${dayTranslation}`;
+          ? `${userName} hat "${activity.dish_name}" am ${dayTranslation} entfernt`
+          : `${userName} removed "${activity.dish_name}" from ${dayTranslation}`;
       case 'member_joined':
         return language === 'de'
           ? `${userName} ist der Gruppe beigetreten`
@@ -198,10 +216,35 @@ export default function GroupDetail() {
         return language === 'de'
           ? `${userName} wurde aus der Gruppe entfernt`
           : `${userName} was removed from the group`;
+      case 'week_repeated':
+        return language === 'de'
+          ? `${userName} hat die Vorwoche wiederholt`
+          : `${userName} repeated last week`;
       default:
         return activity.activity_type;
     }
   };
+
+  const formatActivityDate = (dateString: string) => {
+    const date = new Date(dateString);
+    if (isToday(date)) {
+      return language === 'de' ? 'Heute' : 'Today';
+    }
+    if (isYesterday(date)) {
+      return language === 'de' ? 'Gestern' : 'Yesterday';
+    }
+    return format(date, language === 'de' ? 'dd. MMMM' : 'MMMM dd', { locale: language === 'de' ? de : undefined });
+  };
+
+  // Group activities by date
+  const groupedActivities = activities.reduce((groups: Record<string, any[]>, activity) => {
+    const dateKey = format(new Date(activity.created_at), 'yyyy-MM-dd');
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+    groups[dateKey].push(activity);
+    return groups;
+  }, {});
 
   const handleUpdateGroupName = async () => {
     if (!groupId || !newGroupName.trim()) return;
@@ -461,6 +504,9 @@ export default function GroupDetail() {
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5" />
                   {language === 'de' ? 'Aktivitätsfeed' : 'Activity Feed'}
+                  {activities.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">{activities.length}</Badge>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -469,22 +515,32 @@ export default function GroupDetail() {
                     {language === 'de' ? 'Noch keine Aktivitäten' : 'No activities yet'}
                   </p>
                 ) : (
-                  <div className="space-y-4">
-                    {activities.map((activity) => (
-                      <div key={activity.id} className="flex gap-3 pb-4 border-b border-border last:border-0 last:pb-0">
-                        <div className="flex-shrink-0 mt-1">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <div className="space-y-6">
+                    {Object.entries(groupedActivities).map(([dateKey, dayActivities]: [string, any[]]) => (
+                      <div key={dateKey}>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="h-px flex-1 bg-border" />
+                          <span className="text-xs font-medium text-muted-foreground px-2">
+                            {formatActivityDate((dayActivities as any[])[0].created_at)}
+                          </span>
+                          <div className="h-px flex-1 bg-border" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-foreground">
-                            {getActivityMessage(activity)}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {formatDistanceToNow(new Date(activity.created_at), {
-                              addSuffix: true,
-                              locale: language === 'de' ? de : undefined
-                            })}
-                          </p>
+                        <div className="space-y-3">
+                          {dayActivities.map((activity: any) => (
+                            <div key={activity.id} className="flex gap-3 items-start">
+                              <div className="flex-shrink-0 mt-0.5 p-1.5 rounded-full bg-muted">
+                                {getActivityIcon(activity.activity_type)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-foreground">
+                                  {getActivityMessage(activity)}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-0.5">
+                                  {format(new Date(activity.created_at), 'HH:mm', { locale: language === 'de' ? de : undefined })}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ))}
