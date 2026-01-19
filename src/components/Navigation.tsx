@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Utensils, LogIn, LogOut, Globe } from "lucide-react";
+import { Menu, Utensils, LogIn, LogOut, Globe, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -35,6 +35,14 @@ export const Navigation = () => {
             <Link to="/groups">
               <Button variant="ghost" className="text-foreground hover:text-primary font-medium">
                 {language === 'de' ? 'Gruppen' : 'Groups'}
+              </Button>
+            </Link>
+          )}
+          {isAuthenticated && (
+            <Link to="/statistics">
+              <Button variant="ghost" className="text-foreground hover:text-primary font-medium">
+                <BarChart3 className="h-4 w-4 mr-1" />
+                {language === 'de' ? 'Statistiken' : 'Statistics'}
               </Button>
             </Link>
           )}
@@ -101,6 +109,14 @@ export const Navigation = () => {
                 <Link to="/groups" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
                     {language === 'de' ? 'Gruppen' : 'Groups'}
+                  </Button>
+                </Link>
+              )}
+              {isAuthenticated && (
+                <Link to="/statistics" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    {language === 'de' ? 'Statistiken' : 'Statistics'}
                   </Button>
                 </Link>
               )}
