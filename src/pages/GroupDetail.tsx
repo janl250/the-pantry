@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Users, Copy, Crown, Calendar, Edit2, Trash2, UserMinus, Activity } from "lucide-react";
+import { ArrowLeft, Users, Copy, Crown, Calendar, Edit2, Trash2, UserMinus, Activity, MessageCircle } from "lucide-react";
+import { GroupChat } from "@/components/GroupChat";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -491,6 +492,9 @@ export default function GroupDetail() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Group Chat */}
+            {groupId && <GroupChat groupId={groupId} />}
           </div>
         </div>
       </main>
