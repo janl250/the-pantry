@@ -135,6 +135,14 @@ const translations = {
     'groups.deleted': 'Gruppe erfolgreich gelöscht',
     'groups.error': 'Fehler beim Laden der Gruppen',
     
+    // Group Chat
+    'chat.title': 'Gruppen-Chat',
+    'chat.placeholder': 'Nachricht schreiben...',
+    'chat.send': 'Senden',
+    'chat.noMessages': 'Noch keine Nachrichten. Starte die Konversation!',
+    'chat.sendError': 'Nachricht konnte nicht gesendet werden',
+    'chat.deleteError': 'Nachricht konnte nicht gelöscht werden',
+    
     // Create Group Dialog
     'createGroup.title': 'Neue Gruppe erstellen',
     'createGroup.description': 'Erstellen Sie eine Gruppe, um Wochenpläne mit anderen zu teilen.',
@@ -500,6 +508,14 @@ const translations = {
     'groups.left': 'Successfully left group',
     'groups.deleted': 'Group deleted successfully',
     'groups.error': 'Error loading groups',
+    
+    // Group Chat
+    'chat.title': 'Group Chat',
+    'chat.placeholder': 'Type a message...',
+    'chat.send': 'Send',
+    'chat.noMessages': 'No messages yet. Start the conversation!',
+    'chat.sendError': 'Could not send message',
+    'chat.deleteError': 'Could not delete message',
     
     // Create Group Dialog
     'createGroup.title': 'Create New Group',
