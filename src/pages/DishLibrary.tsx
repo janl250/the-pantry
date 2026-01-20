@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Search, Filter, Heart, Star, Shuffle, CalendarPlus, BarChart3, Clock, ChefHat, X } from "lucide-react";
+import { ArrowLeft, Search, Filter, Heart, Star, Shuffle, CalendarPlus, BarChart3, Clock, ChefHat, X, Sparkles } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AddDishDialog } from "@/components/AddDishDialog";
@@ -618,6 +618,80 @@ export default function DishLibrary() {
               </div>
             </div>
           </div>
+
+          {/* Personalized Recommendations */}
+          {isAuthenticated && (() => {
+            // Find dishes the user rated highly but hasn't cooked recently
+            const recommendedDishes = allDishes.filter(dish => {
+              const ratingData = dishRatings.get(dish.id);
+              const userRating = ratingData?.userRating || 0;
+              const stats = dishStats.get(dish.name);
+              const hasBeenCooked = stats && stats.count > 0;
+              const lastCookedDate = stats?.lastCooked;
+              
+              // Only recommend if: highly rated (4+) AND (never cooked OR not cooked in last 14 days)
+              if (userRating >= 4) {
+                if (!hasBeenCooked) return true;
+                if (lastCookedDate) {
+                  const daysSinceCooked = Math.floor((new Date().getTime() - lastCookedDate.getTime()) / (1000 * 60 * 60 * 24));
+                  return daysSinceCooked > 14;
+                }
+              }
+              return false;
+            }).slice(0, 4);
+
+            if (recommendedDishes.length === 0) return null;
+
+            const { language } = { language: translateField ? (translateField('cuisine', 'Italian') === 'Italienisch' ? 'de' : 'en') : 'de' };
+
+            return (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold text-foreground">
+                    {language === 'de' ? 'Für dich empfohlen' : 'Recommended for You'}
+                  </h2>
+                  <Badge variant="secondary" className="text-xs">
+                    {language === 'de' ? 'Basierend auf deinen Bewertungen' : 'Based on your ratings'}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {recommendedDishes.map((dish) => {
+                    const ratingData = dishRatings.get(dish.id);
+                    return (
+                      <Card 
+                        key={dish.id}
+                        className="group cursor-pointer hover:shadow-md transition-all duration-300 hover:-translate-y-1 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent"
+                        onClick={() => {
+                          // Scroll to the dish in the main grid or show details
+                          setSearchTerm(dish.name);
+                        }}
+                      >
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors line-clamp-1">
+                            {dish.name}
+                          </h3>
+                          <div className="flex items-center gap-1 mt-2">
+                            <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                            <span className="text-xs text-muted-foreground">
+                              {ratingData?.userRating || 0}/5
+                            </span>
+                            <span className="text-xs text-muted-foreground">•</span>
+                            <span className="text-xs text-muted-foreground">
+                              {translateField('cookingTime', dish.cookingTime)}
+                            </span>
+                          </div>
+                          <Badge variant="outline" className="mt-2 text-xs">
+                            {translateField('cuisine', dish.cuisine)}
+                          </Badge>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Results */}
           <div className="mb-6">

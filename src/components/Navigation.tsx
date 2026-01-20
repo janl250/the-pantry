@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Utensils, LogIn, LogOut, Globe, BarChart3, Wand2 } from "lucide-react";
+import { Menu, Utensils, LogIn, LogOut, Globe, ChevronDown, Sun, Moon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -10,7 +11,12 @@ import { useState } from "react";
 export const Navigation = () => {
   const { user, signOut, isAuthenticated } = useAuth();
   const { language, setLanguage, t } = useLanguage();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  const toggleTheme = () => {
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+  };
   
   return (
     <nav className="bg-card shadow-card py-4 px-6">
@@ -20,39 +26,65 @@ export const Navigation = () => {
           <span className="text-xl font-bold text-foreground">{t('nav.brand')}</span>
         </Link>
         
-        <div className="hidden md:flex space-x-8 items-center">
+        <div className="hidden md:flex items-center gap-2">
+          {/* Main Navigation Links */}
           <Link to="/recipes">
-            <Button variant="ghost" className="text-foreground hover:text-primary font-medium">
+            <Button variant="ghost" size="sm" className="text-foreground hover:text-primary font-medium">
               {t('nav.dishCollection')}
             </Button>
           </Link>
           <Link to="/weekly-calendar">
-            <Button variant="ghost" className="text-foreground hover:text-primary font-medium">
+            <Button variant="ghost" size="sm" className="text-foreground hover:text-primary font-medium">
               {t('nav.weeklyPlanner')}
             </Button>
           </Link>
-          {isAuthenticated && (
-            <Link to="/groups">
-              <Button variant="ghost" className="text-foreground hover:text-primary font-medium">
-                {language === 'de' ? 'Gruppen' : 'Groups'}
-              </Button>
-            </Link>
-          )}
-          {isAuthenticated && (
-            <Link to="/statistics">
-              <Button variant="ghost" className="text-foreground hover:text-primary font-medium">
-                <BarChart3 className="h-4 w-4 mr-1" />
-                {language === 'de' ? 'Statistiken' : 'Statistics'}
-              </Button>
-            </Link>
-          )}
-          <Link to="/recipe-generator">
-            <Button variant="ghost" className="text-foreground hover:text-primary font-medium">
-              <Wand2 className="h-4 w-4 mr-1" />
-              {language === 'de' ? 'Rezept-Generator' : 'Recipe Generator'}
-            </Button>
-          </Link>
           
+          {/* More Menu for additional features */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="text-foreground hover:text-primary font-medium gap-1">
+                {language === 'de' ? 'Mehr' : 'More'}
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link to="/recipe-generator" className="cursor-pointer">
+                  {language === 'de' ? 'Gericht-Finder' : 'Dish Finder'}
+                </Link>
+              </DropdownMenuItem>
+              {isAuthenticated && (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link to="/groups" className="cursor-pointer">
+                      {language === 'de' ? 'Gruppen' : 'Groups'}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/statistics" className="cursor-pointer">
+                      {language === 'de' ? 'Statistiken' : 'Statistics'}
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          {/* Theme Toggle */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggleTheme}
+            className="text-foreground hover:text-primary"
+          >
+            {resolvedTheme === 'dark' ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </Button>
+          
+          {/* Language Selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="text-foreground hover:text-primary">
@@ -69,23 +101,25 @@ export const Navigation = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           
+          {/* Auth Section */}
           {isAuthenticated ? (
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-muted-foreground">
-                {t('nav.hello')}, {user?.email?.split('@')[0]}
+            <div className="flex items-center gap-2 ml-2">
+              <span className="text-sm text-muted-foreground hidden lg:inline">
+                {user?.email?.split('@')[0]}
               </span>
               <Button 
                 variant="outline" 
+                size="sm"
                 onClick={signOut}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1"
               >
                 <LogOut className="h-4 w-4" />
-                {t('nav.logout')}
+                <span className="hidden lg:inline">{t('nav.logout')}</span>
               </Button>
             </div>
           ) : (
             <Link to="/auth">
-              <Button className="flex items-center gap-2">
+              <Button size="sm" className="flex items-center gap-1">
                 <LogIn className="h-4 w-4" />
                 {t('nav.login')}
               </Button>
@@ -93,6 +127,7 @@ export const Navigation = () => {
           )}
         </div>
         
+        {/* Mobile Menu */}
         <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="md:hidden text-foreground">
@@ -111,29 +146,47 @@ export const Navigation = () => {
                   {t('nav.weeklyPlanner')}
                 </Button>
               </Link>
-              {isAuthenticated && (
-                <Link to="/groups" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
-                    {language === 'de' ? 'Gruppen' : 'Groups'}
-                  </Button>
-                </Link>
-              )}
-              {isAuthenticated && (
-                <Link to="/statistics" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    {language === 'de' ? 'Statistiken' : 'Statistics'}
-                  </Button>
-                </Link>
-              )}
               <Link to="/recipe-generator" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
-                  <Wand2 className="h-4 w-4 mr-2" />
-                  {language === 'de' ? 'Rezept-Generator' : 'Recipe Generator'}
+                  {language === 'de' ? 'Gericht-Finder' : 'Dish Finder'}
                 </Button>
               </Link>
+              {isAuthenticated && (
+                <>
+                  <Link to="/groups" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
+                      {language === 'de' ? 'Gruppen' : 'Groups'}
+                    </Button>
+                  </Link>
+                  <Link to="/statistics" onClick={() => setMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
+                      {language === 'de' ? 'Statistiken' : 'Statistics'}
+                    </Button>
+                  </Link>
+                </>
+              )}
               
-              <div className="pt-4 border-t">
+              <div className="pt-4 border-t space-y-2">
+                {/* Theme Toggle Mobile */}
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start text-foreground hover:text-primary"
+                  onClick={toggleTheme}
+                >
+                  {resolvedTheme === 'dark' ? (
+                    <>
+                      <Sun className="h-4 w-4 mr-2" />
+                      {language === 'de' ? 'Light Mode' : 'Light Mode'}
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="h-4 w-4 mr-2" />
+                      {language === 'de' ? 'Dark Mode' : 'Dark Mode'}
+                    </>
+                  )}
+                </Button>
+                
+                {/* Language Selector Mobile */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary">

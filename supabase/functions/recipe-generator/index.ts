@@ -27,34 +27,32 @@ Deno.serve(async (req) => {
     }
 
     const systemPrompt = language === 'de' 
-      ? `Du bist ein kreativer Koch-Assistent. Basierend auf den gegebenen Zutaten schlägst du ein leckeres Gericht vor. 
+      ? `Du bist ein kreativer Koch-Assistent. Basierend auf den gegebenen Zutaten schlägst du ein passendes Gericht vor.
          Antworte IMMER im folgenden JSON-Format:
          {
            "name": "Name des Gerichts",
-           "description": "Kurze Beschreibung (1-2 Sätze)",
-           "cookingTime": "Kochzeit in Minuten (z.B. '30 Min')",
+           "description": "Eine appetitanregende Beschreibung des Gerichts (2-3 Sätze)",
+           "cookingTime": "Geschätzte Kochzeit (z.B. '30 Min', '1 Stunde')",
            "difficulty": "Einfach/Mittel/Schwer",
-           "servings": "Anzahl Portionen",
-           "ingredients": ["Liste", "der", "Zutaten", "mit", "Mengen"],
-           "instructions": ["Schritt 1", "Schritt 2", "Schritt 3"]
+           "cuisine": "Art der Küche (z.B. Italienisch, Asiatisch, Deutsch)",
+           "category": "Kategorie (z.B. Pasta, Fleisch, Vegetarisch, Suppe)"
          }
-         Antworte NUR mit dem JSON, keine zusätzlichen Texte.`
-      : `You are a creative cooking assistant. Based on the given ingredients, suggest a delicious dish.
+         Antworte NUR mit dem JSON, keine zusätzlichen Texte. Sei kreativ und schlage realistische, leckere Gerichte vor.`
+      : `You are a creative cooking assistant. Based on the given ingredients, suggest a suitable dish.
          ALWAYS respond in the following JSON format:
          {
            "name": "Name of the dish",
-           "description": "Short description (1-2 sentences)",
-           "cookingTime": "Cooking time in minutes (e.g. '30 min')",
+           "description": "An appetizing description of the dish (2-3 sentences)",
+           "cookingTime": "Estimated cooking time (e.g. '30 min', '1 hour')",
            "difficulty": "Easy/Medium/Hard",
-           "servings": "Number of servings",
-           "ingredients": ["List", "of", "ingredients", "with", "amounts"],
-           "instructions": ["Step 1", "Step 2", "Step 3"]
+           "cuisine": "Type of cuisine (e.g. Italian, Asian, American)",
+           "category": "Category (e.g. Pasta, Meat, Vegetarian, Soup)"
          }
-         Respond ONLY with the JSON, no additional text.`;
+         Respond ONLY with the JSON, no additional text. Be creative and suggest realistic, delicious dishes.`;
 
     const userMessage = language === 'de'
-      ? `Erstelle ein Rezept mit folgenden Zutaten: ${ingredients.join(', ')}. Du kannst auch gängige Küchenzutaten wie Salz, Pfeffer, Öl, Zwiebeln, Knoblauch verwenden, falls nötig.`
-      : `Create a recipe using these ingredients: ${ingredients.join(', ')}. You may also use common kitchen ingredients like salt, pepper, oil, onions, garlic if needed.`;
+      ? `Schlage ein Gericht vor, das man mit folgenden Zutaten zubereiten kann: ${ingredients.join(', ')}. Du kannst davon ausgehen, dass Grundzutaten wie Salz, Pfeffer, Öl verfügbar sind.`
+      : `Suggest a dish that can be prepared with these ingredients: ${ingredients.join(', ')}. You may assume basic ingredients like salt, pepper, oil are available.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -68,14 +66,28 @@ Deno.serve(async (req) => {
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage }
         ],
-        temperature: 0.7,
-        max_tokens: 1500,
+        temperature: 0.8,
+        max_tokens: 500,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI Gateway error:", errorText);
+      
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: language === 'de' ? "Zu viele Anfragen. Bitte warte kurz." : "Too many requests. Please wait a moment." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: language === 'de' ? "AI-Credits aufgebraucht." : "AI credits exhausted." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
       throw new Error(`AI Gateway error: ${response.status}`);
     }
 
@@ -87,25 +99,25 @@ Deno.serve(async (req) => {
     }
 
     // Parse the JSON response from AI
-    let recipe;
+    let dish;
     try {
       // Remove markdown code blocks if present
       const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      recipe = JSON.parse(cleanContent);
+      dish = JSON.parse(cleanContent);
     } catch (parseError) {
       console.error("Failed to parse AI response:", content);
-      throw new Error("Failed to parse recipe from AI response");
+      throw new Error("Failed to parse dish from AI response");
     }
 
     return new Response(
-      JSON.stringify({ recipe }),
+      JSON.stringify({ dish }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
   } catch (error) {
     console.error("Error in recipe-generator:", error);
     return new Response(
-      JSON.stringify({ error: error.message || "Failed to generate recipe" }),
+      JSON.stringify({ error: error.message || "Failed to find dish" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
