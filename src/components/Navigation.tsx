@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Utensils, LogIn, LogOut, Globe, BarChart3 } from "lucide-react";
+import { Menu, Utensils, LogIn, LogOut, Globe, BarChart3, Wand2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -46,6 +46,12 @@ export const Navigation = () => {
               </Button>
             </Link>
           )}
+          <Link to="/recipe-generator">
+            <Button variant="ghost" className="text-foreground hover:text-primary font-medium">
+              <Wand2 className="h-4 w-4 mr-1" />
+              {language === 'de' ? 'Rezept-Generator' : 'Recipe Generator'}
+            </Button>
+          </Link>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -120,6 +126,12 @@ export const Navigation = () => {
                   </Button>
                 </Link>
               )}
+              <Link to="/recipe-generator" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  {language === 'de' ? 'Rezept-Generator' : 'Recipe Generator'}
+                </Button>
+              </Link>
               
               <div className="pt-4 border-t">
                 <DropdownMenu>
