@@ -41,6 +41,8 @@ const MEAT_CATEGORIES = ['meat', 'chicken'];
 const FISH_CATEGORIES = ['fish', 'seafood'];
 const VEGGIE_CATEGORIES = ['vegetable', 'salad'];
 
+type ViewPeriod = 'all' | 'month' | 'year';
+
 export default function Statistics() {
   const { t, language, translateField } = useLanguage();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -48,18 +50,45 @@ export default function Statistics() {
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [periodComparison, setPeriodComparison] = useState<PeriodComparison | null>(null);
   const [loading, setLoading] = useState(true);
+  const [viewPeriod, setViewPeriod] = useState<ViewPeriod>('all');
 
   useEffect(() => {
     if (user) {
       loadStatistics();
     }
-  }, [user]);
+  }, [user, viewPeriod]);
+
+  const getDateRange = (period: ViewPeriod): { start: Date; end: Date; prevStart: Date; prevEnd: Date } => {
+    const now = new Date();
+    
+    if (period === 'month') {
+      const start = startOfMonth(now);
+      const end = endOfMonth(now);
+      const prevMonth = subMonths(now, 1);
+      const prevStart = startOfMonth(prevMonth);
+      const prevEnd = endOfMonth(prevMonth);
+      return { start, end, prevStart, prevEnd };
+    } else if (period === 'year') {
+      const start = startOfYear(now);
+      const end = endOfYear(now);
+      const prevStart = startOfYear(subMonths(now, 12));
+      const prevEnd = endOfYear(subMonths(now, 12));
+      return { start, end, prevStart, prevEnd };
+    }
+    
+    // 'all' - return very old date to include everything
+    const start = new Date(2020, 0, 1);
+    const end = new Date(2100, 0, 1);
+    return { start, end, prevStart: start, prevEnd: start };
+  };
 
   const loadStatistics = async () => {
     if (!user) return;
 
     setLoading(true);
     try {
+      const { start, end, prevStart, prevEnd } = getDateRange(viewPeriod);
+      
       // Load all meal plans for this user with week_start_date for timeline
       const { data: mealPlans, error } = await supabase
         .from('meal_plans')
@@ -77,6 +106,59 @@ export default function Statistics() {
 
       const userDishMap = new Map((userDishes || []).map(d => [d.id, d]));
 
+      // Filter meal plans by period
+      const filteredPlans = (mealPlans || []).filter(plan => {
+        if (viewPeriod === 'all') return true;
+        const planDate = parseISO(plan.week_start_date);
+        return planDate >= start && planDate <= end;
+      });
+
+      // Get previous period data for comparison
+      const prevPeriodPlans = (mealPlans || []).filter(plan => {
+        if (viewPeriod === 'all') return false;
+        const planDate = parseISO(plan.week_start_date);
+        return planDate >= prevStart && planDate <= prevEnd;
+      });
+
+      // Set period comparison
+      if (viewPeriod !== 'all') {
+        const currentCount = filteredPlans.length;
+        const previousCount = prevPeriodPlans.length;
+        const change = previousCount > 0 
+          ? Math.round(((currentCount - previousCount) / previousCount) * 100) 
+          : currentCount > 0 ? 100 : 0;
+        setPeriodComparison({ current: currentCount, previous: previousCount, change });
+      } else {
+        setPeriodComparison(null);
+      }
+
+      // Calculate monthly data for the last 6 months
+      const monthlyStats: MonthlyData[] = [];
+      for (let i = 5; i >= 0; i--) {
+        const monthDate = subMonths(new Date(), i);
+        const monthStart = startOfMonth(monthDate);
+        const monthEnd = endOfMonth(monthDate);
+        
+        const monthPlans = (mealPlans || []).filter(plan => {
+          const planDate = parseISO(plan.week_start_date);
+          return planDate >= monthStart && planDate <= monthEnd;
+        });
+        
+        const dishCounts: Record<string, number> = {};
+        monthPlans.forEach(plan => {
+          dishCounts[plan.dish_name] = (dishCounts[plan.dish_name] || 0) + 1;
+        });
+        
+        const topDish = Object.entries(dishCounts).sort((a, b) => b[1] - a[1])[0];
+        
+        monthlyStats.push({
+          month: format(monthDate, 'MMM yyyy', { locale: language === 'de' ? de : undefined }),
+          count: monthPlans.length,
+          topDish: topDish ? topDish[0] : '-'
+        });
+      }
+      setMonthlyData(monthlyStats);
+
       // Count dishes
       const dishCounts: Record<string, number> = {};
       const categoryCounts: Record<string, number> = {};
@@ -85,7 +167,7 @@ export default function Statistics() {
       let veggieCount = 0;
       let fishCount = 0;
 
-      (mealPlans || []).forEach((plan) => {
+      filteredPlans.forEach((plan) => {
         const dishName = plan.dish_name;
         dishCounts[dishName] = (dishCounts[dishName] || 0) + 1;
 
@@ -130,7 +212,7 @@ export default function Statistics() {
         .map(([name, count]) => ({ name, count }));
 
       setStats({
-        totalCooked: mealPlans?.length || 0,
+        totalCooked: filteredPlans.length,
         meatDishes: meatCount,
         veggieDishes: veggieCount,
         fishDishes: fishCount,
@@ -214,10 +296,89 @@ export default function Statistics() {
             </p>
           </div>
 
+          {/* Period Tabs */}
+          <Tabs value={viewPeriod} onValueChange={(v) => setViewPeriod(v as ViewPeriod)} className="mb-6">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
+              <TabsTrigger value="all" className="gap-2">
+                <Calendar className="h-4 w-4" />
+                {language === 'de' ? 'Gesamt' : 'All Time'}
+              </TabsTrigger>
+              <TabsTrigger value="month" className="gap-2">
+                <Calendar className="h-4 w-4" />
+                {language === 'de' ? 'Monat' : 'Month'}
+              </TabsTrigger>
+              <TabsTrigger value="year" className="gap-2">
+                <Calendar className="h-4 w-4" />
+                {language === 'de' ? 'Jahr' : 'Year'}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
           {loading ? (
             <div className="text-center text-muted-foreground py-12">{t('common.loading')}</div>
           ) : stats && stats.totalCooked > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-6">
+              {/* Period Comparison Banner */}
+              {periodComparison && viewPeriod !== 'all' && (
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="py-4">
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-full bg-primary/10">
+                          {periodComparison.change > 0 ? (
+                            <ArrowUp className="h-5 w-5 text-primary" />
+                          ) : periodComparison.change < 0 ? (
+                            <ArrowDown className="h-5 w-5 text-destructive" />
+                          ) : (
+                            <Minus className="h-5 w-5 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            {language === 'de' 
+                              ? `Vergleich zum ${viewPeriod === 'month' ? 'Vormonat' : 'Vorjahr'}`
+                              : `Compared to last ${viewPeriod === 'month' ? 'month' : 'year'}`}
+                          </p>
+                          <p className="font-semibold text-lg">
+                            {periodComparison.change > 0 && '+'}
+                            {periodComparison.change}%
+                            <span className="text-sm text-muted-foreground ml-2">
+                              ({periodComparison.previous} → {periodComparison.current} {language === 'de' ? 'Gerichte' : 'dishes'})
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Monthly Trend (only show for 'all' view) */}
+              {viewPeriod === 'all' && monthlyData.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                      {language === 'de' ? 'Monatlicher Trend' : 'Monthly Trend'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                      {monthlyData.map((month) => (
+                        <div key={month.month} className="text-center p-2 rounded-lg bg-muted/50">
+                          <p className="text-xs text-muted-foreground">{month.month}</p>
+                          <p className="text-xl font-bold text-primary">{month.count}</p>
+                          <p className="text-xs text-muted-foreground truncate" title={month.topDish}>
+                            {month.topDish}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {/* Total Cooked */}
               <Card>
                 <CardHeader className="pb-2">
@@ -401,6 +562,7 @@ export default function Statistics() {
                   )}
                 </CardContent>
               </Card>
+              </div>
             </div>
           ) : (
             <Card className="max-w-md mx-auto">
