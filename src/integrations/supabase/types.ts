@@ -180,6 +180,50 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_attendance: {
+        Row: {
+          created_at: string
+          day_of_week: string
+          group_id: string
+          id: string
+          meal_plan_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          week_start_date: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: string
+          group_id: string
+          id?: string
+          meal_plan_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          week_start_date: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: string
+          group_id?: string
+          id?: string
+          meal_plan_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          week_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_attendance_meal_plan_id_fkey"
+            columns: ["meal_plan_id"]
+            isOneToOne: false
+            referencedRelation: "meal_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meal_plans: {
         Row: {
           added_by: string | null

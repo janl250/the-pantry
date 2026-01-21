@@ -17,6 +17,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DndContext, DragOverlay, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
+import { MealAttendance } from "@/components/MealAttendance";
 type WeeklyMeals = {
   [key: string]: {
     dish: Dish | null;
@@ -50,6 +51,8 @@ interface DraggableDayCardInlineProps {
   availableLeftoversCount: number;
   isDragging: boolean;
   onEditNote: (day: string) => void;
+  weekStartDate: string;
+  userId: string;
 }
 
 function DraggableDayCardInline({
@@ -70,6 +73,8 @@ function DraggableDayCardInline({
   availableLeftoversCount,
   isDragging,
   onEditNote,
+  weekStartDate,
+  userId,
 }: DraggableDayCardInlineProps) {
   const { attributes, listeners, setNodeRef: setDragRef, transform } = useDraggable({
     id: dayKey,
@@ -181,6 +186,18 @@ function DraggableDayCardInline({
                   </div>
                 </div>
               </div>
+              
+              {/* Attendance section - only for groups */}
+              {selectedGroupId && userId && (
+                <MealAttendance
+                  groupId={selectedGroupId}
+                  dayKey={dayKey}
+                  weekStartDate={weekStartDate}
+                  userId={userId}
+                  hasMeal={!!mealData.dish}
+                />
+              )}
+              
               {/* Notes section */}
               {mealData.notes ? (
                 <button
@@ -1576,6 +1593,8 @@ export default function WeeklyCalendar() {
                     availableLeftoversCount={availableLeftovers.length}
                     isDragging={activeDragDay === day.key}
                     onEditNote={openNoteEditor}
+                    weekStartDate={getWeekStartDate(weekOffset).toISOString().split('T')[0]}
+                    userId={user?.id || ''}
                   />
                 );
               })}

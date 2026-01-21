@@ -88,58 +88,77 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Deep warm dark background */
-    --background: 25 20% 8%;
-    --foreground: 40 25% 92%;
+    /* Rich, warm charcoal background with subtle warmth */
+    --background: 20 14% 6%;
+    --foreground: 38 30% 90%;
     
-    /* Cards with subtle warmth */
-    --card: 25 18% 12%;
-    --card-foreground: 40 25% 92%;
+    /* Cards with elegant depth and warmth */
+    --card: 22 12% 10%;
+    --card-foreground: 38 30% 90%;
     
-    --popover: 25 18% 14%;
-    --popover-foreground: 40 25% 92%;
+    --popover: 22 14% 12%;
+    --popover-foreground: 38 30% 90%;
     
-    /* Warm terracotta primary */
-    --primary: 18 65% 55%;
+    /* Vibrant terracotta primary - slightly brighter for dark mode */
+    --primary: 16 72% 58%;
     --primary-foreground: 0 0% 100%;
     
-    /* Muted sage secondary */
-    --secondary: 82 20% 22%;
-    --secondary-foreground: 82 30% 85%;
+    /* Soft sage secondary with better contrast */
+    --secondary: 78 22% 28%;
+    --secondary-foreground: 78 35% 88%;
     
-    /* Subtle muted tones */
-    --muted: 25 15% 16%;
-    --muted-foreground: 40 15% 60%;
+    /* Refined muted tones with warmth */
+    --muted: 22 10% 14%;
+    --muted-foreground: 35 18% 55%;
     
-    /* Warm accent */
-    --accent: 82 20% 18%;
-    --accent-foreground: 82 30% 85%;
+    /* Warm accent with subtle glow */
+    --accent: 78 18% 20%;
+    --accent-foreground: 78 35% 88%;
     
-    --destructive: 0 65% 50%;
+    --destructive: 0 68% 52%;
     --destructive-foreground: 0 0% 100%;
     
-    /* Subtle borders */
-    --border: 25 15% 22%;
-    --input: 25 15% 18%;
-    --ring: 18 65% 55%;
+    /* Elegant borders with warmth */
+    --border: 22 12% 18%;
+    --input: 22 10% 15%;
+    --ring: 16 72% 58%;
     
-    /* Custom dark mode variables */
-    --sage: 82 20% 40%;
-    --sage-light: 82 25% 25%;
-    --terracotta: 18 65% 55%;
-    --terracotta-light: 18 55% 35%;
-    --cream: 25 20% 12%;
-    --honey: 42 50% 45%;
+    /* Custom dark mode variables - refined palette */
+    --sage: 78 24% 42%;
+    --sage-light: 78 20% 28%;
+    --sage-lighter: 78 18% 22%;
+    --sage-dark: 78 30% 18%;
+    --terracotta: 16 72% 58%;
+    --terracotta-light: 16 60% 42%;
+    --terracotta-dark: 16 65% 35%;
+    --cream: 22 12% 10%;
+    --cream-light: 22 10% 14%;
+    --cream-warm: 20 15% 12%;
+    --olive: 72 28% 35%;
+    --honey: 40 55% 50%;
     
-    /* Sidebar */
-    --sidebar-background: 25 18% 10%;
-    --sidebar-foreground: 40 25% 92%;
-    --sidebar-primary: 18 65% 55%;
+    /* Enhanced gradients for dark mode */
+    --gradient-hero: linear-gradient(135deg, hsl(78 24% 22%) 0%, hsl(72 28% 18%) 50%, hsl(16 50% 20%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(22 12% 10%) 0%, hsl(22 10% 8%) 100%);
+    --gradient-accent: linear-gradient(120deg, hsl(78 20% 22%) 0%, hsl(40 40% 30%) 50%, hsl(16 55% 35%) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(40 45% 25% / 0.25) 0%, hsl(16 60% 35% / 0.25) 100%);
+    --gradient-cool: linear-gradient(135deg, hsl(78 22% 22% / 0.3) 0%, hsl(72 25% 18% / 0.25) 100%);
+    
+    /* Softer shadows for dark mode */
+    --shadow-card: 0 4px 12px -2px hsl(0 0% 0% / 0.3), 0 2px 6px -1px hsl(0 0% 0% / 0.2);
+    --shadow-card-hover: 0 12px 32px -4px hsl(0 0% 0% / 0.4), 0 4px 8px -2px hsl(16 72% 58% / 0.1);
+    --shadow-button: 0 2px 8px -2px hsl(16 72% 58% / 0.25);
+    --shadow-glow: 0 0 30px hsl(16 72% 58% / 0.12);
+    
+    /* Sidebar with consistent dark theme */
+    --sidebar-background: 22 12% 8%;
+    --sidebar-foreground: 38 30% 90%;
+    --sidebar-primary: 16 72% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 25 15% 16%;
-    --sidebar-accent-foreground: 40 25% 92%;
-    --sidebar-border: 25 15% 20%;
-    --sidebar-ring: 18 65% 55%;
+    --sidebar-accent: 22 10% 14%;
+    --sidebar-accent-foreground: 38 30% 90%;
+    --sidebar-border: 22 12% 16%;
+    --sidebar-ring: 16 72% 58%;
   }
 }
 
