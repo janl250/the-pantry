@@ -10,7 +10,7 @@ export const HeroSection = () => {
     <section className="relative min-h-[80vh] bg-background flex items-center justify-center px-4 overflow-hidden">
       <div className="relative max-w-4xl mx-auto text-center z-10">
         <div className="mb-8 flex justify-center">
-          <div className="p-4 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 shadow-lg">
+          <div className="p-4 bg-muted/50 backdrop-blur-sm rounded-full border border-border shadow-lg dark:bg-muted/30 dark:border-border/50">
             <ChefHat className="h-16 w-16 text-primary" />
           </div>
         </div>
@@ -27,10 +27,10 @@ export const HeroSection = () => {
         </Link>
       </div>
       
-      {/* Decorative elements */}
-      <div className="absolute top-10 left-10 w-20 h-20 bg-gradient-to-br from-terracotta/20 to-sage/20 rounded-full blur-xl"></div>
-      <div className="absolute bottom-10 right-10 w-32 h-32 bg-gradient-to-tr from-sage/20 to-terracotta/20 rounded-full blur-2xl"></div>
-      <div className="absolute top-1/2 right-20 w-16 h-16 bg-gradient-to-bl from-primary/20 to-secondary/20 rounded-full blur-lg"></div>
+      {/* Decorative elements - theme aware */}
+      <div className="absolute top-10 left-10 w-20 h-20 bg-gradient-to-br from-primary/15 to-secondary/15 rounded-full blur-xl dark:from-primary/10 dark:to-secondary/10"></div>
+      <div className="absolute bottom-10 right-10 w-32 h-32 bg-gradient-to-tr from-secondary/15 to-primary/15 rounded-full blur-2xl dark:from-secondary/10 dark:to-primary/10"></div>
+      <div className="absolute top-1/2 right-20 w-16 h-16 bg-gradient-to-bl from-primary/15 to-secondary/15 rounded-full blur-lg dark:from-primary/10 dark:to-secondary/10"></div>
     </section>
   );
 };

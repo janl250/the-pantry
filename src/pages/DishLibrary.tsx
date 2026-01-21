@@ -734,7 +734,7 @@ export default function DishLibrary() {
                       <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
                         {translateField('cuisine', dish.cuisine)}
                       </Badge>
-                      <Badge variant="outline" className="border-sage/30 text-sage hover:bg-sage/10">
+                      <Badge variant="outline" className="border-secondary/30 text-secondary dark:text-secondary-foreground hover:bg-secondary/10">
                         {translateField('difficulty', dish.difficulty)}
                       </Badge>
                     </div>
@@ -747,12 +747,12 @@ export default function DishLibrary() {
 
                     <div className="flex flex-wrap gap-1">
                       {dish.tags.slice(0, 4).map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs bg-cream/50 hover:bg-cream">
+                        <Badge key={index} variant="outline" className="text-xs bg-muted/50 hover:bg-muted dark:bg-muted/30">
                           {translateField('ingredient', tag)}
                         </Badge>
                       ))}
                       {dish.tags.length > 4 && (
-                        <Badge variant="outline" className="text-xs bg-terracotta/10 text-terracotta">
+                        <Badge variant="outline" className="text-xs bg-primary/10 text-primary dark:bg-primary/20">
                           +{dish.tags.length - 4} more
                         </Badge>
                       )}
