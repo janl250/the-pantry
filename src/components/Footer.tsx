@@ -11,10 +11,10 @@ export const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0 text-center md:text-left">
             <div className="flex items-center justify-center md:justify-start space-x-3 mb-3">
-              <div className="p-2 bg-white/10 rounded-full">
+              <div className="p-2 bg-secondary-foreground/10 rounded-full">
                 <Utensils className="h-8 w-8 text-primary" />
               </div>
-              <span className="text-2xl font-bold text-white">{t('nav.brand')}</span>
+              <span className="text-2xl font-bold text-secondary-foreground">{t('nav.brand')}</span>
             </div>
             <p className="text-secondary-foreground/80 max-w-md">
               {t('hero.subtitle')}
@@ -22,19 +22,19 @@ export const Footer = () => {
           </div>
           
           <div className="flex space-x-3">
-            <Button variant="ghost" size="icon" className="text-secondary-foreground hover:text-primary bg-white/10 hover:bg-white/20 rounded-full">
+            <Button variant="ghost" size="icon" className="text-secondary-foreground hover:text-primary bg-secondary-foreground/10 hover:bg-secondary-foreground/20 rounded-full">
               <Facebook className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-secondary-foreground hover:text-primary bg-white/10 hover:bg-white/20 rounded-full">
+            <Button variant="ghost" size="icon" className="text-secondary-foreground hover:text-primary bg-secondary-foreground/10 hover:bg-secondary-foreground/20 rounded-full">
               <Instagram className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-secondary-foreground hover:text-primary bg-white/10 hover:bg-white/20 rounded-full">
+            <Button variant="ghost" size="icon" className="text-secondary-foreground hover:text-primary bg-secondary-foreground/10 hover:bg-secondary-foreground/20 rounded-full">
               <Twitter className="h-5 w-5" />
             </Button>
           </div>
         </div>
         
-        <div className="border-t border-white/20 mt-8 pt-8 text-center">
+        <div className="border-t border-secondary-foreground/20 mt-8 pt-8 text-center">
           <p className="text-secondary-foreground/60">
             &copy; 2024 {t('nav.brand')}. {t('footer.rights')}
           </p>

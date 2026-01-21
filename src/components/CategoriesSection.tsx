@@ -37,7 +37,7 @@ export const CategoriesSection = () => {
   ];
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-b from-background to-cream/30">
+    <section className="py-16 px-4 bg-gradient-to-b from-background to-muted/30 dark:to-muted/10">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">{t('categories.title')}</h2>
