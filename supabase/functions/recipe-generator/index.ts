@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { ingredients, language = 'de' } = await req.json();
+    const { ingredients, language = 'de', excludeDishes = [] } = await req.json();
 
     if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
       return new Response(
@@ -26,6 +26,12 @@ Deno.serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    const excludeNote = excludeDishes.length > 0 
+      ? (language === 'de' 
+          ? `\n\nWICHTIG: Schlage NICHT diese Gerichte vor, da sie bereits vorgeschlagen wurden: ${excludeDishes.join(', ')}. Wähle ein ANDERES Gericht.`
+          : `\n\nIMPORTANT: Do NOT suggest these dishes as they were already suggested: ${excludeDishes.join(', ')}. Choose a DIFFERENT dish.`)
+      : '';
+
     const systemPrompt = language === 'de' 
       ? `Du bist ein kreativer Koch-Assistent. Basierend auf den gegebenen Zutaten schlägst du ein passendes Gericht vor.
          Antworte IMMER im folgenden JSON-Format:
@@ -37,7 +43,7 @@ Deno.serve(async (req) => {
            "cuisine": "Art der Küche (z.B. Italienisch, Asiatisch, Deutsch)",
            "category": "Kategorie (z.B. Pasta, Fleisch, Vegetarisch, Suppe)"
          }
-         Antworte NUR mit dem JSON, keine zusätzlichen Texte. Sei kreativ und schlage realistische, leckere Gerichte vor.`
+         Antworte NUR mit dem JSON, keine zusätzlichen Texte. Sei kreativ und schlage realistische, leckere Gerichte vor.${excludeNote}`
       : `You are a creative cooking assistant. Based on the given ingredients, suggest a suitable dish.
          ALWAYS respond in the following JSON format:
          {
@@ -48,7 +54,7 @@ Deno.serve(async (req) => {
            "cuisine": "Type of cuisine (e.g. Italian, Asian, American)",
            "category": "Category (e.g. Pasta, Meat, Vegetarian, Soup)"
          }
-         Respond ONLY with the JSON, no additional text. Be creative and suggest realistic, delicious dishes.`;
+         Respond ONLY with the JSON, no additional text. Be creative and suggest realistic, delicious dishes.${excludeNote}`;
 
     const userMessage = language === 'de'
       ? `Schlage ein Gericht vor, das man mit folgenden Zutaten zubereiten kann: ${ingredients.join(', ')}. Du kannst davon ausgehen, dass Grundzutaten wie Salz, Pfeffer, Öl verfügbar sind.`

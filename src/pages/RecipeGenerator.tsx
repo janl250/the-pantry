@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Wand2, Plus, X, Clock, ChefHat, Sparkles, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { Wand2, Plus, X, Clock, ChefHat, Sparkles, Loader2, AlertCircle, RefreshCw, BookmarkPlus, Check } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface DishSuggestion {
   name: string;
@@ -22,11 +23,15 @@ interface DishSuggestion {
 
 export default function RecipeGenerator() {
   const { language } = useLanguage();
+  const { user, isAuthenticated } = useAuth();
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [dish, setDish] = useState<DishSuggestion | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [previousDishes, setPreviousDishes] = useState<string[]>([]);
+  const [addedToLibrary, setAddedToLibrary] = useState(false);
+  const [addingToLibrary, setAddingToLibrary] = useState(false);
 
   const addIngredient = () => {
     const trimmed = inputValue.trim();
@@ -47,7 +52,7 @@ export default function RecipeGenerator() {
     }
   };
 
-  const generateDish = async () => {
+  const generateDish = async (excludePrevious: boolean = false) => {
     if (ingredients.length === 0) {
       toast.error(language === 'de' ? 'Bitte füge mindestens eine Zutat hinzu' : 'Please add at least one ingredient');
       return;
@@ -56,10 +61,13 @@ export default function RecipeGenerator() {
     setLoading(true);
     setError(null);
     setDish(null);
+    setAddedToLibrary(false);
 
     try {
+      const excludeList = excludePrevious ? previousDishes : [];
+      
       const { data, error: funcError } = await supabase.functions.invoke('recipe-generator', {
-        body: { ingredients, language }
+        body: { ingredients, language, excludeDishes: excludeList }
       });
 
       if (funcError) {
@@ -71,6 +79,10 @@ export default function RecipeGenerator() {
       }
 
       setDish(data.dish);
+      // Add to previous dishes for next "another idea" request
+      if (data.dish?.name) {
+        setPreviousDishes(prev => [...prev, data.dish.name]);
+      }
       toast.success(language === 'de' ? 'Gericht gefunden!' : 'Dish found!');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to find dish';
@@ -78,6 +90,32 @@ export default function RecipeGenerator() {
       toast.error(language === 'de' ? 'Fehler beim Suchen' : 'Search failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const addToLibrary = async () => {
+    if (!dish || !user) return;
+    
+    setAddingToLibrary(true);
+    try {
+      const { error } = await supabase.from('user_dishes').insert({
+        user_id: user.id,
+        name: dish.name,
+        tags: [],
+        cooking_time: dish.cookingTime,
+        difficulty: dish.difficulty,
+        cuisine: dish.cuisine,
+        category: dish.category
+      });
+
+      if (error) throw error;
+
+      setAddedToLibrary(true);
+      toast.success(language === 'de' ? 'Zur Sammlung hinzugefügt!' : 'Added to your collection!');
+    } catch (err) {
+      toast.error(language === 'de' ? 'Fehler beim Hinzufügen' : 'Failed to add dish');
+    } finally {
+      setAddingToLibrary(false);
     }
   };
 
@@ -157,7 +195,10 @@ export default function RecipeGenerator() {
                 )}
 
                 <Button 
-                  onClick={generateDish} 
+                  onClick={() => {
+                    setPreviousDishes([]);
+                    generateDish(false);
+                  }} 
                   className="w-full gap-2"
                   disabled={loading || ingredients.length === 0}
                 >
@@ -234,14 +275,42 @@ export default function RecipeGenerator() {
                     </Badge>
                   </div>
 
-                  <Button 
-                    variant="outline" 
-                    className="w-full gap-2 mt-4"
-                    onClick={generateDish}
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    {language === 'de' ? 'Andere Idee' : 'Another Idea'}
-                  </Button>
+                  <div className="flex flex-col gap-2 mt-4">
+                    {isAuthenticated && (
+                      <Button 
+                        variant={addedToLibrary ? "secondary" : "default"}
+                        className="w-full gap-2"
+                        onClick={addToLibrary}
+                        disabled={addingToLibrary || addedToLibrary}
+                      >
+                        {addedToLibrary ? (
+                          <>
+                            <Check className="h-4 w-4" />
+                            {language === 'de' ? 'Hinzugefügt!' : 'Added!'}
+                          </>
+                        ) : addingToLibrary ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            {language === 'de' ? 'Wird hinzugefügt...' : 'Adding...'}
+                          </>
+                        ) : (
+                          <>
+                            <BookmarkPlus className="h-4 w-4" />
+                            {language === 'de' ? 'Zur Sammlung hinzufügen' : 'Add to Collection'}
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    <Button 
+                      variant="outline" 
+                      className="w-full gap-2"
+                      onClick={() => generateDish(true)}
+                      disabled={loading}
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      {language === 'de' ? 'Andere Idee' : 'Another Idea'}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
