@@ -98,7 +98,7 @@ function DraggableDayCardInline({
         ref={setDragRef}
         style={style}
         className={cn(
-          'min-h-[280px] h-auto transition-all',
+          'min-h-[200px] sm:min-h-[280px] h-auto transition-all',
           isToday && 'ring-2 ring-primary shadow-lg shadow-primary/20',
           isDragging && 'opacity-50 scale-105',
           isOver && !isDragging && 'ring-2 ring-accent bg-accent/10',
@@ -1570,7 +1570,7 @@ export default function WeeklyCalendar() {
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-4">
               {daysOfWeek.map(day => {
                 const isToday = isCurrentWeek && day.key === todayKey;
                 const mealData = weeklyMeals[day.key];
