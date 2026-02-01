@@ -17,7 +17,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DndContext, DragOverlay, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
-import { MealAttendance } from "@/components/MealAttendance";
+import { AttendanceList } from "@/components/AttendanceList";
 type WeeklyMeals = {
   [key: string]: {
     dish: Dish | null;
@@ -98,7 +98,7 @@ function DraggableDayCardInline({
         ref={setDragRef}
         style={style}
         className={cn(
-          'h-64 transition-all',
+          'min-h-[280px] h-auto transition-all',
           isToday && 'ring-2 ring-primary shadow-lg shadow-primary/20',
           isDragging && 'opacity-50 scale-105',
           isOver && !isDragging && 'ring-2 ring-accent bg-accent/10',
@@ -187,17 +187,6 @@ function DraggableDayCardInline({
                 </div>
               </div>
               
-              {/* Attendance section - only for groups */}
-              {selectedGroupId && userId && (
-                <MealAttendance
-                  groupId={selectedGroupId}
-                  dayKey={dayKey}
-                  weekStartDate={weekStartDate}
-                  userId={userId}
-                  hasMeal={!!mealData.dish}
-                />
-              )}
-              
               {/* Notes section */}
               {mealData.notes ? (
                 <button
@@ -228,6 +217,18 @@ function DraggableDayCardInline({
                   {t('weeklyCalendar.addNote')}
                 </Button>
               )}
+              
+              {/* Attendance section - only for groups */}
+              {selectedGroupId && userId && (
+                <AttendanceList
+                  groupId={selectedGroupId}
+                  dayKey={dayKey}
+                  weekStartDate={weekStartDate}
+                  userId={userId}
+                  hasMeal={!!mealData.dish}
+                />
+              )}
+              
             </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center gap-2">
