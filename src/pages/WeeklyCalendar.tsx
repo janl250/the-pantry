@@ -18,6 +18,9 @@ import { DndContext, DragOverlay, closestCenter, KeyboardSensor, PointerSensor, 
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
 import { AttendanceList } from "@/components/AttendanceList";
+import { MobileDayCard } from "@/components/MobileDayCard";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 type WeeklyMeals = {
   [key: string]: {
     dish: Dish | null;
@@ -278,6 +281,7 @@ export default function WeeklyCalendar() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
+  const isMobile = useIsMobile();
   
   const daysOfWeek = [
     { key: 'monday', label: t('weeklyCalendar.days.monday') },
@@ -1582,36 +1586,81 @@ export default function WeeklyCalendar() {
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
           >
-            <div className="flex overflow-x-auto pb-4 gap-3 snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 sm:gap-4">
-              {daysOfWeek.map(day => {
-                const isToday = isCurrentWeek && day.key === todayKey;
-                const mealData = weeklyMeals[day.key];
-                return (
-                  <DraggableDayCardInline
-                    key={day.key}
-                    dayKey={day.key}
-                    dayLabel={day.label}
-                    isToday={isToday}
-                    mealData={mealData}
-                    profiles={profiles}
-                    selectedGroupId={selectedGroupId}
-                    onRemoveDish={removeDishFromDay}
-                    onShowDishSelector={setShowDishSelector}
-                    onShowLeftoverSelector={setShowLeftoverSelector}
-                    onAddDishToLibrary={addDishToLibrary}
-                    isDishInLibrary={isDishInLibrary}
-                    translateField={translateField}
-                    language={language}
-                    t={t}
-                    availableLeftoversCount={availableLeftovers.length}
-                    isDragging={activeDragDay === day.key}
-                    onEditNote={openNoteEditor}
-                    weekStartDate={getWeekStartDate(weekOffset).toISOString().split('T')[0]}
-                    userId={user?.id || ''}
-                  />
-                );
-              })}
-            </div>
+            {/* Mobile: Compact list view */}
+            {isMobile ? (
+              <div className="space-y-2">
+                {daysOfWeek.map(day => {
+                  const isToday = isCurrentWeek && day.key === todayKey;
+                  const mealData = weeklyMeals[day.key];
+                  const shortDayLabels: { [key: string]: string } = {
+                    monday: language === 'de' ? 'Mo' : 'Mon',
+                    tuesday: language === 'de' ? 'Di' : 'Tue',
+                    wednesday: language === 'de' ? 'Mi' : 'Wed',
+                    thursday: language === 'de' ? 'Do' : 'Thu',
+                    friday: language === 'de' ? 'Fr' : 'Fri',
+                    saturday: language === 'de' ? 'Sa' : 'Sat',
+                    sunday: language === 'de' ? 'So' : 'Sun',
+                  };
+                  return (
+                    <MobileDayCard
+                      key={day.key}
+                      dayKey={day.key}
+                      dayLabel={day.label}
+                      shortLabel={shortDayLabels[day.key]}
+                      isToday={isToday}
+                      mealData={mealData}
+                      profiles={profiles}
+                      selectedGroupId={selectedGroupId}
+                      onRemoveDish={removeDishFromDay}
+                      onShowDishSelector={setShowDishSelector}
+                      onShowLeftoverSelector={setShowLeftoverSelector}
+                      onAddDishToLibrary={addDishToLibrary}
+                      isDishInLibrary={isDishInLibrary}
+                      translateField={translateField}
+                      language={language}
+                      t={t}
+                      availableLeftoversCount={availableLeftovers.length}
+                      isDragging={activeDragDay === day.key}
+                      onEditNote={openNoteEditor}
+                      weekStartDate={getWeekStartDate(weekOffset).toISOString().split('T')[0]}
+                      userId={user?.id || ''}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              /* Desktop: Grid view */
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                {daysOfWeek.map(day => {
+                  const isToday = isCurrentWeek && day.key === todayKey;
+                  const mealData = weeklyMeals[day.key];
+                  return (
+                    <DraggableDayCardInline
+                      key={day.key}
+                      dayKey={day.key}
+                      dayLabel={day.label}
+                      isToday={isToday}
+                      mealData={mealData}
+                      profiles={profiles}
+                      selectedGroupId={selectedGroupId}
+                      onRemoveDish={removeDishFromDay}
+                      onShowDishSelector={setShowDishSelector}
+                      onShowLeftoverSelector={setShowLeftoverSelector}
+                      onAddDishToLibrary={addDishToLibrary}
+                      isDishInLibrary={isDishInLibrary}
+                      translateField={translateField}
+                      language={language}
+                      t={t}
+                      availableLeftoversCount={availableLeftovers.length}
+                      isDragging={activeDragDay === day.key}
+                      onEditNote={openNoteEditor}
+                      weekStartDate={getWeekStartDate(weekOffset).toISOString().split('T')[0]}
+                      userId={user?.id || ''}
+                    />
+                  );
+                })}
+              </div>
+            )}
             
             {/* Drag Overlay */}
             <DragOverlay>
