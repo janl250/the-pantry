@@ -92,13 +92,24 @@ function DraggableDayCardInline({
     zIndex: 50,
   } : undefined;
 
+  // Short day labels for mobile
+  const shortDayLabels: { [key: string]: string } = {
+    monday: language === 'de' ? 'Mo' : 'Mon',
+    tuesday: language === 'de' ? 'Di' : 'Tue',
+    wednesday: language === 'de' ? 'Mi' : 'Wed',
+    thursday: language === 'de' ? 'Do' : 'Thu',
+    friday: language === 'de' ? 'Fr' : 'Fri',
+    saturday: language === 'de' ? 'Sa' : 'Sat',
+    sunday: language === 'de' ? 'So' : 'Sun',
+  };
+
   return (
-    <div ref={setDropRef} className="relative">
+    <div ref={setDropRef} className="relative flex-shrink-0 w-[140px] sm:w-auto snap-center">
       <Card
         ref={setDragRef}
         style={style}
         className={cn(
-          'min-h-[200px] sm:min-h-[280px] h-auto transition-all',
+          'min-h-[220px] sm:min-h-[280px] h-auto transition-all',
           isToday && 'ring-2 ring-primary shadow-lg shadow-primary/20',
           isDragging && 'opacity-50 scale-105',
           isOver && !isDragging && 'ring-2 ring-accent bg-accent/10',
@@ -106,15 +117,16 @@ function DraggableDayCardInline({
         )}
         {...(mealData.dish ? { ...attributes, ...listeners } : {})}
       >
-        <CardHeader className={cn('pb-3', isToday && 'bg-primary/10')}>
-          <CardTitle className="text-sm font-medium text-center flex items-center justify-center gap-2">
+        <CardHeader className={cn('py-2 px-3 sm:pb-3', isToday && 'bg-primary/10')}>
+          <CardTitle className="text-sm font-medium text-center flex items-center justify-center gap-1.5">
             {mealData.dish && (
-              <GripVertical className="h-4 w-4 text-muted-foreground" />
+              <GripVertical className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
             )}
-            {dayLabel}
+            <span className="sm:hidden">{shortDayLabels[dayKey]}</span>
+            <span className="hidden sm:inline">{dayLabel}</span>
             {isToday && (
-              <Badge variant="default" className="text-xs">
-                {t('weeklyCalendar.today')}
+              <Badge variant="default" className="text-[10px] sm:text-xs px-1.5 py-0">
+                {language === 'de' ? '•' : '•'}
               </Badge>
             )}
           </CardTitle>
@@ -1570,7 +1582,7 @@ export default function WeeklyCalendar() {
             onDragEnd={handleDragEnd}
             onDragCancel={handleDragCancel}
           >
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-4">
+            <div className="flex overflow-x-auto pb-4 gap-3 snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 sm:gap-4">
               {daysOfWeek.map(day => {
                 const isToday = isCurrentWeek && day.key === todayKey;
                 const mealData = weeklyMeals[day.key];
