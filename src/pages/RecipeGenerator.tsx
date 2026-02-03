@@ -235,7 +235,7 @@ export default function RecipeGenerator() {
                   <div className="flex flex-col items-center justify-center text-destructive">
                     <AlertCircle className="h-12 w-12 mb-4" />
                     <p className="text-center mb-4">{error}</p>
-                    <Button variant="outline" onClick={generateDish}>
+                    <Button variant="outline" onClick={() => generateDish()}>
                       {language === 'de' ? 'Erneut versuchen' : 'Try Again'}
                     </Button>
                   </div>
