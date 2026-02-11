@@ -92,8 +92,8 @@ export function MobileDayCard({
           ref={setDragRef}
           style={style}
           className={cn(
-            'transition-all cursor-pointer hover:shadow-md',
-            isToday && 'ring-2 ring-primary shadow-md shadow-primary/20',
+            'transition-all cursor-pointer hover:shadow-md border-border/60',
+            isToday && 'ring-2 ring-primary shadow-md shadow-primary/20 bg-primary/5',
             isDragging && 'opacity-50 scale-105',
             isOver && !isDragging && 'ring-2 ring-accent bg-accent/10',
             mealData.dish && 'cursor-grab active:cursor-grabbing'
@@ -101,33 +101,40 @@ export function MobileDayCard({
           onClick={handleCardClick}
           {...(mealData.dish ? { ...attributes, ...listeners } : {})}
         >
-          <CardContent className="p-2.5">
-            <div className="flex items-center gap-2">
+          <CardContent className="p-3.5">
+            <div className="flex items-center gap-3">
               {/* Day label */}
               <div className={cn(
-                "w-10 h-10 rounded-lg flex items-center justify-center text-sm font-semibold shrink-0",
+                "w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0 shadow-sm",
                 isToday 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-muted text-muted-foreground"
+                  ? "bg-primary text-primary-foreground shadow-primary/30" 
+                  : mealData.dish 
+                    ? "bg-accent text-accent-foreground"
+                    : "bg-muted text-muted-foreground"
               )}>
-                {shortLabel}
+                <span className="text-sm font-bold leading-none">{shortLabel}</span>
+                {isToday && (
+                  <span className="text-[8px] font-medium leading-none mt-0.5 opacity-80">
+                    {language === 'de' ? 'Heute' : 'Today'}
+                  </span>
+                )}
               </div>
               
               {/* Dish info or empty state */}
               <div className="flex-1 min-w-0">
                 {mealData.dish ? (
                   <div className="flex items-center gap-2">
-                    {mealData.dish && <GripVertical className="h-3 w-3 text-muted-foreground shrink-0" />}
+                    <GripVertical className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm text-foreground truncate">
+                      <p className="font-semibold text-sm text-foreground truncate">
                         {mealData.dish.name}
                       </p>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-muted-foreground truncate">
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-normal">
                           {translateField('cuisine', mealData.dish.cuisine)}
-                        </span>
+                        </Badge>
                         {mealData.isLeftover && (
-                          <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">
+                          <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 border-blue-300 text-blue-600 dark:text-blue-400">
                             <RefreshCw className="w-2.5 h-2.5 mr-0.5" />
                             Rest
                           </Badge>
@@ -139,14 +146,19 @@ export function MobileDayCard({
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground italic">
-                    {language === 'de' ? 'Kein Gericht' : 'No dish'}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <UtensilsCrossed className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+                    <p className="text-sm text-muted-foreground/60">
+                      {language === 'de' ? 'Tippe um Gericht zu wählen' : 'Tap to add a dish'}
+                    </p>
+                  </div>
                 )}
               </div>
 
               {/* Expand icon */}
-              <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="shrink-0 w-7 h-7 rounded-full bg-muted/60 flex items-center justify-center">
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </div>
             </div>
           </CardContent>
         </Card>
