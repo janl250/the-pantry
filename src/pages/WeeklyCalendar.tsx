@@ -306,6 +306,7 @@ export default function WeeklyCalendar() {
   const [showDishSelector, setShowDishSelector] = useState<string | null>(null);
   const [showLeftoverSelector, setShowLeftoverSelector] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [leftoverSearchTerm, setLeftoverSearchTerm] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState<string>("all");
   const [saving, setSaving] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -1823,13 +1824,25 @@ export default function WeeklyCalendar() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder={language === 'de' ? 'Reste durchsuchen...' : 'Search leftovers...'}
+                      value={leftoverSearchTerm}
+                      onChange={(e) => setLeftoverSearchTerm(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
                   {availableLeftovers.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       {t('leftovers.none')}
                     </div>
                   ) : (
                     <div className="max-h-96 overflow-y-auto space-y-2">
-                      {availableLeftovers.map(dish => (
+                      {availableLeftovers.filter(dish => 
+                        dish.name.toLowerCase().includes(leftoverSearchTerm.toLowerCase()) ||
+                        dish.cuisine.toLowerCase().includes(leftoverSearchTerm.toLowerCase())
+                      ).map(dish => (
                         <div
                           key={dish.id}
                           className="p-3 border-2 border-blue-400/50 hover:border-blue-400 rounded-lg cursor-pointer transition-all hover:bg-blue-50/50"
