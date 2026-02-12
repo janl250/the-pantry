@@ -236,12 +236,7 @@ export const filterDishesByIngredients = (selectedIngredients: string[], allDish
   );
 };
 
-export const getDishOfTheDay = (): Dish => {
-  const today = new Date();
-  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
-  const index = dayOfYear % dinnerDishes.length;
-  return dinnerDishes[index];
-};
+
 
 export const convertUserDishToDish = (userDish: any): Dish => {
   return {

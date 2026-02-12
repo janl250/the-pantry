@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import Index from "./pages/Index";
 import DishLibrary from "./pages/DishLibrary";
-import DishOfTheDay from "./pages/DishOfTheDay";
+
 import IngredientFinder from "./pages/IngredientFinder";
 import WeeklyCalendar from "./pages/WeeklyCalendar";
 import Groups from "./pages/Groups";
@@ -39,7 +39,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/recipes" element={<DishLibrary />} />
-                <Route path="/dish-of-the-day" element={<DishOfTheDay />} />
+                
                 <Route path="/ingredient-finder" element={<IngredientFinder />} />
                 <Route path="/weekly-calendar" element={<WeeklyCalendar />} />
                 <Route path="/groups" element={<Groups />} />

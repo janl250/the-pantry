@@ -31,8 +31,6 @@ const translations = {
     'categories.title': 'Gerichte entdecken',
     'categories.dishCollection.title': 'Gerichte-Sammlung',
     'categories.dishCollection.description': 'Durchstöbern Sie unsere komplette Sammlung köstlicher Gerichte',
-    'categories.dishOfDay.title': 'Gericht des Tages',
-    'categories.dishOfDay.description': 'Entdecken Sie das heutige besondere Gericht',
     'categories.ingredientFinder.title': 'Zutatenfinder',
     'categories.ingredientFinder.description': 'Finden Sie Rezepte mit Ihren verfügbaren Zutaten',
     'categories.weeklyCalendar.title': 'Wochenkalender',
@@ -65,14 +63,6 @@ const translations = {
     'dishLibrary.noResults': 'Keine Gerichte gefunden',
     'dishLibrary.noResultsDescription': 'Versuchen Sie andere Suchbegriffe oder setzen Sie die Filter zurück.',
     
-    // Dish of the Day
-    'dishOfDay.title': 'Gericht des Tages',
-    'dishOfDay.subtitle': 'Heute empfehlen wir Ihnen dieses besondere Gericht',
-    'dishOfDay.cookingTime': 'Kochzeit',
-    'dishOfDay.difficulty': 'Schwierigkeit',
-    'dishOfDay.cuisine': 'Küche',
-    'dishOfDay.category': 'Kategorie',
-    'dishOfDay.ingredients': 'Zutaten',
     
     // Ingredient Finder
     'ingredientFinder.title': 'Zutatenfinder',
@@ -405,8 +395,6 @@ const translations = {
     'categories.title': 'Discover Dishes',
     'categories.dishCollection.title': 'Dish Collection',
     'categories.dishCollection.description': 'Browse our complete collection of delicious dishes',
-    'categories.dishOfDay.title': 'Dish of the Day',
-    'categories.dishOfDay.description': 'Discover today\'s special dish',
     'categories.ingredientFinder.title': 'Ingredient Finder',
     'categories.ingredientFinder.description': 'Find recipes with your available ingredients',
     'categories.weeklyCalendar.title': 'Weekly Calendar',
@@ -439,14 +427,6 @@ const translations = {
     'dishLibrary.noResults': 'No dishes found',
     'dishLibrary.noResultsDescription': 'Try different search terms or clear the filters.',
     
-    // Dish of the Day
-    'dishOfDay.title': 'Dish of the Day',
-    'dishOfDay.subtitle': 'Today we recommend this special dish',
-    'dishOfDay.cookingTime': 'Cooking Time',
-    'dishOfDay.difficulty': 'Difficulty',
-    'dishOfDay.cuisine': 'Cuisine',
-    'dishOfDay.category': 'Category',
-    'dishOfDay.ingredients': 'Ingredients',
     
     // Ingredient Finder
     'ingredientFinder.title': 'Ingredient Finder',

@@ -2,7 +2,7 @@ import { CategoryCard } from "./CategoryCard";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import dishLibraryImg from "@/assets/dish-library.jpg";
-import dishOfDayImg from "@/assets/dish-of-day.jpg";
+
 import ingredientFinderImg from "@/assets/ingredient-finder.jpg";
 import weeklyCalendarImg from "@/assets/weekly-calendar.jpg";
 
@@ -15,12 +15,6 @@ export const CategoriesSection = () => {
       description: t('categories.dishCollection.description'),
       image: dishLibraryImg,
       href: "/recipes"
-    },
-    {
-      title: t('categories.dishOfDay.title'),
-      description: t('categories.dishOfDay.description'),
-      image: dishOfDayImg,
-      href: "/dish-of-the-day"
     },
     {
       title: t('categories.ingredientFinder.title'),

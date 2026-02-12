@@ -245,7 +245,7 @@ export default function IngredientFinder() {
                             </div>
 
                             <div className="space-y-2">
-                              <p className="text-xs text-muted-foreground">{t('dishOfDay.ingredients')}:</p>
+                              <p className="text-xs text-muted-foreground">{language === 'de' ? 'Zutaten' : 'Ingredients'}:</p>
                               <div className="flex flex-wrap gap-1">
                                 {dish.tags.map((tag, index) => (
                                   <Badge 
