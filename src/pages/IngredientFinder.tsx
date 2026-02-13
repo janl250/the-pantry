@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Search, ChefHat, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { DishPhotoRecognition } from "@/components/DishPhotoRecognition";
 
 export default function IngredientFinder() {
   const { t, language, translateField } = useLanguage();
@@ -282,6 +283,9 @@ export default function IngredientFinder() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Photo Recognition */}
+              <DishPhotoRecognition userDishes={userDishes} />
 
               {/* Tips Card */}
               <Card className="bg-gradient-hero">
