@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { AttendanceList } from "@/components/AttendanceList";
 import { MobileDayCard } from "@/components/MobileDayCard";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { WeeklyPlanGenerator } from "@/components/WeeklyPlanGenerator";
 
 type WeeklyMeals = {
   [key: string]: {
@@ -1578,6 +1579,30 @@ export default function WeeklyCalendar() {
               </div>
             </CardContent>
           </Card>
+
+          {/* AI Weekly Plan Generator */}
+          {isAuthenticated && (
+            <div className="mb-8">
+              <WeeklyPlanGenerator
+                availableDishes={allDishes}
+                onPlanGenerated={(plan) => {
+                  const newMeals: WeeklyMeals = {
+                    monday: { dish: null, isLeftover: false },
+                    tuesday: { dish: null, isLeftover: false },
+                    wednesday: { dish: null, isLeftover: false },
+                    thursday: { dish: null, isLeftover: false },
+                    friday: { dish: null, isLeftover: false },
+                    saturday: { dish: null, isLeftover: false },
+                    sunday: { dish: null, isLeftover: false },
+                  };
+                  for (const [day, dish] of Object.entries(plan)) {
+                    newMeals[day] = { dish, isLeftover: false };
+                  }
+                  setWeeklyMeals(newMeals);
+                }}
+              />
+            </div>
+          )}
 
           {/* Weekly Calendar Grid with Drag & Drop */}
           <DndContext
