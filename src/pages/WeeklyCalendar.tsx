@@ -21,6 +21,7 @@ import { AttendanceList } from "@/components/AttendanceList";
 import { MobileDayCard } from "@/components/MobileDayCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { WeeklyPlanGenerator } from "@/components/WeeklyPlanGenerator";
+import { AttendanceOverview } from "@/components/AttendanceOverview";
 
 type WeeklyMeals = {
   [key: string]: {
@@ -1711,6 +1712,16 @@ export default function WeeklyCalendar() {
               )}
             </DragOverlay>
           </DndContext>
+
+          {/* Attendance Overview Button - only for groups */}
+          {selectedGroupId && user && (
+            <div className="mt-6 flex justify-center">
+              <AttendanceOverview
+                groupId={selectedGroupId}
+                weekStartDate={getWeekStartDate(weekOffset).toISOString().split('T')[0]}
+              />
+            </div>
+          )}
 
           {/* Dish Selector Modal */}
           {showDishSelector && (
