@@ -151,20 +151,21 @@ export const Navigation = () => {
                   {language === 'de' ? 'Gericht-Finder' : 'Dish Finder'}
                 </Button>
               </Link>
-              {isAuthenticated && (
-                <>
-                  <Link to="/groups" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
-                      {language === 'de' ? 'Gruppen' : 'Groups'}
-                    </Button>
-                  </Link>
-                  <Link to="/statistics" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
-                      {language === 'de' ? 'Statistiken' : 'Statistics'}
-                    </Button>
-                  </Link>
-                </>
-              )}
+              <Link to="/ingredient-finder" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
+                  {language === 'de' ? 'Gerichte-Finder' : 'Dish Finder'}
+                </Button>
+              </Link>
+              <Link to="/groups" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
+                  {language === 'de' ? 'Gruppen' : 'Groups'}
+                </Button>
+              </Link>
+              <Link to="/statistics" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
+                  {language === 'de' ? 'Statistiken' : 'Statistics'}
+                </Button>
+              </Link>
               
               <div className="pt-4 border-t space-y-2">
                 {/* Theme Toggle Mobile */}
