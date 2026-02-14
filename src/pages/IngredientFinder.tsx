@@ -123,6 +123,27 @@ export default function IngredientFinder() {
             </div>
           </div>
 
+          {/* Photo Recognition - prominent on mobile */}
+          <div className="mb-8">
+            <DishPhotoRecognition 
+              userDishes={userDishes} 
+              onDishAdded={() => {
+                // Reload user dishes
+                if (user) {
+                  supabase
+                    .from('user_dishes')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .then(({ data, error }) => {
+                      if (!error && data) {
+                        setUserDishes(data.map(convertUserDishToDish));
+                      }
+                    });
+                }
+              }}
+            />
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Left Column - Ingredient Selection */}
             <div className="space-y-6">
@@ -284,8 +305,7 @@ export default function IngredientFinder() {
                 </CardContent>
               </Card>
 
-              {/* Photo Recognition */}
-              <DishPhotoRecognition userDishes={userDishes} />
+              {/* Photo Recognition moved to top */}
 
               {/* Tips Card */}
               <Card className="bg-gradient-hero">

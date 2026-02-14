@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Sparkles, Loader2, RefreshCw, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -185,15 +186,24 @@ export function WeeklyPlanGenerator({ availableDishes, onPlanGenerated }: Weekly
     return availableDishes.find(d => d.name === generatedPlan[dayKey]);
   };
 
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <Card className="border-primary/20">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Sparkles className="h-5 w-5 text-primary" />
-          {language === 'de' ? 'KI-Wochenplan-Generator' : 'AI Weekly Plan Generator'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="border-primary/20">
+        <CollapsibleTrigger asChild>
+          <CardHeader className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors">
+            <CardTitle className="flex items-center justify-between text-lg">
+              <span className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                {language === 'de' ? 'KI-Wochenplan-Generator' : 'AI Weekly Plan Generator'}
+              </span>
+              {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            </CardTitle>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+        <CardContent className="space-y-4">
         {/* Preferences Toggle */}
         <Button
           variant="ghost"
@@ -364,6 +374,8 @@ export function WeeklyPlanGenerator({ availableDishes, onPlanGenerated }: Weekly
           </div>
         )}
       </CardContent>
+      </CollapsibleContent>
     </Card>
+    </Collapsible>
   );
 }
