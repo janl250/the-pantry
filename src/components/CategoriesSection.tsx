@@ -41,9 +41,9 @@ export const CategoriesSection = () => {
   const moreFeatures = [
     {
       icon: Wand2,
-      title: language === 'de' ? 'KI Gericht-Finder' : 'AI Dish Finder',
+      title: language === 'de' ? 'KI-Vorschläge' : 'AI Suggestions',
       description: language === 'de' ? 'Lassen Sie die KI passende Gerichte zu Ihren Zutaten vorschlagen' : 'Let AI suggest matching dishes for your ingredients',
-      href: "/recipe-generator"
+      href: "/ingredient-finder"
     },
     {
       icon: Camera,
