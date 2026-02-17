@@ -1565,7 +1565,7 @@ export default function WeeklyCalendar() {
                     {language === 'de' ? 'Wochenfortschritt' : 'Week Progress'}
                   </h3>
                   <p className="text-muted-foreground">
-                    {Object.values(weeklyMeals).filter(meal => meal !== null).length} {language === 'de' ? 'von 7 Tagen geplant' : 'of 7 days planned'}
+                    {Object.values(weeklyMeals).filter(meal => meal.dish !== null).length} {language === 'de' ? 'von 7 Tagen geplant' : 'of 7 days planned'}
                   </p>
                 </div>
                 <div className="text-right">
