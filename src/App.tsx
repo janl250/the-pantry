@@ -14,7 +14,7 @@ import WeeklyCalendar from "./pages/WeeklyCalendar";
 import Groups from "./pages/Groups";
 import GroupDetail from "./pages/GroupDetail";
 import Statistics from "./pages/Statistics";
-import RecipeGenerator from "./pages/RecipeGenerator";
+
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -45,7 +45,7 @@ const App = () => (
                 <Route path="/groups" element={<Groups />} />
                 <Route path="/groups/:groupId" element={<GroupDetail />} />
                 <Route path="/statistics" element={<Statistics />} />
-                <Route path="/recipe-generator" element={<RecipeGenerator />} />
+                <Route path="/recipe-generator" element={<IngredientFinder />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/auth" element={<Auth />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

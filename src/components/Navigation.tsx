@@ -49,8 +49,8 @@ export const Navigation = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link to="/recipe-generator" className="cursor-pointer">
-                  {language === 'de' ? 'Gericht-Finder' : 'Dish Finder'}
+                <Link to="/ingredient-finder" className="cursor-pointer">
+                  {language === 'de' ? 'Gerichte-Finder' : 'Dish Finder'}
                 </Link>
               </DropdownMenuItem>
               {isAuthenticated && (
@@ -144,11 +144,6 @@ export const Navigation = () => {
               <Link to="/weekly-calendar" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
                   {t('nav.weeklyPlanner')}
-                </Button>
-              </Link>
-              <Link to="/recipe-generator" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium">
-                  {language === 'de' ? 'Gericht-Finder' : 'Dish Finder'}
                 </Button>
               </Link>
               <Link to="/ingredient-finder" onClick={() => setMobileMenuOpen(false)}>
