@@ -217,27 +217,29 @@ export default function Groups() {
       
       <main className="py-8 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-4 mb-8">
-            <Link to="/">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-foreground">{t('groups.title')}</h1>
-              <p className="text-muted-foreground mt-2">
-                {t('groups.subtitle')}
-              </p>
-            </div>
-            <div className="flex gap-2">
+          <div className="flex flex-col gap-4 mb-8">
+            <div className="flex items-center gap-4">
+              <Link to="/">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t('groups.title')}</h1>
+                <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+                  {t('groups.subtitle')}
+                </p>
+              </div>
               <Button onClick={() => navigate('/profile')} variant="ghost" size="icon" title={language === 'de' ? 'Profil' : 'Profile'}>
                 <User className="h-5 w-5" />
               </Button>
-              <Button onClick={() => setShowJoinDialog(true)} variant="outline" className="flex items-center gap-2">
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowJoinDialog(true)} variant="outline" size="sm" className="flex-1 sm:flex-none flex items-center justify-center gap-2">
                 <Plus className="h-4 w-4" />
                 {t('groups.joinGroup')}
               </Button>
-              <Button onClick={() => setShowCreateDialog(true)} className="flex items-center gap-2">
+              <Button onClick={() => setShowCreateDialog(true)} size="sm" className="flex-1 sm:flex-none flex items-center justify-center gap-2">
                 <Users className="h-4 w-4" />
                 {t('groups.createGroup')}
               </Button>
