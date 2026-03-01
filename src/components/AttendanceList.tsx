@@ -157,70 +157,72 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
     );
   }
 
+  const handleStatusClick = (status: 'attending' | 'not_attending' | 'unknown') => {
+    updateStatus(status);
+  };
+
   return (
     <div 
       className="mt-3 w-full rounded-lg bg-muted/30 border border-border overflow-hidden"
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
     >
-      {/* My status buttons - large and tappable */}
-      <div className="p-2.5 space-y-2">
+      {/* My status buttons */}
+      <div className="p-3 space-y-2">
         <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <Users className="h-3.5 w-3.5" />
           <span>{language === 'de' ? 'Bist du dabei?' : 'Will you attend?'}</span>
         </div>
         
-        <div className="grid grid-cols-3 gap-1.5">
-          <Button
+        <div className="grid grid-cols-3 gap-2">
+          <button
             type="button"
-            variant="outline"
-            size="sm"
             className={cn(
-              "h-9 text-xs font-medium gap-1.5 transition-all",
-              myStatus === 'attending' && "bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground"
+              "flex items-center justify-center gap-1.5 h-11 rounded-lg text-sm font-medium border-2 transition-all cursor-pointer select-none active:scale-95",
+              myStatus === 'attending'
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-background text-foreground border-border hover:border-primary/50"
             )}
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); updateStatus('attending'); }}
-            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => handleStatusClick('attending')}
           >
             <Check className="h-4 w-4" />
             {language === 'de' ? 'Ja' : 'Yes'}
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            variant="outline"
-            size="sm"
             className={cn(
-              "h-9 text-xs font-medium gap-1.5 transition-all",
-              myStatus === 'unknown' && "bg-secondary text-secondary-foreground border-secondary"
+              "flex items-center justify-center gap-1.5 h-11 rounded-lg text-sm font-medium border-2 transition-all cursor-pointer select-none active:scale-95",
+              myStatus === 'unknown'
+                ? "bg-secondary text-secondary-foreground border-secondary"
+                : "bg-background text-foreground border-border hover:border-secondary/50"
             )}
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); updateStatus('unknown'); }}
-            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => handleStatusClick('unknown')}
           >
             <HelpCircle className="h-4 w-4" />
             {language === 'de' ? 'Vllt' : 'Maybe'}
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            variant="outline"
-            size="sm"
             className={cn(
-              "h-9 text-xs font-medium gap-1.5 transition-all",
-              myStatus === 'not_attending' && "bg-destructive text-destructive-foreground border-destructive hover:bg-destructive/90 hover:text-destructive-foreground"
+              "flex items-center justify-center gap-1.5 h-11 rounded-lg text-sm font-medium border-2 transition-all cursor-pointer select-none active:scale-95",
+              myStatus === 'not_attending'
+                ? "bg-destructive text-destructive-foreground border-destructive"
+                : "bg-background text-foreground border-border hover:border-destructive/50"
             )}
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); updateStatus('not_attending'); }}
-            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => handleStatusClick('not_attending')}
           >
             <X className="h-4 w-4" />
             {language === 'de' ? 'Nein' : 'No'}
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* Summary + expand toggle */}
       <button
-        className="w-full px-2.5 py-1.5 flex items-center justify-between border-t border-border hover:bg-muted/50 transition-colors"
-        onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-        onPointerDown={(e) => e.stopPropagation()}
+        type="button"
+        className="w-full px-3 py-2 flex items-center justify-between border-t border-border hover:bg-muted/50 transition-colors cursor-pointer"
+        onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-2 text-xs">
           <span className="flex items-center gap-1 text-primary font-medium">
@@ -233,18 +235,14 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
         </div>
         
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <span>{language === 'de' ? 'Details' : 'Details'}</span>
-          {expanded ? (
-            <ChevronUp className="h-3.5 w-3.5" />
-          ) : (
-            <ChevronDown className="h-3.5 w-3.5" />
-          )}
+          <span>Details</span>
+          {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
         </div>
       </button>
 
       {/* Expandable member list */}
       {expanded && (
-        <div className="px-2.5 pb-2.5 space-y-1 border-t border-border pt-2">
+        <div className="px-3 pb-3 space-y-1 border-t border-border pt-2">
           {groupMembers.map((member) => {
             const status = getStatusForUser(member.id);
             const isCurrentUser = member.id === userId;
@@ -258,10 +256,7 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
                   isCurrentUser && "ring-1 ring-primary/50"
                 )}
               >
-                <span className={cn(
-                  "truncate",
-                  isCurrentUser && "font-semibold"
-                )}>
+                <span className={cn("truncate", isCurrentUser && "font-semibold")}>
                   {member.display_name}
                   {isCurrentUser && (
                     <span className="text-muted-foreground font-normal ml-1">
