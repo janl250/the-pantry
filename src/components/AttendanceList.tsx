@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Check, X, HelpCircle, Users, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface AttendanceStatus {
   user_id: string;
@@ -27,7 +28,6 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
   useEffect(() => {
     loadData();
     
-    // Realtime subscription
     const channel = supabase
       .channel(`attendance-list-${groupId}-${dayKey}-${weekStartDate}`)
       .on(
@@ -51,7 +51,6 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
 
   const loadData = async () => {
     try {
-      // Load group members
       const { data: members, error: membersError } = await supabase
         .from('group_members')
         .select('user_id')
@@ -61,7 +60,6 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
 
       const memberIds = members?.map(m => m.user_id) || [];
 
-      // Load profiles for all group members
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, display_name')
@@ -75,7 +73,6 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
       }));
       setGroupMembers(membersWithNames);
 
-      // Load attendance
       const { data: attendanceData, error: attendanceError } = await supabase
         .from('meal_attendance')
         .select('user_id, status')
@@ -126,18 +123,18 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
   const getStatusIcon = (status: 'attending' | 'not_attending' | 'unknown') => {
     switch (status) {
       case 'attending':
-        return <Check className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" />;
+        return <Check className="h-3.5 w-3.5" />;
       case 'not_attending':
-        return <X className="h-2.5 w-2.5 text-destructive" />;
+        return <X className="h-3.5 w-3.5" />;
       default:
-        return <HelpCircle className="h-2.5 w-2.5 text-muted-foreground" />;
+        return <HelpCircle className="h-3.5 w-3.5" />;
     }
   };
 
   const getStatusBg = (status: 'attending' | 'not_attending' | 'unknown') => {
     switch (status) {
       case 'attending':
-        return 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800';
+        return 'bg-accent/60 border-primary/30';
       case 'not_attending':
         return 'bg-destructive/10 border-destructive/30';
       default:
@@ -148,14 +145,13 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
   const myStatus = getStatusForUser(userId);
   const attendingCount = groupMembers.filter(m => getStatusForUser(m.id) === 'attending').length;
   const notAttendingCount = groupMembers.filter(m => getStatusForUser(m.id) === 'not_attending').length;
-  const unknownCount = groupMembers.filter(m => getStatusForUser(m.id) === 'unknown').length;
 
   if (loading) {
     return (
-      <div className="mt-2 p-1.5 rounded-md bg-muted/50 border border-dashed border-border">
-        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-          <Users className="h-2.5 w-2.5" />
-          <span>{language === 'de' ? '...' : '...'}</span>
+      <div className="mt-2 p-2 rounded-lg bg-muted/50 border border-dashed border-border">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Users className="h-3.5 w-3.5" />
+          <span>{language === 'de' ? 'Lade...' : 'Loading...'}</span>
         </div>
       </div>
     );
@@ -163,77 +159,92 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
 
   return (
     <div 
-      className="mt-2 rounded-md bg-muted/30 border border-border overflow-hidden"
+      className="mt-3 w-full rounded-lg bg-muted/30 border border-border overflow-hidden"
       onClick={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
     >
-      {/* Compact header - always visible */}
-      <button
-        className="w-full p-1.5 flex items-center justify-between hover:bg-muted/50 transition-colors"
-        onClick={() => setExpanded(!expanded)}
-      >
-        <div className="flex items-center gap-2">
-          {/* Quick status buttons */}
-          <div className="flex gap-0.5">
-            <button
-              className={cn(
-                "p-0.5 rounded transition-colors",
-                myStatus === 'attending' 
-                  ? 'bg-emerald-500 dark:bg-emerald-600 text-white' 
-                  : 'bg-muted hover:bg-emerald-100 dark:hover:bg-emerald-950/30'
-              )}
-              onClick={(e) => { e.stopPropagation(); updateStatus('attending'); }}
-            >
-              <Check className="h-2.5 w-2.5" />
-            </button>
-            <button
-              className={cn(
-                "p-0.5 rounded transition-colors",
-                myStatus === 'unknown' 
-                  ? 'bg-muted-foreground text-background' 
-                  : 'bg-muted hover:bg-muted-foreground/20'
-              )}
-              onClick={(e) => { e.stopPropagation(); updateStatus('unknown'); }}
-            >
-              <HelpCircle className="h-2.5 w-2.5" />
-            </button>
-            <button
-              className={cn(
-                "p-0.5 rounded transition-colors",
-                myStatus === 'not_attending' 
-                  ? 'bg-destructive text-destructive-foreground' 
-                  : 'bg-muted hover:bg-destructive/20'
-              )}
-              onClick={(e) => { e.stopPropagation(); updateStatus('not_attending'); }}
-            >
-              <X className="h-2.5 w-2.5" />
-            </button>
-          </div>
-          
-          {/* Summary counts */}
-          <div className="flex items-center gap-1.5 text-[10px]">
-            <span className="flex items-center gap-0.5 text-emerald-600 dark:text-emerald-400">
-              <Check className="h-2 w-2" />{attendingCount}
-            </span>
-            <span className="flex items-center gap-0.5 text-muted-foreground">
-              <HelpCircle className="h-2 w-2" />{unknownCount}
-            </span>
-            <span className="flex items-center gap-0.5 text-destructive">
-              <X className="h-2 w-2" />{notAttendingCount}
-            </span>
-          </div>
+      {/* My status buttons - large and tappable */}
+      <div className="p-2.5 space-y-2">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <Users className="h-3.5 w-3.5" />
+          <span>{language === 'de' ? 'Bist du dabei?' : 'Will you attend?'}</span>
         </div>
         
-        {expanded ? (
-          <ChevronUp className="h-3 w-3 text-muted-foreground" />
-        ) : (
-          <ChevronDown className="h-3 w-3 text-muted-foreground" />
-        )}
+        <div className="grid grid-cols-3 gap-1.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-9 text-xs font-medium gap-1.5 transition-all",
+              myStatus === 'attending' && "bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground"
+            )}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); updateStatus('attending'); }}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <Check className="h-4 w-4" />
+            {language === 'de' ? 'Ja' : 'Yes'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-9 text-xs font-medium gap-1.5 transition-all",
+              myStatus === 'unknown' && "bg-secondary text-secondary-foreground border-secondary"
+            )}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); updateStatus('unknown'); }}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <HelpCircle className="h-4 w-4" />
+            {language === 'de' ? 'Vllt' : 'Maybe'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-9 text-xs font-medium gap-1.5 transition-all",
+              myStatus === 'not_attending' && "bg-destructive text-destructive-foreground border-destructive hover:bg-destructive/90 hover:text-destructive-foreground"
+            )}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); updateStatus('not_attending'); }}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <X className="h-4 w-4" />
+            {language === 'de' ? 'Nein' : 'No'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Summary + expand toggle */}
+      <button
+        className="w-full px-2.5 py-1.5 flex items-center justify-between border-t border-border hover:bg-muted/50 transition-colors"
+        onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-2 text-xs">
+          <span className="flex items-center gap-1 text-primary font-medium">
+            <Check className="h-3 w-3" />{attendingCount}
+          </span>
+          <span className="text-muted-foreground">·</span>
+          <span className="flex items-center gap-1 text-destructive font-medium">
+            <X className="h-3 w-3" />{notAttendingCount}
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <span>{language === 'de' ? 'Details' : 'Details'}</span>
+          {expanded ? (
+            <ChevronUp className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronDown className="h-3.5 w-3.5" />
+          )}
+        </div>
       </button>
 
       {/* Expandable member list */}
       {expanded && (
-        <div className="px-1.5 pb-1.5 space-y-0.5 border-t border-border pt-1.5">
+        <div className="px-2.5 pb-2.5 space-y-1 border-t border-border pt-2">
           {groupMembers.map((member) => {
             const status = getStatusForUser(member.id);
             const isCurrentUser = member.id === userId;
@@ -242,18 +253,29 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
               <div 
                 key={member.id}
                 className={cn(
-                  "flex items-center justify-between py-0.5 px-1.5 rounded text-[10px] border",
+                  "flex items-center justify-between py-1.5 px-2.5 rounded-md text-xs border",
                   getStatusBg(status),
                   isCurrentUser && "ring-1 ring-primary/50"
                 )}
               >
                 <span className={cn(
-                  "truncate max-w-[70px]",
-                  isCurrentUser && "font-medium"
+                  "truncate",
+                  isCurrentUser && "font-semibold"
                 )}>
                   {member.display_name}
+                  {isCurrentUser && (
+                    <span className="text-muted-foreground font-normal ml-1">
+                      ({language === 'de' ? 'Du' : 'You'})
+                    </span>
+                  )}
                 </span>
-                {getStatusIcon(status)}
+                <span className={cn(
+                  status === 'attending' && "text-primary",
+                  status === 'not_attending' && "text-destructive",
+                  status === 'unknown' && "text-muted-foreground"
+                )}>
+                  {getStatusIcon(status)}
+                </span>
               </div>
             );
           })}
