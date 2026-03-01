@@ -19,10 +19,9 @@ interface MealAttendanceProps {
   dayKey: string;
   weekStartDate: string;
   userId: string;
-  hasMeal: boolean;
 }
 
-export function MealAttendance({ groupId, dayKey, weekStartDate, userId, hasMeal }: MealAttendanceProps) {
+export function MealAttendance({ groupId, dayKey, weekStartDate, userId }: MealAttendanceProps) {
   const { t, language } = useLanguage();
   const { toast } = useToast();
   const [attendance, setAttendance] = useState<AttendanceStatus[]>([]);
@@ -152,8 +151,6 @@ export function MealAttendance({ groupId, dayKey, weekStartDate, userId, hasMeal
         return 'bg-muted text-muted-foreground border-muted';
     }
   };
-
-  if (!hasMeal) return null;
 
   return (
     <Popover>

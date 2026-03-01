@@ -15,10 +15,9 @@ interface AttendanceListProps {
   dayKey: string;
   weekStartDate: string;
   userId: string;
-  hasMeal: boolean;
 }
 
-export function AttendanceList({ groupId, dayKey, weekStartDate, userId, hasMeal }: AttendanceListProps) {
+export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: AttendanceListProps) {
   const { language } = useLanguage();
   const [attendance, setAttendance] = useState<AttendanceStatus[]>([]);
   const [groupMembers, setGroupMembers] = useState<{ id: string; display_name: string }[]>([]);
@@ -150,8 +149,6 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId, hasMeal
   const attendingCount = groupMembers.filter(m => getStatusForUser(m.id) === 'attending').length;
   const notAttendingCount = groupMembers.filter(m => getStatusForUser(m.id) === 'not_attending').length;
   const unknownCount = groupMembers.filter(m => getStatusForUser(m.id) === 'unknown').length;
-
-  if (!hasMeal) return null;
 
   if (loading) {
     return (

@@ -308,7 +308,6 @@ export function MobileDayCard({
                   dayKey={dayKey}
                   weekStartDate={weekStartDate}
                   userId={userId}
-                  hasMeal={!!mealData.dish}
                 />
               )}
             </>
@@ -342,6 +341,15 @@ export function MobileDayCard({
                 <RefreshCw className="h-3 w-3 mr-1" />
                 {t('leftovers.add')}
               </Button>
+              {/* Attendance section - also when no dish */}
+              {selectedGroupId && userId && (
+                <AttendanceList
+                  groupId={selectedGroupId}
+                  dayKey={dayKey}
+                  weekStartDate={weekStartDate}
+                  userId={userId}
+                />
+              )}
             </div>
           )}
         </CardContent>
