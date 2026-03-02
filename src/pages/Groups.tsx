@@ -234,12 +234,12 @@ export default function Groups() {
                 <User className="h-5 w-5" />
               </Button>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={() => setShowJoinDialog(true)} variant="outline" size="sm" className="flex-1 sm:flex-none flex items-center justify-center gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button onClick={() => setShowJoinDialog(true)} variant="outline" size="sm" className="w-full sm:w-auto flex items-center justify-center gap-2">
                 <Plus className="h-4 w-4" />
                 {t('groups.joinGroup')}
               </Button>
-              <Button onClick={() => setShowCreateDialog(true)} size="sm" className="flex-1 sm:flex-none flex items-center justify-center gap-2">
+              <Button onClick={() => setShowCreateDialog(true)} size="sm" className="w-full sm:w-auto flex items-center justify-center gap-2">
                 <Users className="h-4 w-4" />
                 {t('groups.createGroup')}
               </Button>
