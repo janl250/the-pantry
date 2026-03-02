@@ -371,34 +371,37 @@ export default function GroupDetail() {
       
       <main className="py-8 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-4 mb-8">
-            <Link to="/groups">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold text-foreground">{group.name}</h1>
-                {isCreator && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setEditGroupName(true)}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                )}
+          <div className="mb-8 space-y-4">
+            <div className="flex items-center gap-4">
+              <Link to="/groups">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">{group.name}</h1>
+                  {isCreator && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0"
+                      onClick={() => setEditGroupName(true)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <p className="text-muted-foreground mt-1">
+                  {language === 'de' ? 'Gruppendetails' : 'Group Details'}
+                </p>
               </div>
-              <p className="text-muted-foreground mt-1">
-                {language === 'de' ? 'Gruppendetails' : 'Group Details'}
-              </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 variant="outline"
                 onClick={() => navigate(`/weekly-calendar?group=${group.id}`)}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <Calendar className="h-4 w-4" />
                 {language === 'de' ? 'Kalender öffnen' : 'Open Calendar'}
@@ -407,7 +410,7 @@ export default function GroupDetail() {
                 <Button
                   variant="destructive"
                   onClick={() => setDeleteGroupDialog(true)}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2 w-full sm:w-auto"
                 >
                   <Trash2 className="h-4 w-4" />
                   {language === 'de' ? 'Gruppe löschen' : 'Delete Group'}
