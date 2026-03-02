@@ -98,20 +98,31 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
   };
 
   const updateStatus = async (status: 'attending' | 'not_attending' | 'unknown') => {
-    try {
-      await supabase
-        .from('meal_attendance')
-        .upsert({
-          group_id: groupId,
-          user_id: userId,
-          day_of_week: dayKey,
-          week_start_date: weekStartDate,
-          status: status
-        }, {
-          onConflict: 'group_id,user_id,day_of_week,week_start_date'
-        });
-    } catch (error) {
+    // Optimistic update
+    setAttendance(prev => {
+      const existing = prev.find(a => a.user_id === userId);
+      if (existing) {
+        return prev.map(a => a.user_id === userId ? { ...a, status } : a);
+      }
+      return [...prev, { user_id: userId, status, display_name: groupMembers.find(m => m.id === userId)?.display_name }];
+    });
+
+    const { error } = await supabase
+      .from('meal_attendance')
+      .upsert({
+        group_id: groupId,
+        user_id: userId,
+        day_of_week: dayKey,
+        week_start_date: weekStartDate,
+        status: status
+      }, {
+        onConflict: 'group_id,user_id,day_of_week,week_start_date'
+      });
+
+    if (error) {
       console.error('Error updating attendance:', error);
+      // Revert on error
+      loadData();
     }
   };
 
