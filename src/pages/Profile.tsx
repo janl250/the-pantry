@@ -6,16 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, User, Mail, Calendar, ChefHat, Star, Heart, Users, Save, LogIn } from "lucide-react";
+import { ArrowLeft, User, Mail, Calendar, ChefHat, Star, Heart, Users, Save, LogIn, Crown } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { usePremium } from "@/hooks/usePremium";
 
 export default function Profile() {
   const { t, language } = useLanguage();
   const { user, isAuthenticated } = useAuth();
+  const { isPremium, subscription } = usePremium();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -163,6 +165,32 @@ export default function Profile() {
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
+            {/* Premium Status Card */}
+            <Card className={isPremium ? "md:col-span-2 border-yellow-500/30 bg-yellow-500/5" : "md:col-span-2"}>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Crown className={`h-6 w-6 ${isPremium ? 'text-yellow-500' : 'text-muted-foreground'}`} />
+                    <div>
+                      <h3 className="font-semibold text-foreground">
+                        {isPremium
+                          ? (language === 'de' ? 'Premium aktiv' : 'Premium Active')
+                          : (language === 'de' ? 'Kostenloser Plan' : 'Free Plan')}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {isPremium
+                          ? (language === 'de' ? 'Alle Funktionen freigeschaltet' : 'All features unlocked')
+                          : (language === 'de' ? 'Eingeschränkter Zugang' : 'Limited access')}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={isPremium ? "default" : "secondary"} className={isPremium ? "bg-yellow-500/90 text-white border-0" : ""}>
+                    {isPremium ? 'Premium' : 'Free'}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Profile Info Card */}
             <Card>
               <CardHeader>

@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Menu, Utensils, LogIn, LogOut, Globe, ChevronDown, Sun, Moon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Menu, Utensils, LogIn, LogOut, Globe, ChevronDown, Sun, Moon, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -10,6 +12,7 @@ import { useState } from "react";
 
 export const Navigation = () => {
   const { user, signOut, isAuthenticated } = useAuth();
+  const { isPremium } = usePremium();
   const { language, setLanguage, t } = useLanguage();
   const { resolvedTheme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -104,6 +107,12 @@ export const Navigation = () => {
           {/* Auth Section */}
           {isAuthenticated ? (
             <div className="flex items-center gap-2 ml-2">
+              {isPremium && (
+                <Badge variant="default" className="gap-1 bg-yellow-500/90 hover:bg-yellow-500 text-white border-0">
+                  <Crown className="h-3 w-3" />
+                  Premium
+                </Badge>
+              )}
               <span className="text-sm text-muted-foreground hidden lg:inline">
                 {user?.email?.split('@')[0]}
               </span>

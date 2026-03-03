@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Users, Plus, LogIn, Copy, Trash2, LogOut, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
+import { PremiumUpgradeDialog } from "@/components/PremiumUpgradeDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -38,6 +40,8 @@ type Group = {
 export default function Groups() {
   const { t, language } = useLanguage();
   const { user, isAuthenticated } = useAuth();
+  const { isPremium } = usePremium();
+  const [showPremiumDialog, setShowPremiumDialog] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -235,11 +239,23 @@ export default function Groups() {
               </Button>
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
-              <Button onClick={() => setShowJoinDialog(true)} variant="outline" size="sm" className="w-full sm:w-auto flex items-center justify-center gap-2">
+              <Button onClick={() => {
+                if (!isPremium && groups.length >= 3) {
+                  setShowPremiumDialog(true);
+                } else {
+                  setShowJoinDialog(true);
+                }
+              }} variant="outline" size="sm" className="w-full sm:w-auto flex items-center justify-center gap-2">
                 <Plus className="h-4 w-4" />
                 {t('groups.joinGroup')}
               </Button>
-              <Button onClick={() => setShowCreateDialog(true)} size="sm" className="w-full sm:w-auto flex items-center justify-center gap-2">
+              <Button onClick={() => {
+                if (!isPremium && groups.length >= 3) {
+                  setShowPremiumDialog(true);
+                } else {
+                  setShowCreateDialog(true);
+                }
+              }} size="sm" className="w-full sm:w-auto flex items-center justify-center gap-2">
                 <Users className="h-4 w-4" />
                 {t('groups.createGroup')}
               </Button>
@@ -391,6 +407,12 @@ export default function Groups() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PremiumUpgradeDialog
+        open={showPremiumDialog}
+        onOpenChange={setShowPremiumDialog}
+        feature={language === 'de' ? 'Mehr als 3 Gruppen' : 'More than 3 groups'}
+      />
     </div>
   );
 }
