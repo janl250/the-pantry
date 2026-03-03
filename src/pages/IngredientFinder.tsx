@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { filterDishesByIngredients, convertUserDishToDish, dinnerDishes, type Dish } from "@/data/dishes";
 import { useIngredients } from "@/hooks/useIngredients";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
+import { PremiumUpgradeDialog } from "@/components/PremiumUpgradeDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Search, ChefHat, X, Wand2, Plus, Clock, Sparkles, Loader2, AlertCircle, RefreshCw, BookmarkPlus, Check, Camera } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -30,6 +32,8 @@ interface DishSuggestion {
 export default function IngredientFinder() {
   const { t, language, translateField } = useLanguage();
   const { user, isAuthenticated } = useAuth();
+  const { isPremium } = usePremium();
+  const [showPremiumDialog, setShowPremiumDialog] = useState(false);
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [userDishes, setUserDishes] = useState<Dish[]>([]);
@@ -328,7 +332,10 @@ export default function IngredientFinder() {
                         {language === 'de' ? 'Füge 2-5 Hauptzutaten hinzu' : 'Add 2-5 main ingredients'}
                       </p>
                     )}
-                    <Button onClick={() => { setPreviousDishes([]); generateDish(false); }} className="w-full gap-2" disabled={aiLoading || aiIngredients.length === 0}>
+                    <Button onClick={() => {
+                      if (!isPremium) { setShowPremiumDialog(true); return; }
+                      setPreviousDishes([]); generateDish(false);
+                    }} className="w-full gap-2" disabled={aiLoading || aiIngredients.length === 0}>
                       {aiLoading ? (<><Loader2 className="h-4 w-4 animate-spin" />{language === 'de' ? 'Suche...' : 'Searching...'}</>) : (<><Wand2 className="h-4 w-4" />{language === 'de' ? 'Gericht finden' : 'Find Dish'}</>)}
                     </Button>
                   </CardContent>
@@ -396,10 +403,28 @@ export default function IngredientFinder() {
             {/* Tab 3: Photo Recognition */}
             <TabsContent value="photo">
               <div className="max-w-2xl mx-auto">
-                <DishPhotoRecognition userDishes={userDishes} onDishAdded={reloadUserDishes} />
+                {!isPremium ? (
+                  <div className="text-center py-12">
+                    <Camera className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground mb-4">
+                      {language === 'de' ? 'Foto-Erkennung ist ein Premium-Feature.' : 'Photo recognition is a premium feature.'}
+                    </p>
+                    <Button onClick={() => setShowPremiumDialog(true)}>
+                      {language === 'de' ? 'Premium freischalten' : 'Unlock Premium'}
+                    </Button>
+                  </div>
+                ) : (
+                  <DishPhotoRecognition userDishes={userDishes} onDishAdded={reloadUserDishes} />
+                )}
               </div>
             </TabsContent>
           </Tabs>
+
+          <PremiumUpgradeDialog
+            open={showPremiumDialog}
+            onOpenChange={setShowPremiumDialog}
+            feature={language === 'de' ? 'KI-Features' : 'AI Features'}
+          />
         </div>
       </main>
 

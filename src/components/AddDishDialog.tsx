@@ -29,6 +29,7 @@ const dishSchema = z.object({
 
 interface AddDishDialogProps {
   onDishAdded: () => void;
+  onLimitReached?: () => void;
 }
 
 const cuisineOptions = [
@@ -44,7 +45,7 @@ const categoryOptions = [
   'lunch', 'dinner', 'snack', 'side dish', 'beverage'
 ];
 
-export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
+export const AddDishDialog = ({ onDishAdded, onLimitReached }: AddDishDialogProps) => {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [cuisine, setCuisine] = useState('');
@@ -187,7 +188,12 @@ export const AddDishDialog = ({ onDishAdded }: AddDishDialogProps) => {
         }}
       >
       <DialogTrigger asChild>
-        <Button className="gap-2 w-full sm:w-auto">
+        <Button className="gap-2 w-full sm:w-auto" onClick={(e) => {
+          if (onLimitReached) {
+            e.preventDefault();
+            onLimitReached();
+          }
+        }}>
           <Plus className="h-4 w-4" />
           <span className="hidden sm:inline">{t('addDish.button')}</span>
           <span className="sm:hidden">Neu</span>

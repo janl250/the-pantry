@@ -20,11 +20,15 @@ import { EmptyState } from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
+import { PremiumUpgradeDialog } from "@/components/PremiumUpgradeDialog";
 
 export default function DishLibrary() {
-  const { t, translateField } = useLanguage();
+  const { t, translateField, language } = useLanguage();
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
+  const { isPremium } = usePremium();
+  const [showPremiumDialog, setShowPremiumDialog] = useState(false);
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState<string>("all");
@@ -512,10 +516,19 @@ export default function DishLibrary() {
                 <span className="sm:hidden">Zufällig</span>
               </Button>
               <div className="flex-1 sm:flex-none">
-                <AddDishDialog onDishAdded={loadUserDishes} />
+                <AddDishDialog 
+                  onDishAdded={loadUserDishes} 
+                  onLimitReached={!isPremium && userDishes.length >= 10 ? () => setShowPremiumDialog(true) : undefined}
+                />
               </div>
             </div>
           </div>
+
+          <PremiumUpgradeDialog 
+            open={showPremiumDialog} 
+            onOpenChange={setShowPremiumDialog}
+            feature={language === 'de' ? 'Mehr als 10 eigene Gerichte' : 'More than 10 custom dishes'}
+          />
 
           {/* Search and Filters */}
           <div className="mb-8 space-y-4">

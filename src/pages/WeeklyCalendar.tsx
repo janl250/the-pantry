@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Printer, Shuffle, ChevronLeft, ChevronRight, RotateCcw, GripVertical, StickyNote, MessageSquare, Download, Upload } from "lucide-react";
+import { ArrowLeft, Calendar, Plus, X, Search, Save, LogIn, Users, BookmarkPlus, Heart, Star, RefreshCw, ChefHat, Clock, Gauge, Tag, Trash2, Printer, Shuffle, ChevronLeft, ChevronRight, RotateCcw, GripVertical, StickyNote, MessageSquare, Download, Upload, Sparkles } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
+import { PremiumUpgradeDialog } from "@/components/PremiumUpgradeDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -288,6 +290,8 @@ function DraggableDayCardInline({
 export default function WeeklyCalendar() {
   const { t, language, translateField } = useLanguage();
   const { user, isAuthenticated, loading } = useAuth();
+  const { isPremium } = usePremium();
+  const [showPremiumDialog, setShowPremiumDialog] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -1590,7 +1594,7 @@ export default function WeeklyCalendar() {
           </Card>
 
           {/* AI Weekly Plan Generator */}
-          {isAuthenticated && (
+          {isAuthenticated && isPremium && (
             <div className="mb-8">
               <WeeklyPlanGenerator
                 availableDishes={allDishes}
@@ -1610,6 +1614,18 @@ export default function WeeklyCalendar() {
                   setWeeklyMeals(newMeals);
                 }}
               />
+            </div>
+          )}
+          {isAuthenticated && !isPremium && (
+            <div className="mb-8">
+              <Button 
+                variant="outline" 
+                className="w-full gap-2 border-dashed"
+                onClick={() => setShowPremiumDialog(true)}
+              >
+                <Sparkles className="h-4 w-4" />
+                {language === 'de' ? 'KI-Wochenplan-Generator (Premium)' : 'AI Weekly Plan Generator (Premium)'}
+              </Button>
             </div>
           )}
 
@@ -1996,6 +2012,12 @@ export default function WeeklyCalendar() {
           </Card>
         </div>
       )}
+
+      <PremiumUpgradeDialog
+        open={showPremiumDialog}
+        onOpenChange={setShowPremiumDialog}
+        feature={language === 'de' ? 'KI-Wochenplan-Generator' : 'AI Weekly Plan Generator'}
+      />
 
       <Footer />
     </div>
