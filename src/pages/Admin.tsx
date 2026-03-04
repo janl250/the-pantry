@@ -23,8 +23,8 @@ interface AdminUser {
 }
 
 const Admin = () => {
-  const { isAdmin } = useAdmin();
-  const { isAuthenticated } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -56,6 +56,13 @@ const Admin = () => {
     if (isAdmin) fetchUsers();
   }, [isAdmin]);
 
+  if (authLoading || adminLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
   if (!isAuthenticated) return <Navigate to="/auth" />;
   if (!isAdmin) return <Navigate to="/" />;
 
