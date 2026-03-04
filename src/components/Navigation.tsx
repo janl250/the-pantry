@@ -14,6 +14,7 @@ import { useState } from "react";
 export const Navigation = () => {
   const { user, signOut, isAuthenticated } = useAuth();
   const { isPremium } = usePremium();
+  const { isAdmin } = useAdmin();
   const { language, setLanguage, t } = useLanguage();
   const { resolvedTheme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
