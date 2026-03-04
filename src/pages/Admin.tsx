@@ -23,8 +23,8 @@ interface AdminUser {
 }
 
 const Admin = () => {
-  const { isAdmin } = useAdmin();
-  const { isAuthenticated } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
   const [users, setUsers] = useState<AdminUser[]>([]);
