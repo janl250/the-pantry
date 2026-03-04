@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Menu, Utensils, LogIn, LogOut, Globe, ChevronDown, Sun, Moon, Crown } from "lucide-react";
+import { Menu, Utensils, LogIn, LogOut, Globe, ChevronDown, Sun, Moon, Crown, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
+import { useAdmin } from "@/hooks/useAdmin";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -13,6 +14,7 @@ import { useState } from "react";
 export const Navigation = () => {
   const { user, signOut, isAuthenticated } = useAuth();
   const { isPremium } = usePremium();
+  const { isAdmin } = useAdmin();
   const { language, setLanguage, t } = useLanguage();
   const { resolvedTheme, setTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -69,6 +71,14 @@ export const Navigation = () => {
                     </Link>
                   </DropdownMenuItem>
                 </>
+              )}
+              {isAdmin && (
+                <DropdownMenuItem asChild>
+                  <Link to="/admin" className="cursor-pointer flex items-center gap-2">
+                    <Shield className="h-4 w-4" />
+                    Admin
+                  </Link>
+                </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -170,6 +180,14 @@ export const Navigation = () => {
                   {language === 'de' ? 'Statistiken' : 'Statistics'}
                 </Button>
               </Link>
+              {isAdmin && (
+                <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium gap-2">
+                    <Shield className="h-4 w-4" />
+                    Admin
+                  </Button>
+                </Link>
+              )}
               
               <div className="pt-4 border-t space-y-2">
                 {/* Theme Toggle Mobile */}
