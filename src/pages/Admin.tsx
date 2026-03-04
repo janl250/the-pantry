@@ -56,6 +56,13 @@ const Admin = () => {
     if (isAdmin) fetchUsers();
   }, [isAdmin]);
 
+  if (authLoading || adminLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
   if (!isAuthenticated) return <Navigate to="/auth" />;
   if (!isAdmin) return <Navigate to="/" />;
 
