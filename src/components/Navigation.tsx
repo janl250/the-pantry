@@ -180,6 +180,14 @@ export const Navigation = () => {
                   {language === 'de' ? 'Statistiken' : 'Statistics'}
                 </Button>
               </Link>
+              {isAdmin && (
+                <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-start text-foreground hover:text-primary font-medium gap-2">
+                    <Shield className="h-4 w-4" />
+                    Admin
+                  </Button>
+                </Link>
+              )}
               
               <div className="pt-4 border-t space-y-2">
                 {/* Theme Toggle Mobile */}
