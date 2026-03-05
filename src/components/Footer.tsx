@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Utensils, Facebook, Instagram, Twitter, Heart } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const KOFI_URL = "https://ko-fi.com/thepantry";
+const KOFI_URL = "https://ko-fi.com/jan152315";
 
 export const Footer = () => {
   const { t } = useLanguage();
