@@ -93,7 +93,7 @@ export default function DishLibrary() {
   const loadDishRatings = async () => {
     try {
       const { data, error } = await supabase
-        .rpc('get_dish_ratings', { _user_id: user?.id || '00000000-0000-0000-0000-000000000000' });
+        .rpc('get_dish_ratings');
 
       if (error) throw error;
 
