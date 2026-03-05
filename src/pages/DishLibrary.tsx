@@ -108,7 +108,7 @@ export default function DishLibrary() {
 
       setDishRatings(ratingsMap);
     } catch (error) {
-      console.error('Error loading ratings:', error);
+      if (import.meta.env.DEV) console.error('Error loading ratings:', error);
     }
   };
 
