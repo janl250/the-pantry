@@ -54,7 +54,7 @@ export default function Profile() {
         setDisplayName(data.display_name || user.email?.split('@')[0] || '');
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      if (import.meta.env.DEV) console.error('Error loading profile:', error);
     }
   };
 
