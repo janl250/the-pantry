@@ -1228,7 +1228,7 @@ export default function WeeklyCalendar() {
           duration: 2000
         });
       } catch (error) {
-        console.error('Import error:', error);
+        if (import.meta.env.DEV) console.error('Import error:', error);
         toast({
           title: t('weeklyCalendar.importJSONError'),
           variant: "destructive",
