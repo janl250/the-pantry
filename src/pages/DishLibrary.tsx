@@ -133,7 +133,7 @@ export default function DishLibrary() {
       });
 
     if (error) {
-      console.error('Error rating dish:', error);
+      if (import.meta.env.DEV) console.error('Error rating dish:', error);
       toast({
         title: "Error rating dish",
         variant: "destructive",
