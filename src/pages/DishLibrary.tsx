@@ -86,7 +86,7 @@ export default function DishLibrary() {
         setUserFavorites(new Set(data.map(f => f.dish_id)));
       }
     } catch (error) {
-      console.error('Error loading favorites:', error);
+      if (import.meta.env.DEV) console.error('Error loading favorites:', error);
     }
   };
 
