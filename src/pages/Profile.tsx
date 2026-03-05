@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, User, Mail, Calendar, ChefHat, Star, Heart, Users, Save, LogIn, Crown } from "lucide-react";
+
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -295,6 +296,31 @@ export default function Profile() {
                     </span>
                     <Badge variant="secondary">{stats.mealPlans}</Badge>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Support Card */}
+            <Card className="md:col-span-2 border-primary/20 bg-primary/5">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <Heart className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground">
+                      {language === 'de' ? 'Unterstütze The Pantry' : 'Support The Pantry'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {t('footer.supportDescription')}
+                    </p>
+                  </div>
+                  <a href="https://ko-fi.com/thepantry" target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" className="gap-2 shrink-0">
+                      <Heart className="h-4 w-4" />
+                      Ko-fi
+                    </Button>
+                  </a>
                 </div>
               </CardContent>
             </Card>

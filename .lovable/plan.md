@@ -1,21 +1,39 @@
 
+# Premium Features (Manuelles System)
 
-## Plan: Ko-fi Spendenlink einbauen
+## Übersicht
 
-Ko-fi ist die beste Wahl — kostenlos, keine Gebühren, ab 13 nutzbar.
+Freemium-Modell mit manuellem Premium-System. Admin schaltet Nutzer über die Supabase-Datenbank frei.
 
-### Änderungen
+## Limits (Gratis vs. Premium)
 
-1. **Footer.tsx** — Social-Media-Buttons um einen Ko-fi-Button ergänzen (Heart/Coffee Icon + Link zu deiner Ko-fi-Seite). Externer Link mit `target="_blank"`.
+| Feature | Gratis | Premium |
+|---------|--------|---------|
+| Eigene Gerichte | Max. 10 | Unbegrenzt |
+| Gruppen beitreten | Max. 3 | Unbegrenzt |
+| KI-Wochenplan-Generator | Gesperrt | Verfügbar |
+| KI-Zutaten-Rezeptgenerator | Gesperrt | Verfügbar |
+| KI-Foto-Erkennung | Gesperrt | Verfügbar |
 
-2. **Profile.tsx** — Im unteren Bereich der Profilseite eine kleine "Unterstütze The Pantry"-Karte mit Ko-fi-Link einfügen.
+## Implementiert
 
-3. **LanguageContext.tsx** — Übersetzungsschlüssel hinzufügen:
-   - `footer.support` → "Unterstütze uns" / "Support us"
-   - `profile.supportDescription` → "Wenn dir The Pantry gefällt, unterstütze die Entwicklung mit einem Kaffee!" / "If you enjoy The Pantry, support development with a coffee!"
+- ✅ `subscriptions` Tabelle mit RLS
+- ✅ `is_premium(user_id)` Security Definer Funktion
+- ✅ `usePremium()` Hook mit React Query
+- ✅ `PremiumUpgradeDialog` Komponente (zweisprachig)
+- ✅ Limits in DishLibrary, Groups, WeeklyCalendar, IngredientFinder
+- ✅ Premium-Badge in Navigation
+- ✅ Premium-Status auf Profilseite
 
-4. **PremiumUpgradeDialog.tsx** — Den bestehenden "Kontaktiere den Admin"-Text durch einen Ko-fi-Link ersetzen, damit Nutzer direkt spenden können wenn sie auf Premium-Limits stossen.
+## Admin: Nutzer freischalten
 
-### Hinweis
-Du musst zuerst ein Ko-fi-Konto erstellen (ko-fi.com) und mir dann deinen Ko-fi-Benutzernamen geben, damit ich den richtigen Link einbauen kann. Alternativ verwende ich einen Platzhalter-Link den du später anpasst.
+In Supabase SQL Editor:
+```sql
+INSERT INTO public.subscriptions (user_id, status)
+VALUES ('USER_UUID_HERE', 'active');
+```
 
+Zum Deaktivieren:
+```sql
+UPDATE public.subscriptions SET status = 'canceled' WHERE user_id = 'USER_UUID_HERE';
+```

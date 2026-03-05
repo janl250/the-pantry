@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Crown, ChefHat, Users, Sparkles, Camera, Calendar } from "lucide-react";
+import { Crown, ChefHat, Users, Sparkles, Camera, Calendar, Heart } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PremiumUpgradeDialogProps {
@@ -58,12 +58,18 @@ export function PremiumUpgradeDialog({ open, onOpenChange, feature }: PremiumUpg
           ))}
         </div>
 
-        <div className="bg-muted rounded-lg p-4 text-center">
+        <div className="bg-muted rounded-lg p-4 text-center space-y-3">
           <p className="text-muted-foreground text-sm">
             {language === 'de'
-              ? 'Premium wird vom Administrator freigeschaltet. Kontaktiere den Admin für ein Upgrade.'
-              : 'Premium is activated by the administrator. Contact the admin for an upgrade.'}
+              ? 'Unterstütze The Pantry mit einer Spende und erhalte Premium-Zugang!'
+              : 'Support The Pantry with a donation and get Premium access!'}
           </p>
+          <a href="https://ko-fi.com/thepantry" target="_blank" rel="noopener noreferrer">
+            <Button className="w-full gap-2 mt-2">
+              <Heart className="h-4 w-4" />
+              {language === 'de' ? 'Auf Ko-fi unterstützen' : 'Support on Ko-fi'}
+            </Button>
+          </a>
         </div>
 
         <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full">
