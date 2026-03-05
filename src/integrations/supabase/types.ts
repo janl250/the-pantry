@@ -443,7 +443,7 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
-      is_premium: { Args: { _user_id: string }; Returns: boolean }
+      is_premium: { Args: never; Returns: boolean }
       join_group_by_code: { Args: { p_invite_code: string }; Returns: Json }
     }
     Enums: {
