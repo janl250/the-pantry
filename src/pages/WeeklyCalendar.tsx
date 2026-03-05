@@ -816,7 +816,7 @@ export default function WeeklyCalendar() {
           week_start_date: weekStartString
         });
       } catch (error) {
-        console.error('Error logging activity:', error);
+        if (import.meta.env.DEV) console.error('Error logging activity:', error);
       }
     }
   };
