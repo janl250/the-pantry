@@ -64,7 +64,7 @@ export function PremiumUpgradeDialog({ open, onOpenChange, feature }: PremiumUpg
               ? 'Unterstütze The Pantry mit einer Spende und erhalte Premium-Zugang!'
               : 'Support The Pantry with a donation and get Premium access!'}
           </p>
-          <a href="https://ko-fi.com/thepantry" target="_blank" rel="noopener noreferrer">
+          <a href="https://ko-fi.com/jan152315" target="_blank" rel="noopener noreferrer">
             <Button className="w-full gap-2 mt-2">
               <Heart className="h-4 w-4" />
               {language === 'de' ? 'Auf Ko-fi unterstützen' : 'Support on Ko-fi'}

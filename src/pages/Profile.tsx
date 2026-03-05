@@ -315,7 +315,7 @@ export default function Profile() {
                       {t('footer.supportDescription')}
                     </p>
                   </div>
-                  <a href="https://ko-fi.com/thepantry" target="_blank" rel="noopener noreferrer">
+                  <a href="https://ko-fi.com/jan152315" target="_blank" rel="noopener noreferrer">
                     <Button variant="outline" className="gap-2 shrink-0">
                       <Heart className="h-4 w-4" />
                       Ko-fi
