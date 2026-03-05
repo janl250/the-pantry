@@ -1317,7 +1317,7 @@ export default function WeeklyCalendar() {
           : 'Dishes from last week have been loaded. Don\'t forget to save!'
       });
     } catch (error) {
-      console.error('Error copying last week:', error);
+      if (import.meta.env.DEV) console.error('Error copying last week:', error);
       toast({
         title: language === 'de' ? 'Fehler' : 'Error',
         description: language === 'de'
