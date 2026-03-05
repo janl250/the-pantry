@@ -202,6 +202,9 @@ const translations = {
     
     // Footer
     'footer.rights': 'Alle Rechte vorbehalten.',
+    'footer.support': 'Unterstütze uns',
+    'footer.supportDescription': 'Wenn dir The Pantry gefällt, unterstütze die Entwicklung mit einem Kaffee!',
+    'footer.supportButton': 'Auf Ko-fi unterstützen',
     
     // Favorites
     'favorites.add': 'Zu Favoriten hinzufügen',
