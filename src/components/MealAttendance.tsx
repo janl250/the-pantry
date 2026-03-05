@@ -88,7 +88,7 @@ export function MealAttendance({ groupId, dayKey, weekStartDate, userId }: MealA
         }
       }
     } catch (error) {
-      console.error('Error loading attendance:', error);
+      if (import.meta.env.DEV) console.error('Error loading attendance:', error);
     }
   };
 
