@@ -92,33 +92,17 @@ export default function DishLibrary() {
 
   const loadDishRatings = async () => {
     try {
-      const { data: allRatings, error } = await supabase
-        .from('dish_ratings')
-        .select('*');
+      const { data, error } = await supabase
+        .rpc('get_dish_ratings', { _user_id: user?.id || '00000000-0000-0000-0000-000000000000' });
 
       if (error) throw error;
 
       const ratingsMap = new Map<string, { avg: number, count: number, userRating?: number }>();
-      const dishGroups = new Map<string, { total: number, count: number, userRating?: number }>();
-
-      allRatings?.forEach(rating => {
-        const key = rating.dish_id;
-        if (!dishGroups.has(key)) {
-          dishGroups.set(key, { total: 0, count: 0 });
-        }
-        const group = dishGroups.get(key)!;
-        group.total += rating.rating;
-        group.count += 1;
-        if (user && rating.user_id === user.id) {
-          group.userRating = rating.rating;
-        }
-      });
-
-      dishGroups.forEach((value, key) => {
-        ratingsMap.set(key, {
-          avg: value.total / value.count,
-          count: value.count,
-          userRating: value.userRating
+      data?.forEach((row: any) => {
+        ratingsMap.set(row.dish_id, {
+          avg: Number(row.avg_rating),
+          count: Number(row.rating_count),
+          userRating: row.user_rating ?? undefined
         });
       });
 
