@@ -649,7 +649,7 @@ export default function WeeklyCalendar() {
       });
 
     if (error) {
-      console.error('Error rating dish:', error);
+      if (import.meta.env.DEV) console.error('Error rating dish:', error);
       toast({
         title: "Fehler beim Bewerten",
         variant: "destructive",
