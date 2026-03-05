@@ -104,7 +104,7 @@ export default function Groups() {
         setGroups(groupsWithCounts);
       }
     } catch (error) {
-      console.error('Error loading groups:', error);
+      if (import.meta.env.DEV) console.error('Error loading groups:', error);
       toast({
         title: language === 'de' ? "Fehler" : "Error",
         description: t('groups.error'),
