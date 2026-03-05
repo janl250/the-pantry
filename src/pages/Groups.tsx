@@ -141,7 +141,7 @@ export default function Groups() {
 
       loadGroups();
     } catch (error) {
-      console.error('Error leaving group:', error);
+      if (import.meta.env.DEV) console.error('Error leaving group:', error);
       toast({
         title: language === 'de' ? "Fehler" : "Error",
         description: t('groups.error'),
