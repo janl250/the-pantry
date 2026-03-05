@@ -79,7 +79,7 @@ export default function Profile() {
         mealPlans: mealPlansRes.count || 0
       });
     } catch (error) {
-      console.error('Error loading stats:', error);
+      if (import.meta.env.DEV) console.error('Error loading stats:', error);
     }
   };
 
