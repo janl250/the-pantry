@@ -141,7 +141,7 @@ export function GroupChat({ groupId }: GroupChatProps) {
       
       setTimeout(scrollToBottom, 100);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      if (import.meta.env.DEV) console.error('Error loading messages:', error);
     } finally {
       setLoading(false);
     }
