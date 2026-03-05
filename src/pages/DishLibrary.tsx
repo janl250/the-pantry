@@ -65,7 +65,7 @@ export default function DishLibrary() {
         }
       }
     } catch (error) {
-      console.error('Error loading user dishes:', error);
+      if (import.meta.env.DEV) console.error('Error loading user dishes:', error);
     } finally {
       setIsLoading(false);
     }
