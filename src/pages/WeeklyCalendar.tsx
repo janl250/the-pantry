@@ -512,7 +512,7 @@ export default function WeeklyCalendar() {
         setProfiles(prev => ({ ...prev, ...profilesMap }));
       }
     } catch (error) {
-      console.error('Error loading profiles:', error);
+      if (import.meta.env.DEV) console.error('Error loading profiles:', error);
     }
   };
 
