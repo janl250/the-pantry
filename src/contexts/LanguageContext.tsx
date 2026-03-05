@@ -569,6 +569,9 @@ const translations = {
     
     // Footer
     'footer.rights': 'All rights reserved.',
+    'footer.support': 'Support us',
+    'footer.supportDescription': 'If you enjoy The Pantry, support development with a coffee!',
+    'footer.supportButton': 'Support on Ko-fi',
     
     // Favorites
     'favorites.add': 'Add to favorites',

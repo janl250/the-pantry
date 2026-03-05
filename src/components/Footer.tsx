@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Utensils, Facebook, Instagram, Twitter } from "lucide-react";
+import { Utensils, Facebook, Instagram, Twitter, Heart } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+
+const KOFI_URL = "https://ko-fi.com/thepantry";
 
 export const Footer = () => {
   const { t } = useLanguage();
@@ -21,7 +23,12 @@ export const Footer = () => {
             </p>
           </div>
           
-          <div className="flex space-x-3">
+          <div className="flex items-center space-x-3">
+            <a href={KOFI_URL} target="_blank" rel="noopener noreferrer">
+              <Button variant="ghost" size="icon" className="text-secondary-foreground hover:text-primary bg-secondary-foreground/10 hover:bg-secondary-foreground/20 rounded-full">
+                <Heart className="h-5 w-5" />
+              </Button>
+            </a>
             <Button variant="ghost" size="icon" className="text-secondary-foreground hover:text-primary bg-secondary-foreground/10 hover:bg-secondary-foreground/20 rounded-full">
               <Facebook className="h-5 w-5" />
             </Button>
