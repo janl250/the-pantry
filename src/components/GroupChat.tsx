@@ -141,7 +141,7 @@ export function GroupChat({ groupId }: GroupChatProps) {
       
       setTimeout(scrollToBottom, 100);
     } catch (error) {
-      console.error('Error loading messages:', error);
+      if (import.meta.env.DEV) console.error('Error loading messages:', error);
     } finally {
       setLoading(false);
     }
@@ -171,7 +171,7 @@ export function GroupChat({ groupId }: GroupChatProps) {
       if (error) throw error;
       setNewMessage("");
     } catch (error) {
-      console.error('Error sending message:', error);
+      if (import.meta.env.DEV) console.error('Error sending message:', error);
       toast({
         title: language === 'de' ? "Fehler" : "Error",
         description: language === 'de' ? "Nachricht konnte nicht gesendet werden" : "Could not send message",
@@ -191,7 +191,7 @@ export function GroupChat({ groupId }: GroupChatProps) {
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error deleting message:', error);
+      if (import.meta.env.DEV) console.error('Error deleting message:', error);
       toast({
         title: language === 'de' ? "Fehler" : "Error",
         description: language === 'de' ? "Nachricht konnte nicht gelöscht werden" : "Could not delete message",

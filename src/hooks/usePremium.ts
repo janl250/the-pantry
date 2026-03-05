@@ -17,7 +17,7 @@ export function usePremium() {
         .maybeSingle();
 
       if (error) {
-        console.error("Error checking premium status:", error);
+        if (import.meta.env.DEV) console.error("Error checking premium status:", error);
         return null;
       }
       return data;

@@ -33,7 +33,7 @@ export function useAuth() {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      console.error("Error signing out:", error);
+      if (import.meta.env.DEV) console.error("Error signing out:", error);
     } else {
       // Force immediate UI refresh after logout
       window.location.reload();

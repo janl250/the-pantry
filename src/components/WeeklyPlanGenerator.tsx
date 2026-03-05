@@ -151,7 +151,7 @@ export function WeeklyPlanGenerator({ availableDishes, onPlanGenerated }: Weekly
         }
       }
     } catch (error: any) {
-      console.error('Error generating plan:', error);
+      if (import.meta.env.DEV) console.error('Error generating plan:', error);
       toast({
         title: language === 'de' ? 'Fehler' : 'Error',
         description: error.message || (language === 'de' ? 'Plan konnte nicht erstellt werden' : 'Could not generate plan'),

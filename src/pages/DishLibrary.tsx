@@ -65,7 +65,7 @@ export default function DishLibrary() {
         }
       }
     } catch (error) {
-      console.error('Error loading user dishes:', error);
+      if (import.meta.env.DEV) console.error('Error loading user dishes:', error);
     } finally {
       setIsLoading(false);
     }
@@ -86,14 +86,14 @@ export default function DishLibrary() {
         setUserFavorites(new Set(data.map(f => f.dish_id)));
       }
     } catch (error) {
-      console.error('Error loading favorites:', error);
+      if (import.meta.env.DEV) console.error('Error loading favorites:', error);
     }
   };
 
   const loadDishRatings = async () => {
     try {
       const { data, error } = await supabase
-        .rpc('get_dish_ratings', { _user_id: user?.id || '00000000-0000-0000-0000-000000000000' });
+        .rpc('get_dish_ratings');
 
       if (error) throw error;
 
@@ -108,7 +108,7 @@ export default function DishLibrary() {
 
       setDishRatings(ratingsMap);
     } catch (error) {
-      console.error('Error loading ratings:', error);
+      if (import.meta.env.DEV) console.error('Error loading ratings:', error);
     }
   };
 
@@ -133,7 +133,7 @@ export default function DishLibrary() {
       });
 
     if (error) {
-      console.error('Error rating dish:', error);
+      if (import.meta.env.DEV) console.error('Error rating dish:', error);
       toast({
         title: "Error rating dish",
         variant: "destructive",
@@ -264,7 +264,7 @@ export default function DishLibrary() {
       });
       setDishStats(statsMap);
     } catch (error) {
-      console.error('Error loading dish stats:', error);
+      if (import.meta.env.DEV) console.error('Error loading dish stats:', error);
     }
   };
   
@@ -343,7 +343,7 @@ export default function DishLibrary() {
       });
       setShowRandomDialog(false);
     } catch (error) {
-      console.error('Error adding to today:', error);
+      if (import.meta.env.DEV) console.error('Error adding to today:', error);
       toast({
         title: t('common.error'),
         variant: "destructive"

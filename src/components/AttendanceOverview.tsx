@@ -106,7 +106,7 @@ export function AttendanceOverview({ groupId, weekStartDate }: AttendanceOvervie
 
       setMembers(membersMap);
     } catch (error) {
-      console.error('Error loading attendance overview:', error);
+      if (import.meta.env.DEV) console.error('Error loading attendance overview:', error);
     } finally {
       setLoading(false);
     }

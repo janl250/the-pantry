@@ -88,7 +88,7 @@ export function MealAttendance({ groupId, dayKey, weekStartDate, userId }: MealA
         }
       }
     } catch (error) {
-      console.error('Error loading attendance:', error);
+      if (import.meta.env.DEV) console.error('Error loading attendance:', error);
     }
   };
 
@@ -117,7 +117,7 @@ export function MealAttendance({ groupId, dayKey, weekStartDate, userId }: MealA
         duration: 2000
       });
     } catch (error) {
-      console.error('Error updating attendance:', error);
+      if (import.meta.env.DEV) console.error('Error updating attendance:', error);
       toast({
         title: language === 'de' ? 'Fehler beim Aktualisieren' : 'Error updating',
         variant: 'destructive'

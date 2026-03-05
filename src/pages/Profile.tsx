@@ -54,7 +54,7 @@ export default function Profile() {
         setDisplayName(data.display_name || user.email?.split('@')[0] || '');
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      if (import.meta.env.DEV) console.error('Error loading profile:', error);
     }
   };
 
@@ -79,7 +79,7 @@ export default function Profile() {
         mealPlans: mealPlansRes.count || 0
       });
     } catch (error) {
-      console.error('Error loading stats:', error);
+      if (import.meta.env.DEV) console.error('Error loading stats:', error);
     }
   };
 
@@ -99,7 +99,7 @@ export default function Profile() {
         title: language === 'de' ? 'Profil gespeichert!' : 'Profile saved!',
       });
     } catch (error) {
-      console.error('Error saving profile:', error);
+      if (import.meta.env.DEV) console.error('Error saving profile:', error);
       toast({
         title: language === 'de' ? 'Fehler beim Speichern' : 'Error saving',
         variant: "destructive"

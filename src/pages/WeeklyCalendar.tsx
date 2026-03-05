@@ -489,7 +489,7 @@ export default function WeeklyCalendar() {
         setUserDishes(data.map(convertUserDishToDish));
       }
     } catch (error) {
-      console.error('Error loading user dishes:', error);
+      if (import.meta.env.DEV) console.error('Error loading user dishes:', error);
     }
   };
 
@@ -512,7 +512,7 @@ export default function WeeklyCalendar() {
         setProfiles(prev => ({ ...prev, ...profilesMap }));
       }
     } catch (error) {
-      console.error('Error loading profiles:', error);
+      if (import.meta.env.DEV) console.error('Error loading profiles:', error);
     }
   };
 
@@ -531,7 +531,7 @@ export default function WeeklyCalendar() {
         setUserFavorites(new Set(data.map(f => f.dish_id)));
       }
     } catch (error) {
-      console.error('Error loading favorites:', error);
+      if (import.meta.env.DEV) console.error('Error loading favorites:', error);
     }
   };
 
@@ -609,10 +609,10 @@ export default function WeeklyCalendar() {
     if (!user) return;
 
     const { data, error } = await supabase
-      .rpc('get_dish_ratings', { _user_id: user.id });
+      .rpc('get_dish_ratings');
 
     if (error) {
-      console.error('Error loading ratings:', error);
+      if (import.meta.env.DEV) console.error('Error loading ratings:', error);
       return;
     }
 
@@ -649,7 +649,7 @@ export default function WeeklyCalendar() {
       });
 
     if (error) {
-      console.error('Error rating dish:', error);
+      if (import.meta.env.DEV) console.error('Error rating dish:', error);
       toast({
         title: "Fehler beim Bewerten",
         variant: "destructive",
@@ -816,7 +816,7 @@ export default function WeeklyCalendar() {
           week_start_date: weekStartString
         });
       } catch (error) {
-        console.error('Error logging activity:', error);
+        if (import.meta.env.DEV) console.error('Error logging activity:', error);
       }
     }
   };
@@ -844,7 +844,7 @@ export default function WeeklyCalendar() {
           week_start_date: weekStartString
         });
       } catch (error) {
-        console.error('Error logging activity:', error);
+        if (import.meta.env.DEV) console.error('Error logging activity:', error);
       }
     }
   };
@@ -1228,7 +1228,7 @@ export default function WeeklyCalendar() {
           duration: 2000
         });
       } catch (error) {
-        console.error('Import error:', error);
+        if (import.meta.env.DEV) console.error('Import error:', error);
         toast({
           title: t('weeklyCalendar.importJSONError'),
           variant: "destructive",
@@ -1317,7 +1317,7 @@ export default function WeeklyCalendar() {
           : 'Dishes from last week have been loaded. Don\'t forget to save!'
       });
     } catch (error) {
-      console.error('Error copying last week:', error);
+      if (import.meta.env.DEV) console.error('Error copying last week:', error);
       toast({
         title: language === 'de' ? 'Fehler' : 'Error',
         description: language === 'de'

@@ -104,7 +104,7 @@ export default function Groups() {
         setGroups(groupsWithCounts);
       }
     } catch (error) {
-      console.error('Error loading groups:', error);
+      if (import.meta.env.DEV) console.error('Error loading groups:', error);
       toast({
         title: language === 'de' ? "Fehler" : "Error",
         description: t('groups.error'),
@@ -141,7 +141,7 @@ export default function Groups() {
 
       loadGroups();
     } catch (error) {
-      console.error('Error leaving group:', error);
+      if (import.meta.env.DEV) console.error('Error leaving group:', error);
       toast({
         title: language === 'de' ? "Fehler" : "Error",
         description: t('groups.error'),
@@ -154,6 +154,18 @@ export default function Groups() {
 
   const handleDeleteGroup = async () => {
     if (!deleteGroupId) return;
+
+    // Explicit role check before attempting deletion
+    const group = groups.find(g => g.id === deleteGroupId);
+    if (!group || group.user_role !== 'creator') {
+      toast({
+        title: language === 'de' ? "Keine Berechtigung" : "Permission Denied",
+        description: language === 'de' ? "Nur der Ersteller kann die Gruppe löschen." : "Only the creator can delete the group.",
+        variant: "destructive"
+      });
+      setDeleteGroupId(null);
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -170,7 +182,7 @@ export default function Groups() {
 
       loadGroups();
     } catch (error) {
-      console.error('Error deleting group:', error);
+      if (import.meta.env.DEV) console.error('Error deleting group:', error);
       toast({
         title: language === 'de' ? "Fehler" : "Error",
         description: t('groups.error'),

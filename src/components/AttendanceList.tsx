@@ -91,7 +91,7 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
         setAttendance(attendanceWithNames);
       }
     } catch (error) {
-      console.error('Error loading attendance data:', error);
+      if (import.meta.env.DEV) console.error('Error loading attendance data:', error);
     } finally {
       setLoading(false);
     }
@@ -120,7 +120,7 @@ export function AttendanceList({ groupId, dayKey, weekStartDate, userId }: Atten
       });
 
     if (error) {
-      console.error('Error updating attendance:', error);
+      if (import.meta.env.DEV) console.error('Error updating attendance:', error);
       // Revert on error
       loadData();
     }

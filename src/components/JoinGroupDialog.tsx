@@ -45,13 +45,12 @@ export function JoinGroupDialog({ open, onOpenChange, onSuccess }: JoinGroupDial
     try {
       // Join via secure RPC to avoid RLS issues when looking up by invite code
       const code = inviteCode.trim().toUpperCase();
-      console.log('[JoinGroup] Attempt RPC join_group_by_code with code:', code);
       const { data: result, error: rpcError } = await supabase.rpc('join_group_by_code', {
         p_invite_code: code,
       });
 
       if (rpcError) {
-        console.error('[JoinGroup] RPC error:', rpcError);
+        if (import.meta.env.DEV) console.error('[JoinGroup] RPC error:', rpcError);
         throw rpcError;
       }
 

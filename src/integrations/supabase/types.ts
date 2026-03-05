@@ -416,15 +416,25 @@ export type Database = {
     }
     Functions: {
       generate_invite_code: { Args: never; Returns: string }
-      get_dish_ratings: {
-        Args: { _user_id: string }
-        Returns: {
-          avg_rating: number
-          dish_id: string
-          rating_count: number
-          user_rating: number
-        }[]
-      }
+      get_dish_ratings:
+        | {
+            Args: never
+            Returns: {
+              avg_rating: number
+              dish_id: string
+              rating_count: number
+              user_rating: number
+            }[]
+          }
+        | {
+            Args: { _user_id: string }
+            Returns: {
+              avg_rating: number
+              dish_id: string
+              rating_count: number
+              user_rating: number
+            }[]
+          }
       is_group_creator: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean

@@ -83,7 +83,7 @@ export function DishPhotoRecognition({ userDishes, onDishAdded }: DishPhotoRecog
         setRecognizedDish(data.dish);
       }
     } catch (error: any) {
-      console.error('Error analyzing image:', error);
+      if (import.meta.env.DEV) console.error('Error analyzing image:', error);
       toast({
         title: language === 'de' ? 'Fehler' : 'Error',
         description: error.message || (language === 'de' ? 'Analyse fehlgeschlagen' : 'Analysis failed'),
@@ -120,7 +120,7 @@ export function DishPhotoRecognition({ userDishes, onDishAdded }: DishPhotoRecog
       setPreviewUrl(null);
       onDishAdded?.();
     } catch (error: any) {
-      console.error('Error adding dish:', error);
+      if (import.meta.env.DEV) console.error('Error adding dish:', error);
       toast({
         title: language === 'de' ? 'Fehler' : 'Error',
         description: error.message,
