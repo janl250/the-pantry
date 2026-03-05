@@ -50,7 +50,7 @@ export function JoinGroupDialog({ open, onOpenChange, onSuccess }: JoinGroupDial
       });
 
       if (rpcError) {
-        console.error('[JoinGroup] RPC error:', rpcError);
+        if (import.meta.env.DEV) console.error('[JoinGroup] RPC error:', rpcError);
         throw rpcError;
       }
 

@@ -182,7 +182,7 @@ export default function Groups() {
 
       loadGroups();
     } catch (error) {
-      console.error('Error deleting group:', error);
+      if (import.meta.env.DEV) console.error('Error deleting group:', error);
       toast({
         title: language === 'de' ? "Fehler" : "Error",
         description: t('groups.error'),

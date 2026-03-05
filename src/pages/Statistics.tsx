@@ -221,7 +221,7 @@ export default function Statistics() {
         topDishes
       });
     } catch (error) {
-      console.error('Error loading statistics:', error);
+      if (import.meta.env.DEV) console.error('Error loading statistics:', error);
     } finally {
       setLoading(false);
     }

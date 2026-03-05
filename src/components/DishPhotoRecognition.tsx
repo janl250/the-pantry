@@ -120,7 +120,7 @@ export function DishPhotoRecognition({ userDishes, onDishAdded }: DishPhotoRecog
       setPreviewUrl(null);
       onDishAdded?.();
     } catch (error: any) {
-      console.error('Error adding dish:', error);
+      if (import.meta.env.DEV) console.error('Error adding dish:', error);
       toast({
         title: language === 'de' ? 'Fehler' : 'Error',
         description: error.message,

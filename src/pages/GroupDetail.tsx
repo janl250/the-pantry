@@ -171,7 +171,7 @@ export default function GroupDetail() {
 
       setActivities(data || []);
     } catch (error) {
-      console.error('Error loading activities:', error);
+      if (import.meta.env.DEV) console.error('Error loading activities:', error);
     }
   };
 

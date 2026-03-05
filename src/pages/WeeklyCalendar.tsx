@@ -609,7 +609,7 @@ export default function WeeklyCalendar() {
     if (!user) return;
 
     const { data, error } = await supabase
-      .rpc('get_dish_ratings', { _user_id: user.id });
+      .rpc('get_dish_ratings');
 
     if (error) {
       console.error('Error loading ratings:', error);

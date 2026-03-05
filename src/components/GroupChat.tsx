@@ -191,7 +191,7 @@ export function GroupChat({ groupId }: GroupChatProps) {
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error deleting message:', error);
+      if (import.meta.env.DEV) console.error('Error deleting message:', error);
       toast({
         title: language === 'de' ? "Fehler" : "Error",
         description: language === 'de' ? "Nachricht konnte nicht gelöscht werden" : "Could not delete message",

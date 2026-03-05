@@ -343,7 +343,7 @@ export default function DishLibrary() {
       });
       setShowRandomDialog(false);
     } catch (error) {
-      console.error('Error adding to today:', error);
+      if (import.meta.env.DEV) console.error('Error adding to today:', error);
       toast({
         title: t('common.error'),
         variant: "destructive"
