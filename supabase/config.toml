@@ -1,1 +1,13 @@
 project_id = "zobwmmsnzqktciwbmhmh"
+
+[functions.recipe-generator]
+verify_jwt = false
+
+[functions.dish-photo-recognition]
+verify_jwt = false
+
+[functions.weekly-plan-generator]
+verify_jwt = false
+
+[functions.manage-premium]
+verify_jwt = false
