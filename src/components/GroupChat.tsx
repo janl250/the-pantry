@@ -171,7 +171,7 @@ export function GroupChat({ groupId }: GroupChatProps) {
       if (error) throw error;
       setNewMessage("");
     } catch (error) {
-      console.error('Error sending message:', error);
+      if (import.meta.env.DEV) console.error('Error sending message:', error);
       toast({
         title: language === 'de' ? "Fehler" : "Error",
         description: language === 'de' ? "Nachricht konnte nicht gesendet werden" : "Could not send message",
