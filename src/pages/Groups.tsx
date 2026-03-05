@@ -155,6 +155,18 @@ export default function Groups() {
   const handleDeleteGroup = async () => {
     if (!deleteGroupId) return;
 
+    // Explicit role check before attempting deletion
+    const group = groups.find(g => g.id === deleteGroupId);
+    if (!group || group.user_role !== 'creator') {
+      toast({
+        title: language === 'de' ? "Keine Berechtigung" : "Permission Denied",
+        description: language === 'de' ? "Nur der Ersteller kann die Gruppe löschen." : "Only the creator can delete the group.",
+        variant: "destructive"
+      });
+      setDeleteGroupId(null);
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('groups')
