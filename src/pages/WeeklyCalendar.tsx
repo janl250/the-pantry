@@ -612,7 +612,7 @@ export default function WeeklyCalendar() {
       .rpc('get_dish_ratings');
 
     if (error) {
-      console.error('Error loading ratings:', error);
+      if (import.meta.env.DEV) console.error('Error loading ratings:', error);
       return;
     }
 
