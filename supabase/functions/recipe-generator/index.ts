@@ -26,6 +26,12 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Check premium status server-side
+    const { data: premiumData } = await supabase.rpc("is_premium");
+    if (!premiumData) {
+      return new Response(JSON.stringify({ error: "Premium required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const { ingredients, language = 'de', excludeDishes = [] } = await req.json();
 
     if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
