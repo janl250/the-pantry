@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     });
     const { data: { user }, error: authError } = await anonClient.auth.getUser();
     
-    if (authError || !user || user.email !== ADMIN_EMAIL) {
+    if (authError || !user || user.id !== ADMIN_USER_ID) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
