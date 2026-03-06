@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const ADMIN_EMAIL = "jan.j.leonhardt@gmail.com";
+const ADMIN_USER_ID = "f0c40ab8-de62-4662-8eb1-45c183b8d502";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     });
     const { data: { user }, error: authError } = await anonClient.auth.getUser();
     
-    if (authError || !user || user.email !== ADMIN_EMAIL) {
+    if (authError || !user || user.id !== ADMIN_USER_ID) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
