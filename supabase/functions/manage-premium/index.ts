@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const ADMIN_EMAIL = "jan.j.leonhardt@gmail.com";
+const ADMIN_USER_ID = "f0c40ab8-de62-4662-8eb1-45c183b8d502";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
