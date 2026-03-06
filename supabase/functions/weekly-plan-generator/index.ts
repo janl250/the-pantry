@@ -26,6 +26,12 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Check premium status server-side
+    const { data: premiumData } = await supabase.rpc("is_premium");
+    if (!premiumData) {
+      return new Response(JSON.stringify({ error: "Premium required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const {
       language = 'de',
       availableDishes = [],
