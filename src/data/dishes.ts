@@ -20,6 +20,14 @@ export const dinnerDishes: Dish[] = [
   { id: '8', name: 'Gnocchi al Pesto', tags: ['gnocchi', 'basil', 'pine nuts', 'parmesan', 'olive oil'], cookingTime: 'quick', difficulty: 'easy', cuisine: 'Italian', category: 'pasta' },
   { id: '9', name: 'Fettuccine Alfredo', tags: ['pasta', 'cream', 'parmesan', 'butter', 'garlic'], cookingTime: 'quick', difficulty: 'easy', cuisine: 'Italian', category: 'pasta' },
   { id: '10', name: 'Minestrone Soup', tags: ['vegetables', 'beans', 'pasta', 'tomatoes', 'herbs'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Italian', category: 'soup' },
+  { id: '184', name: 'Cacio e Pepe', tags: ['pasta', 'pecorino', 'black pepper', 'butter', 'parmesan'], cookingTime: 'quick', difficulty: 'medium', cuisine: 'Italian', category: 'pasta' },
+  { id: '185', name: 'Pizza Diavola', tags: ['dough', 'tomatoes', 'mozzarella', 'salami', 'chili'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Italian', category: 'pizza' },
+  { id: '186', name: 'Arancini', tags: ['rice', 'ground beef', 'peas', 'cheese', 'breadcrumbs'], cookingTime: 'long', difficulty: 'hard', cuisine: 'Italian', category: 'appetizer' },
+  { id: '187', name: 'Pasta alla Norma', tags: ['pasta', 'eggplant', 'tomatoes', 'ricotta salata', 'basil'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Italian', category: 'pasta' },
+  { id: '188', name: 'Gnocchi alla Sorrentina', tags: ['gnocchi', 'tomatoes', 'mozzarella', 'basil', 'parmesan'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Italian', category: 'pasta' },
+  { id: '189', name: 'Fritto Misto', tags: ['seafood', 'vegetables', 'flour', 'lemon', 'olive oil'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Italian', category: 'seafood' },
+  { id: '190', name: 'Panna Cotta', tags: ['cream', 'sugar', 'gelatin', 'vanilla', 'berries'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Italian', category: 'dessert' },
+  { id: '191', name: 'Pasta al Limone', tags: ['pasta', 'lemon', 'parmesan', 'butter', 'parsley'], cookingTime: 'quick', difficulty: 'easy', cuisine: 'Italian', category: 'pasta' },
 
   // Asian
   { id: '11', name: 'Beef Teriyaki', tags: ['beef', 'soy sauce', 'sugar', 'ginger', 'garlic'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Japanese', category: 'meat' },
@@ -99,6 +107,10 @@ export const dinnerDishes: Dish[] = [
   { id: '73', name: 'Moroccan Tagine', tags: ['lamb', 'vegetables', 'dried fruits', 'spices', 'couscous'], cookingTime: 'long', difficulty: 'hard', cuisine: 'Moroccan', category: 'meat' },
   { id: '74', name: 'Turkish Kebab', tags: ['lamb', 'yogurt', 'spices', 'vegetables', 'pita'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Turkish', category: 'meat' },
   { id: '75', name: 'Brazilian Feijoada', tags: ['black beans', 'pork', 'sausage', 'rice', 'vegetables'], cookingTime: 'long', difficulty: 'medium', cuisine: 'Brazilian', category: 'meat' },
+  { id: '209', name: 'Lamb Rogan Josh', tags: ['lamb', 'yogurt', 'tomatoes', 'onions', 'spices'], cookingTime: 'long', difficulty: 'medium', cuisine: 'Indian', category: 'meat' },
+  { id: '210', name: 'Chana Bhatura', tags: ['chickpeas', 'flour', 'tomatoes', 'onions', 'spices'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Indian', category: 'vegetable' },
+  { id: '211', name: 'Dosa', tags: ['rice batter', 'lentils', 'sambar', 'chutney', 'butter'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Indian', category: 'breakfast' },
+
   
   // More Italian
   { id: '76', name: 'Pasta Puttanesca', tags: ['pasta', 'tomatoes', 'olives', 'capers', 'anchovies', 'garlic'], cookingTime: 'quick', difficulty: 'easy', cuisine: 'Italian', category: 'pasta' },
@@ -127,7 +139,25 @@ export const dinnerDishes: Dish[] = [
   { id: '97', name: 'Peking Duck', tags: ['duck', 'pancakes', 'cucumber', 'scallions', 'hoisin sauce'], cookingTime: 'long', difficulty: 'hard', cuisine: 'Chinese', category: 'meat' },
   { id: '98', name: 'Laksa', tags: ['noodles', 'coconut milk', 'seafood', 'curry paste', 'herbs'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Malaysian', category: 'soup' },
   { id: '99', name: 'Nasi Goreng', tags: ['rice', 'shrimp', 'eggs', 'vegetables', 'soy sauce'], cookingTime: 'quick', difficulty: 'easy', cuisine: 'Indonesian', category: 'rice' },
+  { id: '192', name: 'Gyoza', tags: ['dumplings', 'pork', 'cabbage', 'ginger', 'soy sauce'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Japanese', category: 'appetizer' },
+  { id: '193', name: 'Omurice', tags: ['rice', 'eggs', 'chicken', 'ketchup', 'onions'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Japanese', category: 'rice' },
+  { id: '194', name: 'Japanese Curry', tags: ['curry roux', 'potatoes', 'carrots', 'onions', 'beef'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Japanese', category: 'meat' },
+  { id: '195', name: 'Takoyaki', tags: ['octopus', 'flour', 'eggs', 'dashi', 'scallions'], cookingTime: 'medium', difficulty: 'hard', cuisine: 'Japanese', category: 'appetizer' },
+  { id: '196', name: 'Tteokbokki', tags: ['rice cakes', 'gochujang', 'fish cake', 'scallions', 'sesame'], cookingTime: 'quick', difficulty: 'easy', cuisine: 'Korean', category: 'vegetable' },
+  { id: '197', name: 'Korean Fried Chicken', tags: ['chicken', 'cornstarch', 'soy sauce', 'garlic', 'gochujang'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Korean', category: 'chicken' },
+  { id: '198', name: 'Kimchi Jjigae', tags: ['kimchi', 'pork', 'tofu', 'scallions', 'sesame oil'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Korean', category: 'soup' },
+  { id: '199', name: 'Japchae', tags: ['glass noodles', 'beef', 'vegetables', 'sesame oil', 'soy sauce'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Korean', category: 'noodles' },
+  { id: '200', name: 'Dan Dan Noodles', tags: ['noodles', 'ground pork', 'sesame paste', 'chili oil', 'scallions'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Chinese', category: 'noodles' },
+  { id: '201', name: 'Xiaolongbao', tags: ['dumplings', 'pork', 'ginger', 'gelatin', 'soy sauce'], cookingTime: 'long', difficulty: 'hard', cuisine: 'Chinese', category: 'appetizer' },
+  { id: '202', name: 'Wonton Soup', tags: ['wonton wrappers', 'pork', 'shrimp', 'broth', 'scallions'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Chinese', category: 'soup' },
+  { id: '203', name: 'General Tso\'s Chicken', tags: ['chicken', 'chili', 'soy sauce', 'ginger', 'sugar'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Chinese', category: 'chicken' },
+  { id: '204', name: 'Hainanese Chicken Rice', tags: ['chicken', 'rice', 'ginger', 'garlic', 'sesame oil'], cookingTime: 'long', difficulty: 'medium', cuisine: 'Singaporean', category: 'chicken' },
+  { id: '205', name: 'Char Kway Teow', tags: ['rice noodles', 'shrimp', 'eggs', 'bean sprouts', 'soy sauce'], cookingTime: 'quick', difficulty: 'medium', cuisine: 'Malaysian', category: 'noodles' },
+  { id: '206', name: 'Gado Gado', tags: ['vegetables', 'tofu', 'eggs', 'peanut sauce', 'rice'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Indonesian', category: 'vegetable' },
+  { id: '207', name: 'Chicken Adobo', tags: ['chicken', 'vinegar', 'soy sauce', 'garlic', 'bay leaves'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Filipino', category: 'chicken' },
+  { id: '208', name: 'Pho Ga', tags: ['chicken', 'noodles', 'broth', 'herbs', 'lime'], cookingTime: 'long', difficulty: 'medium', cuisine: 'Vietnamese', category: 'soup' },
 
+  
   // More European
   { id: '100', name: 'Schnitzel with Spätzle', tags: ['pork', 'breadcrumbs', 'egg noodles', 'gravy'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'German', category: 'meat' },
   { id: '101', name: 'Fondue', tags: ['cheese', 'white wine', 'bread', 'garlic'], cookingTime: 'quick', difficulty: 'easy', cuisine: 'Swiss', category: 'appetizer' },
@@ -146,6 +176,14 @@ export const dinnerDishes: Dish[] = [
   { id: '114', name: 'Patatas Bravas', tags: ['potatoes', 'paprika', 'garlic', 'tomato sauce'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Spanish', category: 'vegetable' },
   { id: '115', name: 'Souvlaki', tags: ['pork', 'lemon', 'oregano', 'pita', 'tzatziki'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Greek', category: 'meat' },
   { id: '116', name: 'Spanakopita', tags: ['spinach', 'feta cheese', 'phyllo dough', 'eggs', 'herbs'], cookingTime: 'long', difficulty: 'hard', cuisine: 'Greek', category: 'vegetable' },
+  { id: '176', name: 'Zürcher Geschnetzeltes', tags: ['veal', 'mushrooms', 'cream', 'white wine', 'onions'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Swiss', category: 'meat' },
+  { id: '177', name: 'Älplermagronen', tags: ['macaroni', 'potatoes', 'cheese', 'onions', 'applesauce'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Swiss', category: 'pasta' },
+  { id: '178', name: 'Flammkuchen', tags: ['dough', 'cream', 'bacon', 'onions'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'German', category: 'pizza' },
+  { id: '179', name: 'Käsespätzle', tags: ['egg noodles', 'cheese', 'onions', 'butter', 'chives'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Swiss', category: 'pasta' },
+  { id: '180', name: 'Birchermüesli', tags: ['oats', 'yogurt', 'apples', 'nuts', 'honey'], cookingTime: 'quick', difficulty: 'easy', cuisine: 'Swiss', category: 'breakfast' },
+  { id: '181', name: 'Kaiserschmarrn', tags: ['eggs', 'flour', 'milk', 'raisins', 'powdered sugar'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Austrian', category: 'dessert' },
+  { id: '182', name: 'Tafelspitz', tags: ['beef', 'root vegetables', 'horseradish', 'broth', 'herbs'], cookingTime: 'long', difficulty: 'medium', cuisine: 'Austrian', category: 'meat' },
+  { id: '183', name: 'Bündner Gerstensuppe', tags: ['barley', 'smoked pork', 'leek', 'carrots', 'celery'], cookingTime: 'long', difficulty: 'easy', cuisine: 'Swiss', category: 'soup' },
 
   // More American
   { id: '117', name: 'Fried Chicken', tags: ['chicken', 'flour', 'buttermilk', 'spices'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'American', category: 'chicken' },
@@ -181,7 +219,11 @@ export const dinnerDishes: Dish[] = [
   { id: '143', name: 'Shakshuka', tags: ['eggs', 'tomatoes', 'bell peppers', 'onions', 'spices'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Middle Eastern', category: 'eggs' },
   { id: '144', name: 'Mushroom Risotto', tags: ['rice', 'mushrooms', 'parmesan', 'white wine', 'butter'], cookingTime: 'medium', difficulty: 'hard', cuisine: 'Italian', category: 'rice' },
   { id: '145', name: 'Vegetable Spring Rolls', tags: ['rice paper', 'vegetables', 'noodles', 'herbs', 'peanut sauce'], cookingTime: 'medium', difficulty: 'medium', cuisine: 'Vietnamese', category: 'appetizer' },
-
+  { id: '220', name: 'Pumpkin Cream Soup', tags: ['pumpkin', 'carrots', 'ginger', 'coconut milk', 'onions'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'International', category: 'soup' },
+  { id: '221', name: 'Sweet Potato Curry', tags: ['sweet potatoes', 'coconut milk', 'curry', 'chickpeas', 'spinach'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Indian', category: 'vegetable' },
+  { id: '222', name: 'Zucchini Fritters', tags: ['zucchini', 'eggs', 'flour', 'feta', 'herbs'], cookingTime: 'quick', difficulty: 'easy', cuisine: 'Mediterranean', category: 'vegetable' },
+  { id: '223', name: 'Mujaddara', tags: ['lentils', 'rice', 'onions', 'olive oil', 'cumin'], cookingTime: 'medium', difficulty: 'easy', cuisine: 'Middle Eastern', category: 'vegetable' },
+  
   // More Seafood
   { id: '146', name: 'Mussels in White Wine', tags: ['mussels', 'white wine', 'garlic', 'butter', 'parsley'], cookingTime: 'quick', difficulty: 'easy', cuisine: 'French', category: 'seafood' },
   { id: '147', name: 'Tuna Poke Bowl', tags: ['tuna', 'rice', 'avocado', 'soy sauce', 'sesame'], cookingTime: 'quick', difficulty: 'easy', cuisine: 'Hawaiian', category: 'fish' },
