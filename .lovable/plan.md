@@ -9,7 +9,7 @@ Freemium-Modell mit manuellem Premium-System. Admin schaltet Nutzer über die Su
 
 | Feature | Gratis | Premium |
 |---------|--------|---------|
-| Eigene Gerichte | Max. 10 | Unbegrenzt |
+| Eigene Gerichte | Max. 5 | Unbegrenzt |
 | Gruppen beitreten | Max. 3 | Unbegrenzt |
 | KI-Wochenplan-Generator | Gesperrt | Verfügbar |
 | KI-Zutaten-Rezeptgenerator | Gesperrt | Verfügbar |
