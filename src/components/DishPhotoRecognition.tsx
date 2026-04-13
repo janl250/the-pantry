@@ -56,13 +56,43 @@ export function DishPhotoRecognition({ userDishes, onDishAdded }: DishPhotoRecog
     setPreviewUrl(url);
     setRecognizedDish(null);
 
-    // Convert to base64
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64 = reader.result as string;
-      await analyzeImage(base64);
-    };
-    reader.readAsDataURL(file);
+    // Compress and convert to base64
+    try {
+      const compressedBase64 = await compressImage(file, 800, 0.7);
+      await analyzeImage(compressedBase64);
+    } catch (err) {
+      console.error('Image compression failed:', err);
+      toast({
+        title: language === 'de' ? 'Fehler' : 'Error',
+        description: language === 'de' ? 'Bild konnte nicht verarbeitet werden.' : 'Could not process image.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const compressImage = (file: File, maxSize: number, quality: number): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let { width, height } = img;
+        if (width > height) {
+          if (width > maxSize) { height = Math.round((height * maxSize) / width); width = maxSize; }
+        } else {
+          if (height > maxSize) { width = Math.round((width * maxSize) / height); height = maxSize; }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('Canvas not supported')); return; }
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        URL.revokeObjectURL(img.src);
+        resolve(dataUrl);
+      };
+      img.onerror = () => { URL.revokeObjectURL(img.src); reject(new Error('Failed to load image')); };
+      img.src = URL.createObjectURL(file);
+    });
   };
 
   const analyzeImage = async (imageBase64: string) => {
