@@ -77,6 +77,30 @@ export default function DishLibrary() {
     }
   };
 
+  const loadGlobalDishes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('global_dishes' as any)
+        .select('*');
+      
+      if (error) throw error;
+      
+      if (data) {
+        setGlobalDishes((data as any[]).map((d: any) => ({
+          id: `global-${d.id}`,
+          name: d.name,
+          tags: d.tags,
+          cookingTime: d.cooking_time,
+          difficulty: d.difficulty,
+          cuisine: d.cuisine,
+          category: d.category,
+        })));
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Error loading global dishes:', error);
+    }
+  };
+
   const loadUserFavorites = async () => {
     if (!user) return;
     
