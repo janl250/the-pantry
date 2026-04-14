@@ -537,6 +537,10 @@ export default function DishLibrary() {
                   onLimitReached={!isPremium && userDishes.length >= 10 ? () => setShowPremiumDialog(true) : undefined}
                 />
               </div>
+              <BulkImportDialog 
+                onImported={() => { loadUserDishes(); loadGlobalDishes(); }}
+                onLimitReached={!isPremium && userDishes.length >= 10 ? () => setShowPremiumDialog(true) : undefined}
+              />
             </div>
           </div>
 
