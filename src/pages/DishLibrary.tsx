@@ -888,6 +888,18 @@ export default function DishLibrary() {
             />
           )}
 
+          {customizingDish && (
+            <CustomizeDishDialog
+              dish={customizingDish}
+              personalizedDish={applyOverride(customizingDish)}
+              open={!!customizingDish}
+              onOpenChange={(open) => !open && setCustomizingDish(null)}
+              onSave={(data) => saveOverride(customizingDish.id, data)}
+              onReset={() => { deleteOverride(customizingDish.id); setCustomizingDish(null); }}
+              hasOverride={overrides.has(customizingDish.id)}
+            />
+          )
+
           {filteredDishes.length === 0 && (
             <div className="text-center py-16">
               <div className="mb-6">
