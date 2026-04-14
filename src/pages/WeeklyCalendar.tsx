@@ -24,6 +24,7 @@ import { MobileDayCard } from "@/components/MobileDayCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { WeeklyPlanGenerator } from "@/components/WeeklyPlanGenerator";
 import { AttendanceOverview } from "@/components/AttendanceOverview";
+import { useDishOverrides } from "@/hooks/useDishOverrides";
 
 type WeeklyMeals = {
   [key: string]: {
