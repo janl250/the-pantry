@@ -429,7 +429,8 @@ export default function DishLibrary() {
     };
   }, []);
 
-  const allDishes = [...dinnerDishes, ...userDishes];
+  const allDishesRaw = [...dinnerDishes, ...globalDishes, ...userDishes];
+  const allDishes = allDishesRaw.map(dish => applyOverride(dish));
   const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
   const categories = Array.from(new Set(allDishes.map(dish => dish.category))).sort();
 
