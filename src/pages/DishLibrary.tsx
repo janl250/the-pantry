@@ -252,6 +252,7 @@ export default function DishLibrary() {
 
   useEffect(() => {
     loadUserDishes();
+    loadGlobalDishes();
     if (isAuthenticated) {
       loadUserFavorites();
       loadDishStats();
