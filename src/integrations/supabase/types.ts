@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      dish_overrides: {
+        Row: {
+          category: string | null
+          cooking_time: string | null
+          created_at: string
+          cuisine: string | null
+          difficulty: string | null
+          dish_id: string
+          id: string
+          tags: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          cooking_time?: string | null
+          created_at?: string
+          cuisine?: string | null
+          difficulty?: string | null
+          dish_id: string
+          id?: string
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          cooking_time?: string | null
+          created_at?: string
+          cuisine?: string | null
+          difficulty?: string | null
+          dish_id?: string
+          id?: string
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dish_ratings: {
         Row: {
           created_at: string
@@ -41,6 +80,45 @@ export type Database = {
           rating?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      global_dishes: {
+        Row: {
+          added_by: string
+          category: string
+          cooking_time: string
+          created_at: string
+          cuisine: string
+          difficulty: string
+          id: string
+          name: string
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          added_by: string
+          category: string
+          cooking_time: string
+          created_at?: string
+          cuisine: string
+          difficulty: string
+          id?: string
+          name: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string
+          category?: string
+          cooking_time?: string
+          created_at?: string
+          cuisine?: string
+          difficulty?: string
+          id?: string
+          name?: string
+          tags?: string[]
+          updated_at?: string
         }
         Relationships: []
       }

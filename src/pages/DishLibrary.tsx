@@ -9,11 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Search, Filter, Heart, Star, Shuffle, CalendarPlus, BarChart3, Clock, ChefHat, X, Sparkles } from "lucide-react";
+import { ArrowLeft, Search, Filter, Heart, Star, Shuffle, CalendarPlus, BarChart3, Clock, ChefHat, X, Sparkles, Pencil } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AddDishDialog } from "@/components/AddDishDialog";
 import { EditDishDialog } from "@/components/EditDishDialog";
+import { CustomizeDishDialog } from "@/components/CustomizeDishDialog";
+import { BulkImportDialog } from "@/components/BulkImportDialog";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -21,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
+import { useDishOverrides } from "@/hooks/useDishOverrides";
 import { PremiumUpgradeDialog } from "@/components/PremiumUpgradeDialog";
 
 export default function DishLibrary() {
@@ -28,6 +31,7 @@ export default function DishLibrary() {
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
   const { isPremium } = usePremium();
+  const { overrides, saveOverride, deleteOverride, applyOverride } = useDishOverrides();
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,10 +42,12 @@ export default function DishLibrary() {
   const [selectedSortBy, setSelectedSortBy] = useState<string>("rating-desc");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [userDishes, setUserDishes] = useState<Dish[]>([]);
+  const [globalDishes, setGlobalDishes] = useState<Dish[]>([]);
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editingDish, setEditingDish] = useState<{ id: string; dish: Dish } | null>(null);
+  const [customizingDish, setCustomizingDish] = useState<Dish | null>(null);
   const [dishRatings, setDishRatings] = useState<Map<string, { avg: number, count: number, userRating?: number }>>(new Map());
   const [randomDish, setRandomDish] = useState<Dish | null>(null);
   const [showRandomDialog, setShowRandomDialog] = useState(false);
@@ -68,6 +74,30 @@ export default function DishLibrary() {
       if (import.meta.env.DEV) console.error('Error loading user dishes:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadGlobalDishes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('global_dishes' as any)
+        .select('*');
+      
+      if (error) throw error;
+      
+      if (data) {
+        setGlobalDishes((data as any[]).map((d: any) => ({
+          id: `global-${d.id}`,
+          name: d.name,
+          tags: d.tags,
+          cookingTime: d.cooking_time,
+          difficulty: d.difficulty,
+          cuisine: d.cuisine,
+          category: d.category,
+        })));
+      }
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Error loading global dishes:', error);
     }
   };
 
@@ -222,6 +252,7 @@ export default function DishLibrary() {
 
   useEffect(() => {
     loadUserDishes();
+    loadGlobalDishes();
     if (isAuthenticated) {
       loadUserFavorites();
       loadDishStats();
@@ -398,7 +429,8 @@ export default function DishLibrary() {
     };
   }, []);
 
-  const allDishes = [...dinnerDishes, ...userDishes];
+  const allDishesRaw = [...dinnerDishes, ...globalDishes, ...userDishes];
+  const allDishes = allDishesRaw.map(dish => applyOverride(dish));
   const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
   const categories = Array.from(new Set(allDishes.map(dish => dish.category))).sort();
 
@@ -505,6 +537,10 @@ export default function DishLibrary() {
                   onLimitReached={!isPremium && userDishes.length >= 10 ? () => setShowPremiumDialog(true) : undefined}
                 />
               </div>
+              <BulkImportDialog 
+                onImported={() => { loadUserDishes(); loadGlobalDishes(); }}
+                onLimitReached={!isPremium && userDishes.length >= 10 ? () => setShowPremiumDialog(true) : undefined}
+              />
             </div>
           </div>
 
@@ -704,10 +740,18 @@ export default function DishLibrary() {
               return (
                 <Card 
                   key={dish.id} 
-                  className={`group overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border bg-card/50 backdrop-blur-sm relative ${
+                  className={`group overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border bg-card/50 backdrop-blur-sm relative cursor-pointer ${
                     isFavorited ? 'border-amber-400/60 shadow-amber-400/20' : 'border-border/40'
-                  } ${isUserDish(dish.id) ? 'cursor-pointer' : ''}`}
-                  onClick={() => isUserDish(dish.id) && setEditingDish({ id: dish.id, dish })}
+                  } ${overrides.has(dish.id) ? 'ring-1 ring-primary/30' : ''}`}
+                  onClick={() => {
+                    if (isUserDish(dish.id)) {
+                      setEditingDish({ id: dish.id, dish });
+                    } else if (isAuthenticated) {
+                      // Find original dish (without override) for predefined/global dishes
+                      const original = allDishesRaw.find(d => d.id === dish.id);
+                      if (original) setCustomizingDish(original);
+                    }
+                  }}
                 >
                   <Button
                     variant="ghost"
@@ -724,7 +768,12 @@ export default function DishLibrary() {
                     />
                   </Button>
                   <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors pr-8">{dish.name}</h3>
+                    <div className="flex items-center gap-2 pr-8">
+                      <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">{dish.name}</h3>
+                      {overrides.has(dish.id) && (
+                        <Pencil className="h-3.5 w-3.5 text-primary shrink-0" />
+                      )}
+                    </div>
                   
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm">
@@ -836,6 +885,18 @@ export default function DishLibrary() {
               onOpenChange={(open) => !open && setEditingDish(null)}
               onDishUpdated={loadUserDishes}
               onDishDeleted={loadUserDishes}
+            />
+          )}
+
+          {customizingDish && (
+            <CustomizeDishDialog
+              dish={customizingDish}
+              personalizedDish={applyOverride(customizingDish)}
+              open={!!customizingDish}
+              onOpenChange={(open) => !open && setCustomizingDish(null)}
+              onSave={(data) => saveOverride(customizingDish.id, data)}
+              onReset={() => { deleteOverride(customizingDish.id); setCustomizingDish(null); }}
+              hasOverride={overrides.has(customizingDish.id)}
             />
           )}
 

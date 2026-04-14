@@ -24,6 +24,7 @@ import { MobileDayCard } from "@/components/MobileDayCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { WeeklyPlanGenerator } from "@/components/WeeklyPlanGenerator";
 import { AttendanceOverview } from "@/components/AttendanceOverview";
+import { useDishOverrides } from "@/hooks/useDishOverrides";
 
 type WeeklyMeals = {
   [key: string]: {
@@ -291,6 +292,7 @@ export default function WeeklyCalendar() {
   const { t, language, translateField } = useLanguage();
   const { user, isAuthenticated, loading } = useAuth();
   const { isPremium } = usePremium();
+  const { applyOverride } = useDishOverrides();
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -343,7 +345,8 @@ export default function WeeklyCalendar() {
     }),
     useSensor(KeyboardSensor)
   );
-  const allDishes = [...dinnerDishes, ...userDishes];
+  const allDishesRaw = [...dinnerDishes, ...userDishes];
+  const allDishes = allDishesRaw.map(dish => applyOverride(dish));
   const cuisines = Array.from(new Set(allDishes.map(dish => dish.cuisine))).sort();
 
   // Load groups and user dishes when user logs in
