@@ -768,7 +768,12 @@ export default function DishLibrary() {
                     />
                   </Button>
                   <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors pr-8">{dish.name}</h3>
+                    <div className="flex items-center gap-2 pr-8">
+                      <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">{dish.name}</h3>
+                      {overrides.has(dish.id) && (
+                        <Pencil className="h-3.5 w-3.5 text-primary shrink-0" />
+                      )}
+                    </div>
                   
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm">
