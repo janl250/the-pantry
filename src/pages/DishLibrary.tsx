@@ -9,11 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { dinnerDishes, convertUserDishToDish, type Dish } from "@/data/dishes";
-import { ArrowLeft, Search, Filter, Heart, Star, Shuffle, CalendarPlus, BarChart3, Clock, ChefHat, X, Sparkles } from "lucide-react";
+import { ArrowLeft, Search, Filter, Heart, Star, Shuffle, CalendarPlus, BarChart3, Clock, ChefHat, X, Sparkles, Pencil } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AddDishDialog } from "@/components/AddDishDialog";
 import { EditDishDialog } from "@/components/EditDishDialog";
+import { CustomizeDishDialog } from "@/components/CustomizeDishDialog";
+import { BulkImportDialog } from "@/components/BulkImportDialog";
 import { ScrollToTopButton } from "@/components/ScrollToTopButton";
 import { LoadingSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -21,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
+import { useDishOverrides } from "@/hooks/useDishOverrides";
 import { PremiumUpgradeDialog } from "@/components/PremiumUpgradeDialog";
 
 export default function DishLibrary() {
