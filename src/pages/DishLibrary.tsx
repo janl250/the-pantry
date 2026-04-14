@@ -740,10 +740,18 @@ export default function DishLibrary() {
               return (
                 <Card 
                   key={dish.id} 
-                  className={`group overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border bg-card/50 backdrop-blur-sm relative ${
+                  className={`group overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border bg-card/50 backdrop-blur-sm relative cursor-pointer ${
                     isFavorited ? 'border-amber-400/60 shadow-amber-400/20' : 'border-border/40'
-                  } ${isUserDish(dish.id) ? 'cursor-pointer' : ''}`}
-                  onClick={() => isUserDish(dish.id) && setEditingDish({ id: dish.id, dish })}
+                  } ${overrides.has(dish.id) ? 'ring-1 ring-primary/30' : ''}`}
+                  onClick={() => {
+                    if (isUserDish(dish.id)) {
+                      setEditingDish({ id: dish.id, dish });
+                    } else if (isAuthenticated) {
+                      // Find original dish (without override) for predefined/global dishes
+                      const original = allDishesRaw.find(d => d.id === dish.id);
+                      if (original) setCustomizingDish(original);
+                    }
+                  }}
                 >
                   <Button
                     variant="ghost"
