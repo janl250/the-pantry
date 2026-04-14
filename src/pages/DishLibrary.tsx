@@ -898,7 +898,7 @@ export default function DishLibrary() {
               onReset={() => { deleteOverride(customizingDish.id); setCustomizingDish(null); }}
               hasOverride={overrides.has(customizingDish.id)}
             />
-          )
+          )}
 
           {filteredDishes.length === 0 && (
             <div className="text-center py-16">
