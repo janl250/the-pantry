@@ -31,6 +31,7 @@ export default function DishLibrary() {
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
   const { isPremium } = usePremium();
+  const { overrides, saveOverride, deleteOverride, applyOverride } = useDishOverrides();
   const [showPremiumDialog, setShowPremiumDialog] = useState(false);
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,10 +42,12 @@ export default function DishLibrary() {
   const [selectedSortBy, setSelectedSortBy] = useState<string>("rating-desc");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [userDishes, setUserDishes] = useState<Dish[]>([]);
+  const [globalDishes, setGlobalDishes] = useState<Dish[]>([]);
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [editingDish, setEditingDish] = useState<{ id: string; dish: Dish } | null>(null);
+  const [customizingDish, setCustomizingDish] = useState<Dish | null>(null);
   const [dishRatings, setDishRatings] = useState<Map<string, { avg: number, count: number, userRating?: number }>>(new Map());
   const [randomDish, setRandomDish] = useState<Dish | null>(null);
   const [showRandomDialog, setShowRandomDialog] = useState(false);
