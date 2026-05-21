@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { WelcomeTour } from "@/components/WelcomeTour";
 import Index from "./pages/Index";
 import DishLibrary from "./pages/DishLibrary";
 
@@ -53,6 +54,7 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <WelcomeTour />
             </KeyboardShortcutsProvider>
           </BrowserRouter>
         </TooltipProvider>
